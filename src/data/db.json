@@ -1,0 +1,45 @@
+{
+  "auth": {
+    "email": "justin@beansmile.com",
+    "password": "12345678"
+  },
+  "users": {
+    "meta": {
+      "total": 2,
+      "per_page": 1,
+      "page": 1
+    },
+    "data": [{
+      "id": 1,
+      "email": "justin@beansmile.com",
+      "name": "Justin",
+      "roles": "管理员",
+      "created_at": "Mon Jul 25 2016 16:31:45 GMT+0800 (CST)"
+    },
+    {
+      "id": 2,
+      "email": "gdjyluxiaoyong@gmail.com",
+      "name": "Justin Lu",
+      "roles": "普通用户",
+      "created_at": "Mon Oct 10 2016 08:00:00 GMT+0800 (CST)"
+    }]
+  },
+  "menus": [
+    {
+      "name": "首页",
+      "url": "home",
+      "icon": "home"
+    },
+    {
+      "name": "操作记录",
+      "url": "operation_log",
+      "icon": "operation_log"
+    }
+
+  ],
+  "dashboard":{"code":0,"message":"SUCCESS","data":[{"id":1333992,"name":"验证含有from里面仅含有两种数据","type":"timeseries","dashboard_id":11997,"metrics":[{"metric":"system.net.packets_in.count","aggregator":"avg","type":"line","rate":false,"id":1482474283162,"tags":["device_name=eth1","device_name=eth2"],"by":["device_name"]}],"meta":{"modelType":"pro","indexBox":[1,0,0]}},{"id":1334605,"name":"当from里面的host标签被自定义标签包含时","type":"timeseries","dashboard_id":11997,"metrics":[{"metric":"system.net.packets_in.count","aggregator":"avg","type":"line","rate":false,"id":1482562652434,"tags":["address=wuhan","host=cmop"],"by":["device_name"]}],"meta":{"modelType":"pro"}},{"id":1334614,"name":"avg-system.load.1-timeseries","type":"timeseries","dashboard_id":11997,"metrics":[{"metric":"system.load.1","aggregator":"avg","type":"line","rate":false,"id":1482563260678,"tags":["address=bei","address=wuhan","host=102"],"by":["address","host"]}],"meta":{"modelType":"pro"}},{"id":1335324,"name":"{host:102,address:wuhan} by {host}","type":"timeseries","dashboard_id":11997,"metrics":[{"metric":"system.mem.free","aggregator":"avg","type":"line","rate":false,"id":1482717404051,"tags":["address=wuhan","host=102"],"by":["host"]}],"meta":{"modelType":"pro"}},{"id":1335327,"name":"avg-system.net.packets_in.count-timeseries","type":"timeseries","dashboard_id":11997,"metrics":[{"metric":"system.net.packets_in.count","aggregator":"avg","type":"line","rate":false,"id":1482717689331,"tags":["host=cmop","host=helloWorld1"],"by":["device_name","host"]}],"meta":{"modelType":"pro"}},{"id":1335345,"name":"ci对自定标签的分组","type":"timeseries","dashboard_id":11997,"metrics":[{"metric":"system.mem.free","aggregator":"avg","type":"line","rate":false,"id":1482719368176,"tags":["address=wuhan","host=ophost"],"by":["address"]}],"meta":{"modelType":"pro"}},{"id":1335363,"name":"avg-system.mem.free-timeseries","type":"timeseries","dashboard_id":11997,"metrics":[{"metric":"system.mem.free","aggregator":"avg","type":"line","rate":false,"id":1482721194625,"tags":null,"by":["address","level"]}],"meta":{"modelType":"pro"}},{"id":1335422,"name":"一个设想，按照by来区分一个metric,发送的sql次数,显然我对了","type":"timeseries","dashboard_id":11997,"metrics":[{"metric":"system.load.1","aggregator":"avg","type":"line","rate":false,"id":1482727560711,"tags":["address=wuhan","host=helloWorld1","level=1"],"by":["address"]}],"meta":{"modelType":"pro"}},{"id":1337562,"name":"103被忽略了","type":"timeseries","dashboard_id":11997,"metrics":[{"metric":"system.load.1","aggregator":"avg","type":"line","rate":false,"id":1482977591843,"tags":["oneapm=o1"],"by":["host"]}],"meta":{"modelType":"pro"}}]},
+
+  "metric":{"code":0,"message":"SUCCESS","data":[{"queryId":0,"aggregator":"avg","displayMetric":"system.mem.free","downsample":"60s-avg","start":1483713660000,"end":1483717260000,"interval":60,"metric":"system.mem.free","pointlist":{"1483713660":357.529296875,"1483713720":351.240234375,"1483713780":367.833984375,"1483713840":355.111328125,"1483713900":306.8046875,"1483713960":368.541015625,"1483714020":400.021484375,"1483714080":479.7890625,"1483714140":497.009765625,"1483714200":478.3828125,"1483714260":470.45703125,"1483714320":478.046875,"1483714380":479.544921875,"1483714440":477.783203125,"1483714500":463.5546875,"1483714560":452.634765625,"1483714620":450.31640625,"1483714680":458.646484375,"1483714740":486.427734375,"1483714800":673.798828125,"1483714860":662.724609375,"1483714920":652.212890625,"1483714980":668.77734375,"1483715040":666.107421875,"1483715100":597.27734375,"1483715160":601.47265625,"1483715220":603.70703125,"1483715280":677.83984375,"1483715340":673.732421875,"1483715400":664.658203125,"1483715460":659.53125,"1483715520":659.619140625,"1483715580":673.470703125,"1483715640":664.21484375,"1483715700":654.548828125,"1483715760":655.373046875,"1483715820":653.83203125,"1483715880":657.01953125,"1483715940":670.02734375,"1483716000":653.796875,"1483716060":653.984375,"1483716120":634.17578125,"1483716180":650.109375,"1483716240":639.19921875,"1483716300":638.654296875,"1483716360":633.4296875,"1483716420":635.55078125,"1483716480":641.81640625,"1483716540":661.236328125,"1483716600":655.40625,"1483716660":656.009765625,"1483716720":658.3203125,"1483716780":663.01171875,"1483716840":636.23046875,"1483716900":610.58984375,"1483716960":610.4453125,"1483717020":611.76171875,"1483717080":631.775390625,"1483717140":662.529296875,"1483717200":650.4296875,"1483717260":646.673828125},"queryTags":{"filter":{"address":["wuhan"],"host":["102"]},"group":["host"]},"tags":{"host":"101","user":"395098276"}},{"queryId":0,"aggregator":"avg","displayMetric":"system.mem.free","downsample":"60s-avg","start":1483713660000,"end":1483717260000,"interval":60,"metric":"system.mem.free","pointlist":{"1483713660":141.0,"1483713720":140.0,"1483713780":139.0,"1483713840":137.5,"1483713900":137.0,"1483713960":136.5,"1483714020":135.0,"1483714080":134.5,"1483714140":136.0,"1483714200":131.0,"1483714260":129.5,"1483714320":128.0,"1483714380":126.5,"1483714440":126.0,"1483714500":125.0,"1483714560":123.5,"1483714620":122.5,"1483714680":122.0,"1483714740":121.0,"1483714800":129.0,"1483714860":139.0,"1483714920":138.0,"1483714980":138.0,"1483715040":136.5,"1483715100":135.0,"1483715160":134.0,"1483715220":134.0,"1483715280":133.0,"1483715340":132.0,"1483715400":131.0,"1483715460":130.0,"1483715520":129.0,"1483715580":128.5,"1483715640":127.0,"1483715700":127.0,"1483715760":125.0,"1483715820":124.0,"1483715880":122.5,"1483715940":123.0,"1483716000":121.5,"1483716060":125.0,"1483716120":123.5,"1483716180":123.0,"1483716240":122.5,"1483716300":121.0,"1483716360":120.0,"1483716420":119.0,"1483716480":118.5,"1483716540":117.0,"1483716600":116.5,"1483716660":116.0,"1483716720":115.5,"1483716780":137.0,"1483716840":157.5,"1483716900":157.0,"1483716960":156.0,"1483717020":155.0,"1483717080":153.5,"1483717140":158.0,"1483717200":156.0,"1483717260":154.5},"queryTags":{"filter":{"address":["wuhan"],"host":["102"]},"group":["host"]},"tags":{"host":"102","user":"395098276"}}]}
+
+
+}

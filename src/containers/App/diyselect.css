@@ -1,0 +1,97 @@
+#DIYSelect {
+    display: none;
+    border: 1px solid #d7d7d7;
+    background-color: #fff;
+    position: absolute;
+    top: 33px;
+    left: 85px;
+    z-index: 10000;
+    font-size: 12px!important;
+}
+
+.show {
+    display: block!important;
+}
+
+#DIYSelect ul {
+    min-width: 153px;
+    height: 292px;
+    max-height: 310px;
+    margin: 0;
+    padding: 0;
+    display: block;
+    float: left;
+    position: relative;
+    z-index: 100000;
+    overflow-y: auto;
+    border-left: 1px solid #d7d7d7;
+}
+
+#DIYSelect ul li:first-child {
+    font-weight: 700;
+}
+
+#DIYSelect ul li {
+    min-width: 153px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    position: relative;
+    padding-left: 10px!important;
+    height: 29px;
+    line-height: 29px;
+    list-style: none;
+    border-bottom: 1px solid #d7d7d7;
+    cursor: pointer;
+}
+
+.dialog .ant-tabs-tabpane {
+    position: relative;
+    font-size: 12px!important;
+    color: #666!important;
+    font-family: PingFangSC!important;
+}
+
+#DIYSelect ul h3, #DIYSelect ul p {
+    padding-left: 10px!important;
+    margin: 0;
+    line-height: 1.7;
+}
+
+.dialog .ant-tabs-tabpane label {
+    position: relative;
+    z-index: 20;
+    font-weight: inherit;
+}
+
+#DIYSelect ul h3 {
+    word-break: break-all;
+    font-size: 12px!important;
+    font-weight: 700;
+}
+
+#DIYSelect ul li i {
+    position: absolute;
+    right: 5px;
+    top: 10px;
+    height: 10px;
+    width: 10px;
+    background: url(https://c.oneapm.com/v5.6.0/a7b3ab900d6993ce565e1a059ea4042a.svg);
+    background-size: cover;
+}
+
+#DIYSelect ul li.active, #DIYSelect ul li:hover {
+    background-color: #fbf0c3!important;
+}
+
+#DIYSelect ul:last-child {
+    width: 153px;
+}
+
+.masking {
+    left: 50%;
+    top: 20px;
+    position: fixed;
+    background-color: transparent;
+    z-index: 0;
+}
