@@ -3,11 +3,11 @@ import React from 'react';
 import { PropTypes } from 'react';
 import { fetchMetric } from './../actions/metric';
 import { connect } from 'react-redux';
-import {  Button, Row, Col, Select, Form, Icon, Card, Modal, Dropdown, Menu } from 'antd';
-import {retryFetch} from './../utils/cFetch'
+import { Button, Row, Col, Select, Form, Icon, Card, Modal, Dropdown, Menu } from 'antd';
+import { retryFetch } from './../utils/cFetch'
 import { API_CONFIG } from './../config/api';
 import cookie from 'js-cookie';
-import {setChartSelection, setChartCrossLine } from './../actions/chart';
+import { setChartSelection, setChartCrossLine } from './../actions/chart';
 import ReactDOM from 'react-dom';
 var moment = require('moment');
 
@@ -32,9 +32,16 @@ class ChartsHeatMap extends React.Component {
         };
     }
 
+    componentWillReceiveProps(nextProps) {
+        if (nextProps.chart.range != this.props.chart.range
+            || this.props.metrics != nextProps.metrics) {
+            this.doFetchData(nextProps.chart.range.startDate, nextProps.chart.range.endDate, nextProps.metrics);
+        }
 
-    doFetchData(startDate, endDate) {
-        if (!this.props.metrics)
+    }
+
+    doFetchData(startDate, endDate, metrics) {
+        if (!metrics)
             return;
 
         this.setState({
@@ -46,7 +53,7 @@ class ChartsHeatMap extends React.Component {
         });
 
 
-        let metricInfo = this.props.metrics[0];
+        let metricInfo = metrics[0];
         let interval = 3600;
         if (this.props.chart.range.startDate <= 3600000 * 24) {
             interval = 60;
@@ -77,7 +84,7 @@ class ChartsHeatMap extends React.Component {
                 interval: interval,
 
             }
-        }).then(function (response) {
+        }).then(function(response) {
             return response.json();
         }).then((json) => {
             this.setState({
@@ -111,7 +118,7 @@ class ChartsHeatMap extends React.Component {
     "tags":["address=wuhan","host=102"],"by":["host"]}
      */
     componentDidMount() {
-        this.doFetchData(this.props.chart.range.startDate, this.props.chart.range.endDate);
+        this.doFetchData(this.props.chart.range.startDate, this.props.chart.range.endDate, this.props.metrics);
     }
 
     componentDidUpdate() {
@@ -142,6 +149,8 @@ class ChartsHeatMap extends React.Component {
 
 
     buildSerieName(tags) {
+        if (tags == null || tags.length == 0)
+            return "*";
         let name = "";
         for (let [key, value] of Object.entries(tags)) {
             if (key == "user")
@@ -157,7 +166,7 @@ class ChartsHeatMap extends React.Component {
 
     render() {
         if (!this.props.metrics)
-            return <div/>;
+            return <div />;
         let metric = this.props.metrics[0];
 
         let isFetching = this.state.network.isFetching;
@@ -165,6 +174,9 @@ class ChartsHeatMap extends React.Component {
 
         let series = [];
         let legend = {};
+
+        let chart = this.props.chart;
+
         let tooltip = {
             backgroundColor: "rgba(0,0,0,0.5)",
             style: {                      // 文字内容相关样式
@@ -173,14 +185,37 @@ class ChartsHeatMap extends React.Component {
                 fontWeight: "blod",
                 fontFamily: "Courir new"
             },
-            pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y:.1f}</b> ({point.minute:,.0f} millions)<br/>',
+            formatter: function() {
+                console.log(this);
+                let endTime = moment(parseInt(chart.range.endDate));
+
+                let strTime = "";
+                //this.props.chart.range.startDate, this.props.chart.range.endDate
+                if (chart.range.startDate <= 3600000 * 24) {
+                    //y 轴 0~60 分钟
+                    //x 轴 就是1~24小时
+                    //  console.log(endTime.format("YYYY-MM-DD"));
+                    let xMax = parseInt(chart.range.startDate) / 3600000;
+
+                    let time = endTime.subtract(xMax - this.point.x, "hours");
+                    console.log(time.format("YYYY-MM-DD HH:mm:ss"));
+                    time = time.subtract(60 - this.point.y, "minutes");
+                    console.log(time.format("YYYY-MM-DD HH:mm:ss"));
+                    strTime = time.format("YYYY-MM-DD HH:mm:ss");
+                } else {
+                    //y 轴 0~24 小时
+                    //x 轴 就是1~30天
+                    //  console.log(endTime.format("YYYY-MM-DD"));
+
+                }
+
+                return metric.metric + '<br/>{' + strTime + '}<br/>{' + this.point.value.toFixed(2) + '}<br/>';
+            },
             shared: true
         };
 
         let xMin = null;
         let xMax = null;
-
-
 
         let chartType = this.props.type ? this.props.type : metric.type;
 
@@ -190,7 +225,7 @@ class ChartsHeatMap extends React.Component {
             };
             serie.data = [];
             serie.type = this.props.type ? this.props.type : metric.type;
-            serie.name = "name";
+            serie.name = this.buildSerieName(metric.tags);
             serie.showInLegend = false;
 
 
@@ -206,18 +241,20 @@ class ChartsHeatMap extends React.Component {
                 if (this.props.chart.range.startDate <= 3600000 * 24) {
                     //y 轴 0~60 分钟
                     //x 轴 就是1~24小时
+                    xMin = 1;
+                    xMax = parseInt(this.props.chart.range.startDate) / 3600000;
+
                     let endTime = moment(parseInt(this.props.chart.range.endDate));
                     //  console.log(endTime.format("YYYY-MM-DD"));
 
                     let time = moment(keyTime * 1000);
                     let hour = endTime.diff(time, 'hours');
                     time = time.add(hour, "hours");
-                    tmp.push(hour + 1);
-                    tmp.push(endTime.diff(time, 'minutes'));
+                    tmp.push(xMax - hour);
+                    tmp.push(60 - endTime.diff(time, 'minutes'));
                     //console.log(time.format("YYYY-MM-DD"));
                     // tmp.push('2013-12-11');
-                    xMin = 1;
-                    xMax = parseInt(this.props.chart.range.startDate) / 3600000;
+
 
 
                     tmp.push(pointlist[keyTime]);
@@ -257,23 +294,28 @@ class ChartsHeatMap extends React.Component {
             global: {
                 useUTC: false,
             },
+            legend: {
+                enabled: false
+            },
             //   colors: ['#008acd', '#2ec7c9', '#b6a2de', '#0cc2aa', '#6887ff', '#6cc788'],
             loading: {  // 加载中选项配置
                 labelStyle: {
                     fontSize: '12px'
                 }
             },
-            tooltip: {
-                headerFormat: 'Temperature<br/>',
-                pointFormat: '{point.x:%e %b, %Y} {point.y}:00: <b>{point.value} ℃</b>'
-            },
+            tooltip: tooltip,
             chart: {
 
             },
             title: {
                 text: null
             },
-
+            colorAxis: {
+                min: 1,
+                max: 1000,
+                type: 'linear',
+                lineWidth: 100,
+            },
             plotOptions: {
                 heatmap: {
                     marker: {
@@ -306,7 +348,7 @@ class ChartsHeatMap extends React.Component {
         let domProps = Object.assign({}, this.props.domProps, {
         });
 
-        return <ReactHighcharts ref="chart" config= { config } domProps={ domProps } />;
+        return <ReactHighcharts ref="chart" config={config} domProps={domProps} />;
     }
 }
 

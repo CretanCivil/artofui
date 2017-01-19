@@ -11,7 +11,7 @@ import {setChartSelection, setChartCrossLine } from './../actions/chart';
 import ReactDOM from 'react-dom';
 
 // React.Component
-class ChartsArea extends React.Component {
+class ChartsLine extends React.Component {
     static propTypes = {
         fetchMetric: React.PropTypes.func,
         metric: React.PropTypes.any
@@ -29,7 +29,8 @@ class ChartsArea extends React.Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        if (nextProps.chart.range != this.props.chart.range || this.props.metrics != nextProps.metrics) {
+        if (nextProps.chart.range != this.props.chart.range
+        || this.props.metrics != nextProps.metrics) {
             this.doFetchData(nextProps.chart.range.startDate, nextProps.chart.range.endDate, nextProps.metrics);
         }
 
@@ -153,7 +154,7 @@ class ChartsArea extends React.Component {
         return this.refs.chart.getChart();
     }
 
-
+    
 
     showCrossLine(props) {
         let ref = ReactDOM.findDOMNode(this.refs.chart);
@@ -225,7 +226,7 @@ class ChartsArea extends React.Component {
 
     }
 
-
+ 
 
     render() {
         if (!this.props.metrics)
@@ -337,7 +338,7 @@ class ChartsArea extends React.Component {
                 },
 
                 // categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-                visible: false,
+
             },
             yAxis: {
                 title: {
@@ -357,7 +358,7 @@ class ChartsArea extends React.Component {
                     //useHtml:true,
                     //zIndex: 1070,//没用
                 },
-                visible: false,
+                visible: xAxisVisible,
             },
             legend: legend,
             tooltip: tooltip,
@@ -407,12 +408,12 @@ class ChartsArea extends React.Component {
 
             onMouseMove: eventMouseMove
         });
-
+ 
         return <ReactHighcharts ref="chart" config={config} domProps={domProps} />;
     }
 }
 
-ChartsArea.childContextTypes = {
+ChartsLine.childContextTypes = {
     domProps: PropTypes.any,
     chartSelection: PropTypes.func
 };
@@ -445,4 +446,4 @@ export default connect(
     mapStateToProps,
     mapDispatchToProps,
     null, { withRef: true }
-)(ChartsArea);
+)(ChartsLine);

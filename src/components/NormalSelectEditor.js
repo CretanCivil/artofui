@@ -1,5 +1,4 @@
 import React from 'react';
-import { fetchNormal } from './../actions/normal';
 import { connect } from 'react-redux';
 import $ from 'jquery';
 
@@ -10,6 +9,13 @@ class NormalSelectEditor extends React.Component {
         this.state = {
             path: [0, 0, 0],
         };
+    }
+
+
+    componentWillReceiveProps(nextProps) {
+        this.setState({
+            path: nextProps.indexBox,
+        });
     }
 
     changeFirst(index) {
@@ -35,8 +41,8 @@ class NormalSelectEditor extends React.Component {
     }
     passData(metric_name, path) {
         //console.log(metric_name,path);
-        
-        this.props.setMetrics( metric_name, path);
+
+        this.props.setMetrics(metric_name, path);
         //this.props.passData(e);
         this.props.closeBox();
     }
@@ -46,10 +52,7 @@ class NormalSelectEditor extends React.Component {
 
 
 
-    componentDidMount() {
-        this.props.fetchNormal();
 
-    }
     render() {
 
         var e = $(".dialog"),
@@ -58,13 +61,13 @@ class NormalSelectEditor extends React.Component {
             r = e.css("height");
         t.css("width", n);
         t.css("height", r);
-        t.css("margin-left",-1 * (parseInt(n) / 2 + 8 ) );
-        
+        t.css("margin-left", -1 * (parseInt(n) / 2 + 8));
+
 
         const { normalModel: { data } } = this.props;
 
-        if (data.length == 0)
-            return <div/>
+        if (data.length == 0 || !this.state.path || this.state.path.length < 3)
+            return <div />
 
 
         let subData = data[this.state.path[0]];
@@ -72,42 +75,42 @@ class NormalSelectEditor extends React.Component {
         let theItem = thirdData[Object.keys(thirdData)][this.state.path[2]];
 
         return <div id="DIYSelect" className={this.props.show === true ? "show" : ""}>
-            <div  className="masking" onClick={this.closeByMasking.bind(this) }/>
+            <div className="masking" onClick={this.closeByMasking.bind(this)} />
             <ul>
                 <li>平台 & 平台服务</li>
                 {data.map(function (child, index) {
-                    return <li  onMouseOver={this.changeFirst.bind(this, index) }
+                    return <li onMouseOver={this.changeFirst.bind(this, index)}
                         key={index}
                         className={this.state.path[0] === index ? "active" : ""}>
-                        {Object.keys(child) }
-                        <i/>
+                        {Object.keys(child)}
+                        <i />
                     </li>;
-                }, this) }
+                }, this)}
 
 
             </ul>
             <ul>
                 <li>指标类别</li>
                 {subData[Object.keys(subData)].map(function (child, index) {
-                    return <li  onMouseOver={this.changeSecond.bind(this, index) }
+                    return <li onMouseOver={this.changeSecond.bind(this, index)}
                         key={index}
                         className={this.state.path[1] === index ? "active" : ""}>
-                        {Object.keys(child) }
-                        <i/>
+                        {Object.keys(child)}
+                        <i />
                     </li>;
-                }, this) }
+                }, this)}
             </ul>
             <ul>
                 <li>指标项</li>
                 {thirdData[Object.keys(thirdData)].map(function (child, index) {
-                    return <li  onMouseOver={this.changeThird.bind(this, index) }
+                    return <li onMouseOver={this.changeThird.bind(this, index)}
                         key={index}
                         className={this.state.path[2] === index ? "active" : ""}
-                        onClick={this.passData.bind(this, theItem[Object.keys(theItem)].metric_name, this.state.path) } >
-                        {Object.keys(child) }
-                        <i/>
+                        onClick={this.passData.bind(this, theItem[Object.keys(theItem)].metric_name, this.state.path)} >
+                        {Object.keys(child)}
+                        <i />
                     </li>;
-                }, this) }
+                }, this)}
             </ul>
             <ul>
                 <li>指标含义</li>
@@ -121,9 +124,6 @@ class NormalSelectEditor extends React.Component {
 
 }
 
-
-
-
 // Which part of the Redux global state does our component want to receive as props?
 function mapStateToProps(state) {
     const { normalModel } = state;
@@ -132,15 +132,6 @@ function mapStateToProps(state) {
     };
 }
 
-// Which action creators does it want to receive by props?
-function mapDispatchToProps(dispatch) {
-    // bindActionCreators(ActionCreators, dispatch)
-    return {
-        fetchNormal: (params) => dispatch(fetchNormal(params))
-    };
-}
-
 export default connect(
     mapStateToProps,
-    mapDispatchToProps,
 )(NormalSelectEditor);

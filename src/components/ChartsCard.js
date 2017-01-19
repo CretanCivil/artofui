@@ -4,7 +4,6 @@ import { PropTypes } from 'react';
 import { connect } from 'react-redux';
 import {  Button, Row, Col, Select, Form, Icon, Card, Modal, Dropdown, Menu } from 'antd';
 import CustomCharts from './CustomCharts';
-import DialogChartView from './CustomCharts';
 
 
 // React.Component
@@ -21,7 +20,7 @@ export default class ChartsCard extends React.Component {
 
     clickSetting() {
        // this.refs.chart.getWrappedInstance().getChart().showLoading();
-       this.props.setting(true,this.props.chart.metrics);
+       this.props.setting(true,this.props.chart.metrics,this.props.chart.type);
     }
 
     menuClick(e) {
@@ -103,7 +102,7 @@ export default class ChartsCard extends React.Component {
                 </Col>
             </Row>} bordered={false} >
                 <CustomCharts
-                    metrics={this.props.chart.metrics} ref="chart" domProps={domProps} />
+                    metrics={this.props.chart.metrics} type="line" ref="chart" domProps={domProps} />
             </Card>
 
             

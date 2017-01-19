@@ -29,13 +29,13 @@ class ChartsTable extends React.Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        if (nextProps.chart.range != this.props.chart.range) {
-            this.doFetchData(nextProps.chart.range.startDate, nextProps.chart.range.endDate);
+        if (nextProps.chart.range != this.props.chart.range || this.props.metrics != nextProps.metrics) {
+            this.doFetchData(nextProps.chart.range.startDate, nextProps.chart.range.endDate,nextProps.metrics);
         }
     }
 
-    doFetchData(startDate, endDate) {
-        if (!this.props.metrics)
+    doFetchData(startDate, endDate, metrics) {
+        if (!metrics)
             return;
 
         this.setState({
@@ -46,7 +46,7 @@ class ChartsTable extends React.Component {
             }
         });
 
-        let metricInfo = this.props.metrics[0];
+        let metricInfo = metrics[0];
 
         let interval = startDate / 1000 + 1;
 
@@ -117,7 +117,7 @@ class ChartsTable extends React.Component {
     "tags":["address=wuhan","host=102"],"by":["host"]}
      */
     componentDidMount() {
-        this.doFetchData(this.props.chart.range.startDate, this.props.chart.range.endDate);
+        this.doFetchData(this.props.chart.range.startDate, this.props.chart.range.endDate, this.props.metrics);
     }
 
     componentDidUpdate() {
@@ -183,7 +183,7 @@ class ChartsTable extends React.Component {
                 address: this.buildSerieName(data[key].tags),
             });
         }
-        return <Table style={{}} scroll={{ y: 140 }} bordered={false} pagination={false} columns={columns} dataSource={tableData} size="small" />
+        return <Table style={{minHeight:160,}} scroll={{ y: 140 }} bordered={false} pagination={false} columns={columns} dataSource={tableData} size="small" />
     }
 }
 

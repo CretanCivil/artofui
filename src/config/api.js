@@ -16,5 +16,7 @@ export const API_CONFIG = {
   metric: '/v1/query.json',
   tags: '/v1/tags.json',
   normal_model: '/v1/metric_types/normal_mode_list',
-  all_metrics: '/v1/metrics.json'
+  all_metrics: '/v1/metrics.json',
+  buckets: '/v1/events/buckets.json',
 };
+

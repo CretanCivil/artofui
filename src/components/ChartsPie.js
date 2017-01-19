@@ -3,15 +3,15 @@ import React from 'react';
 import { PropTypes } from 'react';
 import { fetchMetric } from './../actions/metric';
 import { connect } from 'react-redux';
-import {  Button, Row, Col, Select, Form, Icon, Card, Modal, Dropdown, Menu } from 'antd';
-import {retryFetch} from './../utils/cFetch'
+import { Button, Row, Col, Select, Form, Icon, Card, Modal, Dropdown, Menu } from 'antd';
+import { retryFetch } from './../utils/cFetch'
 import { API_CONFIG } from './../config/api';
 import cookie from 'js-cookie';
-import {setChartSelection, setChartCrossLine } from './../actions/chart';
+import { setChartSelection, setChartCrossLine } from './../actions/chart';
 import ReactDOM from 'react-dom';
 
 // React.Component
-class TreeMapCharts extends React.Component {
+class ChartsPie extends React.Component {
     static propTypes = {
         fetchMetric: React.PropTypes.func,
         metric: React.PropTypes.any
@@ -28,8 +28,14 @@ class TreeMapCharts extends React.Component {
         };
     }
 
-    doFetchData(startDate, endDate) {
-        if(!this.props.metrics)
+    componentWillReceiveProps(nextProps) {
+        if (nextProps.chart.range != this.props.chart.range || this.props.metrics != nextProps.metrics) {
+            this.doFetchData(nextProps.chart.range.startDate, nextProps.chart.range.endDate, nextProps.metrics);
+        }
+    }
+
+    doFetchData(startDate, endDate, metrics) {
+        if(!metrics)
             return;
 
         this.setState({
@@ -40,10 +46,11 @@ class TreeMapCharts extends React.Component {
             }
         });
 
-        let metricInfo = this.props.metrics[0];
+        let metricInfo = metrics[0];
 
         let chartType = this.props.type ? this.props.type : metricInfo.type;
         let interval = startDate / 1000 + 1;
+
         let q = metricInfo.aggregator + ":" + metricInfo.metric;
         //avg:system.load.1
         if (metricInfo.tags) {
@@ -90,19 +97,6 @@ class TreeMapCharts extends React.Component {
             console.log("error", error);
         });
 
-
-        /*
-                //metricInfo.aggregator + ":" +　metricInfo.metric + "{" + metricInfo.tags+"}by{"+metricInfo.by + "}",
-                //"avg:system.mem.free{address=wuhan,host=102}by{host}"
-        
-                this.props.fetchMetric({
-                    id: this.props.id,
-                    q: q,
-                    begin: startDate,
-                    end: endDate,
-                    interval: startDate / 60000
-                });
-        */
     }
 
     /*
@@ -111,7 +105,7 @@ class TreeMapCharts extends React.Component {
     "tags":["address=wuhan","host=102"],"by":["host"]}
      */
     componentDidMount() {
-        this.doFetchData(this.props.chart.range.startDate, this.props.chart.range.endDate);
+        this.doFetchData(this.props.chart.range.startDate, this.props.chart.range.endDate, this.props.metrics);
     }
 
     componentDidUpdate() {
@@ -160,32 +154,7 @@ class TreeMapCharts extends React.Component {
         let data = this.state.network.data;
 
         let series = [];
-
-
-        let xAxisVisible = true;
-
-        let chartType = this.props.type ? this.props.type : metric.type;
-
-        let serie = {};
-        serie.data = [];
-        serie.type = this.props.type ? this.props.type : metric.type;
-        serie.layoutAlgorithm = 'squarified';
-        for (let key in data) {
-            let pointlist = data[key].pointlist;
-            let metricTags = data[key].tags;
-            for (var keyTime in pointlist) {
-                if (pointlist[keyTime] == null)
-                    continue;
-                let piePice = {};
-                piePice.value = pointlist[keyTime];
-                piePice.name = this.buildSerieName(metricTags);
-                serie.data.push(piePice);
-                //[129.2, 144.0, 176.0, 135.6, 148.5, 216.4, 194.1, 95.6, 54.4, 29.9, 71.5, 106.4]
-            }
-        }
-        series.push(serie);
-
-
+        let legend = {};
         let tooltip = {
             backgroundColor: "rgba(247,247,247,0.85)",
             style: {                      // 文字内容相关样式
@@ -196,11 +165,56 @@ class TreeMapCharts extends React.Component {
                 fill: "#333333",
             },
             formatter: function () {
-                return metric.metric + '<br/>{' + this.point.name + '}<br/>{' + this.point.value.toFixed(2) + '}<br/>';
+                return metric.metric + '<br/>{' + this.point.name + '}<br/>{' + this.y.toFixed(2) + "(" + (this.y / this.total * 100).toFixed(2) + '%)}<br/>';
             },
-           
-            shared: true
+
+            shared: false
         };
+
+
+        let xAxisVisible = true;
+
+        let eventMouseMove = null;
+        let eventSelection = null;
+
+        let chartType = this.props.type ? this.props.type : metric.type;
+
+        let serie = {};
+        serie.data = [];
+        serie.type = this.props.type ? this.props.type : metric.type;
+
+        for (let key in data) {
+
+            let pointlist = data[key].pointlist;
+            let metricTags = data[key].tags;
+
+            for (var keyTime in pointlist) {
+                if (pointlist[keyTime] == null)
+                    continue;
+                let piePice = {};
+                piePice.y = pointlist[keyTime];
+
+                piePice.name = this.buildSerieName(metricTags);
+
+                serie.data.push(piePice);
+                //[129.2, 144.0, 176.0, 135.6, 148.5, 216.4, 194.1, 95.6, 54.4, 29.9, 71.5, 106.4]
+            }
+
+        }
+
+        series.push(serie);
+
+
+        legend = {//控制图例显示位置
+            layout: 'vertical',
+            align: 'left',
+            floating: true,
+            x: 560,
+            y: 15,
+            verticalAlign: 'top',
+            borderWidth: 0
+        };
+
 
         const config = {
             global: {
@@ -212,12 +226,24 @@ class TreeMapCharts extends React.Component {
                     fontSize: '12px'
                 }
             },
-
             title: {
                 text: null
             },
 
+            legend: legend,
             tooltip: tooltip,
+
+            plotOptions: {
+                pie: {
+                    allowPointSelect: true,
+                    cursor: 'pointer',
+                    dataLabels: {
+                        enabled: false
+                    },
+                    showInLegend: true,
+                    innerSize: '50%'
+                },
+            },
 
             series: series,
             credits: {
@@ -226,15 +252,14 @@ class TreeMapCharts extends React.Component {
         };
 
         let domProps = Object.assign({}, this.props.domProps, {
-
-            
+           
         });
 
         return <ReactHighcharts ref="chart" config={config} domProps={domProps} />;
     }
 }
 
-TreeMapCharts.childContextTypes = {
+ChartsPie.childContextTypes = {
     domProps: PropTypes.any,
     chartSelection: PropTypes.func
 };
@@ -267,4 +292,4 @@ export default connect(
     mapStateToProps,
     mapDispatchToProps,
     null, { withRef: true }
-)(TreeMapCharts);
+)(ChartsPie);

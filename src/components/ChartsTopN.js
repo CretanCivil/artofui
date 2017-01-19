@@ -1,7 +1,7 @@
 import ReactHighcharts from 'react-highcharts';
 import React, { PropTypes } from 'react';
 import { connect } from 'react-redux';
-import {retryFetch} from './../utils/cFetch';
+import { retryFetch } from './../utils/cFetch';
 import { API_CONFIG } from './../config/api';
 
 // React.Component
@@ -19,24 +19,34 @@ class ChartsTopN extends React.Component {
                 data: [],
                 error: null,
             },
+            metrics: null,
         };
     }
 
 
     componentDidMount() {
-        this.doFetchData(this.props.chart.range.startDate, this.props.chart.range.endDate);
+        this.setState({
+            metrics: JSON.parse(JSON.stringify(this.props.metrics)),
+        });
+        this.doFetchData(this.props.chart.range.startDate, this.props.chart.range.endDate, this.props.metrics);
     }
 
     componentWillReceiveProps(nextProps) {
-        if (nextProps.chart.range != this.props.chart.range) {
-            this.doFetchData(nextProps.chart.range.startDate, nextProps.chart.range.endDate);
+        if (nextProps.chart.range != this.props.chart.range || this.props.metrics != nextProps.metrics) {
+            this.doFetchData(nextProps.chart.range.startDate, nextProps.chart.range.endDate, nextProps.metrics);
         }
+        /*  if (nextProps.metrics[0].metric !== this.state.metrics[0].metric) {
+              this.setState({
+                  metrics: JSON.parse(JSON.stringify(this.props.metrics)),
+              });
+              this.doFetchData(nextProps.chart.range.startDate, nextProps.chart.range.endDate);
+          }*/
     }
 
 
 
-    doFetchData(startDate, endDate) {
-        if (!this.props.metrics)
+    doFetchData(startDate, endDate, metrics) {
+        if (!metrics)
             return;
 
         this.setState({
@@ -47,7 +57,7 @@ class ChartsTopN extends React.Component {
             }
         });
 
-        let metricInfo = this.props.metrics[0];
+        let metricInfo = metrics[0];
 
         let interval = startDate / 1000 + 1;
 
@@ -144,14 +154,14 @@ class ChartsTopN extends React.Component {
 
     render() {
         if (!this.props.metrics)
-            return <div/>;
+            return <div />;
         let metric = this.props.metrics[0];
 
         let data = this.state.network.data;
 
         let series = [];
         let legend = {};
-        let tooltip =  {
+        let tooltip = {
             backgroundColor: "rgba(247,247,247,0.85)",
             style: {                      // 文字内容相关样式
                 color: "#333333",
@@ -161,32 +171,65 @@ class ChartsTopN extends React.Component {
                 fill: "#333333",
             },
             pointFormat: metric.metric + '<br/>{point.value:.1f}<br/>',
-            shared: false
+            shared: false,
+            enabled: false,
         };
 
         let xAxisVisible = true;
 
+
+        let serie = {};
+        serie.data = [];
+        serie.type = this.props.type ? this.props.type : metric.type;
+
+        serie.showInLegend = false;
+        let serieNames = [];
+
+        serie.dataLabels = {
+            enabled: true,
+            // rotation: -90,
+            color: '#FFFFFF',
+            align: 'left',
+            verticalAlign: 'middle',
+            formatter: function () {
+                console.log(this);
+                //serie.name = this.buildSerieName(data[key].tags);
+                return '{' + serieNames[this.x] + '}';
+            }, // one decimal
+            inside: true,
+            // y: 10, // 10 pixels down from the top
+            style: {
+                fontSize: '13px',
+                fontFamily: 'Verdana, sans-serif'
+            }
+        };
+
+
+        let serieDatas = [];
+
+        data.sort(function (a, b) {
+            return Object.values(b.pointlist)[0] - Object.values(a.pointlist)[0]
+        });
         for (let key in data) {
-            let serie = {};
-            serie.data = [];
-            serie.type = this.props.type ? this.props.type : metric.type;
-            serie.name = "name";
-            serie.showInLegend = false;
-            let serieDatas = [];
             let pointlist = data[key].pointlist;
+            serieNames[key] = this.buildSerieName(data[key].tags);
 
             for (var keyTime in pointlist) {
                 if (pointlist[keyTime] == null)
                     continue;
                 let tmp = [];
 
+                tmp.push(pointlist[keyTime].toFixed(2) + " pkt");
                 tmp.push(pointlist[keyTime]);
                 serieDatas.push(tmp);
                 //[129.2, 144.0, 176.0, 135.6, 148.5, 216.4, 194.1, 95.6, 54.4, 29.9, 71.5, 106.4]
             }
             serie.data = serieDatas;
-            series.push(serie);
+            if(serie.data.length > 4)
+                break;
+
         }
+        series.push(serie);
         xAxisVisible = false;
 
 
@@ -206,11 +249,6 @@ class ChartsTopN extends React.Component {
                 }
             },
             chart: {
-                zoomType: 'x',
-                panning: true,
-                panKey: 'shift',
-
-
 
             },
             title: {
@@ -221,50 +259,17 @@ class ChartsTopN extends React.Component {
                 title: {
                     text: null
                 },
-                type: 'datetime',
-
-                dateTimeLabelFormats: {
-                    millisecond: '%H:%M:%S.%L',
-                    second: '%H:%M:%S',
-                    minute: '%H:%M',
-                    hour: '%H:%M',
-                    day: '%m/%d',
-                    month: '%Y/%m',
-                    year: '%Y'
-                },
-                labels: {
-                    //type:'datetime',
-                    // format: '{value:%H:%M}'
-                    style: {
-                        //'background-color': 'rgba(255, 255, 255, 0.8)',//没用
-                        'padding': '0px 3px',
-                        'font-size': '12px',
-                        'color': '#333',
-
-                    },
-                },
-
-                // categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-
+                type: 'category',
+                //categories: ['Jan', 'Feb'],
+                lineColor: 'transparent',
+                tickColor: '',
+                tickWidth: 3
             },
             yAxis: {
                 title: {
                     text: null
                 },
-                labels: {
-                    align: 'left',
-                    x: -2,
-                    y: 5,
-                    style: {
-                        //'background-color': 'rgba(255, 255, 255, 0.8)',//没用
-                        'padding': '0px 3px',
-                        'font-size': '12px',
-                        'color': '#333',
-
-                    },
-                    //useHtml:true,
-                    //zIndex: 1070,//没用
-                },
+                lineColor: 'red',
                 visible: xAxisVisible,
             },
             legend: legend,
@@ -281,7 +286,8 @@ class ChartsTopN extends React.Component {
                     fillOpacity: 0.2
                 },
                 area: {
-                    fillOpacity: 0.2
+                    fillOpacity: 0.2,
+
                 },
                 series: {
                     marker: {
@@ -294,15 +300,7 @@ class ChartsTopN extends React.Component {
                         followPointer: true,
                     }
                 },
-                pie: {
-                    allowPointSelect: true,
-                    cursor: 'pointer',
-                    dataLabels: {
-                        enabled: false
-                    },
-                    showInLegend: true,
-                    innerSize: '50%'
-                },
+
             },
 
             series: series,

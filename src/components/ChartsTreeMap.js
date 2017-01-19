@@ -11,7 +11,7 @@ import { setChartSelection, setChartCrossLine } from './../actions/chart';
 import ReactDOM from 'react-dom';
 
 // React.Component
-class PieCharts extends React.Component {
+class ChartsTreeMap extends React.Component {
     static propTypes = {
         fetchMetric: React.PropTypes.func,
         metric: React.PropTypes.any
@@ -29,13 +29,15 @@ class PieCharts extends React.Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        if (nextProps.chart.range != this.props.chart.range) {
-            this.doFetchData(nextProps.chart.range.startDate, nextProps.chart.range.endDate);
+        if (nextProps.chart.range != this.props.chart.range
+            || this.props.metrics != nextProps.metrics) {
+            this.doFetchData(nextProps.chart.range.startDate, nextProps.chart.range.endDate, nextProps.metrics);
         }
+
     }
 
-    doFetchData(startDate, endDate) {
-        if(!this.props.metrics)
+    doFetchData(startDate, endDate,metrics) {
+        if (!metrics)
             return;
 
         this.setState({
@@ -46,11 +48,10 @@ class PieCharts extends React.Component {
             }
         });
 
-        let metricInfo = this.props.metrics[0];
+        let metricInfo = metrics[0];
 
         let chartType = this.props.type ? this.props.type : metricInfo.type;
         let interval = startDate / 1000 + 1;
-
         let q = metricInfo.aggregator + ":" + metricInfo.metric;
         //avg:system.load.1
         if (metricInfo.tags) {
@@ -97,6 +98,19 @@ class PieCharts extends React.Component {
             console.log("error", error);
         });
 
+
+        /*
+                //metricInfo.aggregator + ":" +　metricInfo.metric + "{" + metricInfo.tags+"}by{"+metricInfo.by + "}",
+                //"avg:system.mem.free{address=wuhan,host=102}by{host}"
+        
+                this.props.fetchMetric({
+                    id: this.props.id,
+                    q: q,
+                    begin: startDate,
+                    end: endDate,
+                    interval: startDate / 60000
+                });
+        */
     }
 
     /*
@@ -105,7 +119,7 @@ class PieCharts extends React.Component {
     "tags":["address=wuhan","host=102"],"by":["host"]}
      */
     componentDidMount() {
-        this.doFetchData(this.props.chart.range.startDate, this.props.chart.range.endDate);
+        this.doFetchData(this.props.chart.range.startDate, this.props.chart.range.endDate, this.props.metrics);
     }
 
     componentDidUpdate() {
@@ -140,21 +154,46 @@ class PieCharts extends React.Component {
                 name += ",";
             name += key + ":" + value;
         }
-        if(!name)
+        if (!name)
             name = "*";
         return name;
     }
 
     render() {
         if (!this.props.metrics)
-            return <div/>;
+            return <div />;
         let metric = this.props.metrics[0];
 
         let isFetching = this.state.network.isFetching;
         let data = this.state.network.data;
 
         let series = [];
-        let legend = {};
+
+
+        let xAxisVisible = true;
+
+        let chartType = this.props.type ? this.props.type : metric.type;
+
+        let serie = {};
+        serie.data = [];
+        serie.type = this.props.type ? this.props.type : metric.type;
+        serie.layoutAlgorithm = 'squarified';
+        for (let key in data) {
+            let pointlist = data[key].pointlist;
+            let metricTags = data[key].tags;
+            for (var keyTime in pointlist) {
+                if (pointlist[keyTime] == null)
+                    continue;
+                let piePice = {};
+                piePice.value = pointlist[keyTime];
+                piePice.name = this.buildSerieName(metricTags);
+                serie.data.push(piePice);
+                //[129.2, 144.0, 176.0, 135.6, 148.5, 216.4, 194.1, 95.6, 54.4, 29.9, 71.5, 106.4]
+            }
+        }
+        series.push(serie);
+
+
         let tooltip = {
             backgroundColor: "rgba(247,247,247,0.85)",
             style: {                      // 文字内容相关样式
@@ -165,56 +204,11 @@ class PieCharts extends React.Component {
                 fill: "#333333",
             },
             formatter: function () {
-                return metric.metric + '<br/>{' + this.point.name + '}<br/>{' + this.y.toFixed(2) + "(" + (this.y / this.total * 100).toFixed(2) + '%)}<br/>';
+                return metric.metric + '<br/>{' + this.point.name + '}<br/>{' + this.point.value.toFixed(2) + '}<br/>';
             },
 
-            shared: false
+            shared: true
         };
-
-
-        let xAxisVisible = true;
-
-        let eventMouseMove = null;
-        let eventSelection = null;
-
-        let chartType = this.props.type ? this.props.type : metric.type;
-
-        let serie = {};
-        serie.data = [];
-        serie.type = this.props.type ? this.props.type : metric.type;
-
-        for (let key in data) {
-
-            let pointlist = data[key].pointlist;
-            let metricTags = data[key].tags;
-
-            for (var keyTime in pointlist) {
-                if (pointlist[keyTime] == null)
-                    continue;
-                let piePice = {};
-                piePice.y = pointlist[keyTime];
-
-                piePice.name = this.buildSerieName(metricTags);
-
-                serie.data.push(piePice);
-                //[129.2, 144.0, 176.0, 135.6, 148.5, 216.4, 194.1, 95.6, 54.4, 29.9, 71.5, 106.4]
-            }
-
-        }
-
-        series.push(serie);
-
-
-        legend = {//控制图例显示位置
-            layout: 'vertical',
-            align: 'left',
-            floating: true,
-            x: 560,
-            y: 15,
-            verticalAlign: 'top',
-            borderWidth: 0
-        };
-
 
         const config = {
             global: {
@@ -226,24 +220,12 @@ class PieCharts extends React.Component {
                     fontSize: '12px'
                 }
             },
+
             title: {
                 text: null
             },
 
-            legend: legend,
             tooltip: tooltip,
-
-            plotOptions: {
-                pie: {
-                    allowPointSelect: true,
-                    cursor: 'pointer',
-                    dataLabels: {
-                        enabled: false
-                    },
-                    showInLegend: true,
-                    innerSize: '50%'
-                },
-            },
 
             series: series,
             credits: {
@@ -252,14 +234,15 @@ class PieCharts extends React.Component {
         };
 
         let domProps = Object.assign({}, this.props.domProps, {
-           
+
+
         });
 
         return <ReactHighcharts ref="chart" config={config} domProps={domProps} />;
     }
 }
 
-PieCharts.childContextTypes = {
+ChartsTreeMap.childContextTypes = {
     domProps: PropTypes.any,
     chartSelection: PropTypes.func
 };
@@ -292,4 +275,4 @@ export default connect(
     mapStateToProps,
     mapDispatchToProps,
     null, { withRef: true }
-)(PieCharts);
+)(ChartsTreeMap);

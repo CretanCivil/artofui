@@ -1,13 +1,16 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { Button, Row, Col, Select, Modal, Tabs, Spin, Checkbox, Input, Radio } from 'antd';
+import { Button, Row, Col, Select,  Modal, Tabs, Spin, Checkbox, Input } from 'antd';
 const Option = Select.Option;
 const TabPane = Tabs.TabPane;
 import CustomCharts from './CustomCharts';
+import PieCharts from './PieCharts';
+import TreeMapCharts from './TreeMapCharts';
+import ChartsHeatMap from './ChartsHeatMap';
+import ChartsTopN from './ChartsTopN';
+import ChartsTable from './ChartsTable';
+import ChartsArea from './ChartsArea';
 import ChartsDetailSetting from './ChartsDetailSetting';
-const RadioButton = Radio.Button;
-const RadioGroup = Radio.Group;
-import { fetchNormal } from './../actions/normal';
 
 // React.Component
 class DialogChartSetting extends React.Component {
@@ -16,73 +19,35 @@ class DialogChartSetting extends React.Component {
 
         this.state = {
             metrics: null,
-            chartType: "line",
-            hasby: false,
         };
     }
 
-    componentWillMount() {
-        this.setState({
-            metrics: Array.from(this.props.metrics),
-            chartType: this.props.type == "timeseries" ? "line" : this.props.type,
-        });
-        this.initHasby(this.props.type);
+  componentWillMount() {
+
+      this.setState({
+          metrics: Array.from(this.props.metrics),
+      });
     }
 
-    componentDidMount() {
-        this.props.fetchNormal();
-    }
-
-    passData(params) {
-        let tags = params.host.map(function(item) {
-            return item.replace(":", "=")
-        });
-        let arr = Array.from(this.state.metrics);
-        let metric = Object.assign({}, arr[0], {
-            aggregator: params.agg,
-            by: params.by.length > 0 ? params.by : null,
-            tags: tags.length > 0 ? tags : null,
-            metric: params.metricName,
-        });
-
-        arr[0] = metric;
-
-        this.setState({
-            metrics: arr,
-        });
-    }
-
-    initHasby(chartType) {
-        switch (chartType) {
-            case "heatmap":
-            case "area":
-                this.setState({
-                    hasby: false,
-                });
-                break;
-            default:
-                this.setState({
-                    hasby: true,
-                });
-        }
-
-    }
-
+ 
     genMetricPanelNormal() {
-        let panels = this.state.metrics.map(function(item, index) {
-            return <ChartsDetailSetting passData={this.passData.bind(this)} key={index} metric={item} hasby={this.state.hasby} />
-        }, this);
-        return panels;
-    }
 
-    changeChartType(event) {
-        this.setState({
-            chartType: event.target.value,
-        });
-        this.initHasby(event.target.value);
+
+
+        let panels = this.state.metrics.map(function (item,index) {
+          
+            return <ChartsDetailSetting key={index} metric={item}/>
+                 
+        }, this);
+
+        return panels;
+
     }
 
     render() {
+  
+
+
         let panelNormal = this.genMetricPanelNormal();
 
         return < Modal
@@ -99,33 +64,88 @@ class DialogChartSetting extends React.Component {
             >
 
             <Row style={{ paddingTop: 25, }}></Row>
+            <Tabs tabPosition="bottom">
+                <TabPane tab="事件流" key="1">
+                    <div className="example">
+                        <Spin />
+                    </div>
+                </TabPane>
+                <TabPane tab="热力图" key="2">
+                    <div className="example">
+                        <ChartsHeatMap
+                            metrics={this.state.metrics}
+                            type="heatmap"
+                            ref="chart_heatmap"
+                            domProps={{ style: { height: 160, width: 928 }, }} />
 
+                    </div>
+                </TabPane>
+                <TabPane tab="图标" key="3">
+                    <div className="example">
+                        <Spin width={100} />
+                    </div>
+                </TabPane>
+                <TabPane tab="饼图" key="4">
+                    <div className="example">
+                        <PieCharts
+                            metrics={this.state.metrics}
+                            type="pie"
+                            ref="chart"
+                            domProps={{ style: { height: 160, width: 928 }, }} />
+                    </div>
+                </TabPane>
+                <TabPane tab="状态值" key="5">
+                    <div className="example">
+                        <ChartsArea
+                            metrics={this.state.metrics}
+                            type="area"
+                            ref="chart_area"
+                            domProps={{ style: { height: 160, width: 928 }, }} />
+                    </div>
+                </TabPane>
 
-            <CustomCharts
-                metrics={this.state.metrics}
-                type={this.state.chartType}
-                ref="chart_heatmap"
-                domProps={{ style: { height: 160, width: 928 }, }} />
+                <TabPane tab="表格" key="6">
+                    <div className="example" style={{ marginTop: -15, height: 175 }}>
+                        <ChartsTable
+                            metrics={this.state.metrics}
+                            type="area" />
+                    </div>
+                </TabPane>
+                <TabPane tab="时间序列" key="7">
+                    <div className="example">
+                        <CustomCharts
+                            metrics={this.state.metrics}
+                            type="spline"
+                            ref="chart_line"
+                            domProps={{ style: { height: 160, width: 928 }, }} />
+                    </div>
+                </TabPane>
+                <TabPane tab="TopN" key="8">
+                    <div className="example">
+                        <ChartsTopN
+                            metrics={this.state.metrics}
+                            type="bar"
+                            ref="chart_bar"
+                            domProps={{ style: { height: 160, width: 928 }, }} />
+                    </div>
+                </TabPane>
+                <TabPane tab="树状图" key="9">
+                    <div className="example">
+                        <TreeMapCharts
+                            metrics={this.state.metrics}
+                            type="treemap"
+                            ref="chart_tree"
+                            domProps={{ style: { height: 160, width: 928 }, }} />
+                    </div>
+                </TabPane>
 
-            <RadioGroup onChange={this.changeChartType.bind(this)} defaultValue={this.state.chartType} size="large">
-                <RadioButton value="column">事件流</RadioButton>
-                <RadioButton value="heatmap">热力图</RadioButton>
-                <RadioButton value="icon">图标</RadioButton>
-                <RadioButton value="pie">饼图</RadioButton>
-
-                <RadioButton value="area">状态值</RadioButton>
-                <RadioButton value="table">表格</RadioButton>
-                <RadioButton value="line">时间序列</RadioButton>
-                <RadioButton value="bar">TopN</RadioButton>
-
-                <RadioButton value="treemap">树状图</RadioButton>
-            </RadioGroup>
-
-
+            </Tabs>
 
             <Row style={{ padding: 10, paddingLeft: 0 }}>选择和编辑指标</Row>
             <Tabs className="dialog proTab">
                 <TabPane tab="普通模式" key="1">
+
+
                     {panelNormal}
 
                 </TabPane>
@@ -194,15 +214,6 @@ function mapStateToProps(state) {
 }
 
 // Which action creators does it want to receive by props?
-function mapDispatchToProps(dispatch) {
-    // bindActionCreators(ActionCreators, dispatch)
-    return {
-        fetchNormal: (params) => dispatch(fetchNormal(params))
-    };
-}
-
-// Which action creators does it want to receive by props?
 export default connect(
     mapStateToProps,
-    mapDispatchToProps,
 )(DialogChartSetting);

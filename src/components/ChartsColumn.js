@@ -3,15 +3,16 @@ import React from 'react';
 import { PropTypes } from 'react';
 import { fetchMetric } from './../actions/metric';
 import { connect } from 'react-redux';
-import {  Button, Row, Col, Select, Form, Icon, Card, Modal, Dropdown, Menu } from 'antd';
-import {retryFetch} from './../utils/cFetch'
+import { Button, Row, Col, Select, Form, Icon, Card, Modal, Dropdown, Menu } from 'antd';
+import { retryFetch } from './../utils/cFetch'
 import { API_CONFIG } from './../config/api';
 import cookie from 'js-cookie';
-import {setChartSelection, setChartCrossLine } from './../actions/chart';
+import { setChartSelection, setChartCrossLine } from './../actions/chart';
 import ReactDOM from 'react-dom';
+import moment from 'moment';
 
 // React.Component
-class ChartsArea extends React.Component {
+class ChartsColumn extends React.Component {
     static propTypes = {
         fetchMetric: React.PropTypes.func,
         metric: React.PropTypes.any
@@ -29,10 +30,12 @@ class ChartsArea extends React.Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        if (nextProps.chart.range != this.props.chart.range || this.props.metrics != nextProps.metrics) {
+        if (nextProps.chart.range != this.props.chart.range
+            || this.props.metrics != nextProps.metrics) {
             this.doFetchData(nextProps.chart.range.startDate, nextProps.chart.range.endDate, nextProps.metrics);
         }
 
+      
         if (nextProps.chart.crossLine.pos != this.props.chart.crossLine.pos) {
             this.showCrossLine(nextProps);
         }
@@ -40,6 +43,7 @@ class ChartsArea extends React.Component {
         if (nextProps.chart.selection != this.props.chart.selection) {
             this.chartSelection(nextProps);
         }
+
     }
 
     doFetchData(startDate, endDate, metrics) {
@@ -54,31 +58,21 @@ class ChartsArea extends React.Component {
             }
         });
 
+        //start=1484727960000&end=1484731560000&interval=120000
+
+
         let metricInfo = metrics[0];
 
+        let chartType = this.props.type ? this.props.type : metricInfo.type;
+        let interval = startDate / 30;
 
-        let interval = startDate / 60000;
 
-        let q = metricInfo.aggregator + ":" + metricInfo.metric;
-        //avg:system.load.1
-        if (metricInfo.tags) {
-            q += "{" + metricInfo.tags + "}";
-        }
-
-        if (metricInfo.by) {
-            if (!metricInfo.tags) {
-                q += "{}";
-            }
-            q += "by{" + metricInfo.by + "}";
-        }
-
-        retryFetch(API_CONFIG.metric, {
+        retryFetch(API_CONFIG.buckets, {
             method: "GET",
             retries: 3,
             retryDelay: 10000,
             params: {
-                q: q,
-                begin: startDate,
+                start: endDate - startDate,
                 end: endDate,
                 interval: interval,
 
@@ -147,7 +141,6 @@ class ChartsArea extends React.Component {
 
         return data2 != data || isFetching != isFetching2;
     }
-
 
     getChart() {
         return this.refs.chart.getChart();
@@ -226,76 +219,111 @@ class ChartsArea extends React.Component {
     }
 
 
+    buildSerieName(tags) {
+        let name = "";
+        for (let [key, value] of Object.entries(tags)) {
+            if (key == "user")
+                continue;
+            if (name)
+                name += ",";
+            name += key + ":" + value;
+        }
+        if (!name)
+            name = "*";
+        return name;
+    }
 
     render() {
         if (!this.props.metrics)
-            return <div/>;
+            return <div />;
         let metric = this.props.metrics[0];
 
         let isFetching = this.state.network.isFetching;
         let data = this.state.network.data;
 
         let series = [];
-        let legend = {};
-        let tooltip = {
-            backgroundColor: "rgba(0,0,0,0.5)",
-            style: {                      // 文字内容相关样式
-                color: "#ffffff",
-                fontSize: "12px",
-                fontWeight: "blod",
-                fontFamily: "Courir new"
-            },
-            pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y:.1f}</b> ({point.minute:,.0f} millions)<br/>',
-            shared: true
-        };
+
 
         let xAxisVisible = true;
 
-        let eventMouseMove = null;
-        let eventSelection = null;
-
         let chartType = this.props.type ? this.props.type : metric.type;
 
+        let info = {};
+        info.showInLegend = false;
+        info.data = [];
+
+        let alert = {};
+        alert.showInLegend = false;
+        alert.data = [];
+
+        let warning = {};
+        warning.showInLegend = false;
+        warning.data = [];
+
+        let eventMouseMove = null;
+        let eventSelection = null;
         eventMouseMove = this.handleMouseMove.bind(this);
         eventSelection = this.handleChartSelection.bind(this);
-        for (let key in data) {
-            let serie = {};
-            serie.data = [];
-            serie.type = this.props.type ? this.props.type : metric.type;
-            serie.name = "name";
-            serie.showInLegend = false;
-            let serieDatas = [];
-            let pointlist = data[key].pointlist;
 
-            for (var keyTime in pointlist) {
-                if (pointlist[keyTime] == null)
-                    continue;
-                let tmp = [];
-                tmp.push(keyTime * 1000);
-                tmp.push(pointlist[keyTime]);
-                serieDatas.push(tmp);
-                //[129.2, 144.0, 176.0, 135.6, 148.5, 216.4, 194.1, 95.6, 54.4, 29.9, 71.5, 106.4]
-            }
-            serie.data = serieDatas;
-            series.push(serie);
+
+        let pointlist = data.buckets ? data.buckets : [];
+        for (var event of pointlist) {
+
+            info.data.push([event.time, event.events.info]);
+            alert.data.push([event.time, event.events.alert]);
+            warning.data.push([event.time, event.events.warning]);
+            //[129.2, 144.0, 176.0, 135.6, 148.5, 216.4, 194.1, 95.6, 54.4, 29.9, 71.5, 106.4]
         }
 
 
+        series.push(alert);
+        series.push(warning);
+        series.push(info);
+
+        let tooltip = {
+            backgroundColor: "rgba(247,247,247,0.85)",
+            style: {                      // 文字内容相关样式
+                color: "#333333",
+                fontSize: "12px",
+                fontWeight: "blod",
+                fontFamily: "Courir new",
+                fill: "#333333",
+            },
+            formatter: function () {
+                let tips = '<b>' + moment(this.x).format('YYYY-MM-DD HH:mm') + '</b><br/>';
+                if (this.points[0].y > 0) {
+                    tips += '<b><span color=' + this.points[0].color + '>alert:</span>' + this.y + '</b><br/>';
+                }
+
+                if (this.points[1].y > 0) {
+                    tips += '<b>warning:' + this.y + '</b><br/>';
+                }
+
+                if (this.points[2].y > 0) {
+                    tips += '<b>info:' + this.y + '</b><br/>';
+                }
+
+                return tips;
 
 
 
+            },
+
+            shared: true
+        };
 
         const config = {
             global: {
                 useUTC: false,
             },
-            colors: ['#008acd', '#2ec7c9', '#b6a2de', '#0cc2aa', '#6887ff', '#6cc788'],
+            colors: ['rgb(254,121,84)', '#f00', '#ccc',],
             loading: {  // 加载中选项配置
                 labelStyle: {
                     fontSize: '12px'
                 }
             },
             chart: {
+                type: 'column',
                 zoomType: 'x',
                 panning: true,
                 panKey: 'shift',
@@ -305,24 +333,10 @@ class ChartsArea extends React.Component {
                     selection: eventSelection
                 }
             },
-            title: {
-                text: null
-            },
             xAxis: {
-                id: "xaxis",
+                type: 'datetime',
                 title: {
                     text: null
-                },
-                type: 'datetime',
-
-                dateTimeLabelFormats: {
-                    millisecond: '%H:%M:%S.%L',
-                    second: '%H:%M:%S',
-                    minute: '%H:%M',
-                    hour: '%H:%M',
-                    day: '%m/%d',
-                    month: '%Y/%m',
-                    year: '%Y'
                 },
                 labels: {
                     //type:'datetime',
@@ -335,9 +349,6 @@ class ChartsArea extends React.Component {
 
                     },
                 },
-
-                // categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-                visible: false,
             },
             yAxis: {
                 title: {
@@ -357,45 +368,18 @@ class ChartsArea extends React.Component {
                     //useHtml:true,
                     //zIndex: 1070,//没用
                 },
-                visible: false,
             },
-            legend: legend,
-            tooltip: tooltip,
 
-            plotOptions: {
-                line: { // base series options
-                    allowPointSelect: false,
-                    showCheckbox: false,
-                    animation: true,
-                    cursor: 'default',
-                    enableMouseTracking: true,
-                    stickyTracking: true,
-                    fillOpacity: 0.2
-                },
-                area: {
-                    fillOpacity: 0.2
-                },
-                series: {
-                    marker: {
-                        enabled: false,//是否显示节点
-                    },
-                    stickyTracking: true,
-                },
-                scatter: {
-                    tooltip: {
-                        followPointer: true,
-                    }
-                },
-                pie: {
-                    allowPointSelect: true,
-                    cursor: 'pointer',
-                    dataLabels: {
-                        enabled: false
-                    },
-                    showInLegend: true,
-                    innerSize: '50%'
-                },
+            title: {
+                text: null
             },
+            plotOptions: {
+                column: {
+                    stacking: 'normal'
+                }
+            },
+            tooltip: tooltip,
+            legend: {},
 
             series: series,
             credits: {
@@ -412,7 +396,7 @@ class ChartsArea extends React.Component {
     }
 }
 
-ChartsArea.childContextTypes = {
+ChartsColumn.childContextTypes = {
     domProps: PropTypes.any,
     chartSelection: PropTypes.func
 };
@@ -445,4 +429,4 @@ export default connect(
     mapStateToProps,
     mapDispatchToProps,
     null, { withRef: true }
-)(ChartsArea);
+)(ChartsColumn);
