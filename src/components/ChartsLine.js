@@ -252,6 +252,12 @@ class ChartsLine extends React.Component {
 
     }
 
+    handleMouseDown(e) {
+        
+          e.stopPropagation();
+         
+    }
+
     initConfig(network) {
         let isFetching = network.isFetching;
         let data = network.data;
@@ -441,7 +447,7 @@ class ChartsLine extends React.Component {
         let domProps = this.props.domProps;
         //if (!this.props.dragingCharts.isDraging) {
         domProps = Object.assign({}, this.props.domProps, {
-
+            onMouseDown: this.handleMouseDown.bind(this),
             onMouseMove: this.handleMouseMove.bind(this)
         });
         // }

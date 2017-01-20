@@ -181,6 +181,7 @@ class ChartsTable extends React.Component {
             title: '标签',
             dataIndex: 'address',
             width: 150,
+            sorter: (a, b) => a > b,
         }];
 
 
@@ -195,7 +196,7 @@ class ChartsTable extends React.Component {
                 address: this.buildSerieName(data[key].tags),
             });
         }
-        return <Table style={{ minHeight: 160, }} scroll={{ y: 140 }} bordered={false} pagination={false} columns={columns} dataSource={tableData} size="small" />
+        return <div style={{height: '100%',overflow: 'auto'}}><Table  bordered={false} pagination={false} columns={columns} dataSource={tableData} size="small" /></div>
     }
 }
 

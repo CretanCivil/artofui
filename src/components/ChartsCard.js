@@ -40,10 +40,11 @@ class ChartsCard extends React.Component {
     onMeasure(dimensions) {
         this.setState({ dimensions: dimensions });
         console.log(this.refs.chart);
-       // if (this.refs.chart && this.refs.chart.getChart()) {
-        //    this.refs.chart.getChart().reflow();
-        //    this.refs.chart.getChart().redraw();
-       // }
+        if (this.refs.chart && this.refs.chart.getChart()) {
+            this.refs.chart.getChart().setSize(dimensions.width, dimensions.height - 48);
+            // this.refs.chart.getChart().reflow();
+            //  this.refs.chart.getChart().redraw();
+        }
 
     }
 
@@ -52,10 +53,10 @@ class ChartsCard extends React.Component {
 
         let series = [];
 
-       
+
 
         let domProps = Object.assign({}, this.props.domProps, {
-             style: {  height: this.props.containerHeight - 48 },
+            style: { height: '100%' },
         });
 
         const menu = (
@@ -65,34 +66,34 @@ class ChartsCard extends React.Component {
                 <Menu.Item key="3">3d menu item</Menu.Item>
             </Menu>
         );
-//<Measure style={{ height: '100%' }} onMeasure={this.onMeasure.bind(this)}>
-        return  <Card title={this.props.chart.name}
-                className="chart"
-                style={{ height: '100%' }}
-                extra={
-                    <Row>
-                        <Col span="7" offset="1">
-                            <Button icon="arrows-alt" size="small" onClick={() => this.props.expand(true, this.props.chart)} />
-                        </Col>
-                        <Col span="7" offset="1">
-                            <Button icon="edit" size="small" onClick={this.clickSetting.bind(this)} />
-                        </Col>
+
+        return <Measure style={{ height: '100%' }} onMeasure={this.onMeasure.bind(this)}><Card title={this.props.chart.name}
+            className="chart"
+            style={{ height: '100%' }}
+            extra={
+                <Row>
+                    <Col span="7" offset="1">
+                        <Button icon="arrows-alt" size="small" onClick={() => this.props.expand(true, this.props.chart)} />
+                    </Col>
+                    <Col span="7" offset="1">
+                        <Button icon="edit" size="small" onClick={this.clickSetting.bind(this)} />
+                    </Col>
 
 
-                        <Col span="7" offset="1">
-                            <Dropdown overlay={menu} trigger={['click']}>
-                                <Button icon="setting" size="small" />
-                            </Dropdown>
-                        </Col>
-                    </Row>
-                }
-                bordered={false} >
-                <CustomCharts
-                    metrics={this.props.chart.metrics}
-                    type={this.props.chart.type == 'timeseries' ? 'line' : this.props.chart.type}
-                    ref="chart"
-                    domProps={domProps} />
-            </Card>;
+                    <Col span="7" offset="1">
+                        <Dropdown overlay={menu} trigger={['click']}>
+                            <Button icon="setting" size="small" />
+                        </Dropdown>
+                    </Col>
+                </Row>
+            }
+            bordered={false} >
+            <CustomCharts
+                metrics={this.props.chart.metrics}
+                type={this.props.chart.type == 'timeseries' ? 'line' : this.props.chart.type}
+                ref="chart"
+                domProps={domProps} />
+        </Card></Measure>;
     }
 }
 
