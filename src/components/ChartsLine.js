@@ -64,12 +64,12 @@ class ChartsLine extends React.Component {
                 q += ';';
 
             q += metricInfo.aggregator;
-            
-            if(metricInfo.rate) {
+
+            if (metricInfo.rate) {
                 q += ":rate";
             }
-            
-             q += ":" + metricInfo.metric;
+
+            q += ":" + metricInfo.metric;
             //avg:system.load.1
             let tags = null;
 
@@ -253,9 +253,9 @@ class ChartsLine extends React.Component {
     }
 
     handleMouseDown(e) {
-        
-          e.stopPropagation();
-         
+        //精髓 精髓 屏蔽事件穿透 否则拖拽拉伸时间轴不行
+        e.stopPropagation();
+
     }
 
     initConfig(network) {
