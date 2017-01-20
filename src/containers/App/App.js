@@ -2,11 +2,12 @@ import React, { PropTypes, Component } from 'react';
 import { connect } from 'react-redux';
 import Login from './../Login/Login';
 import { Link } from 'react-router';
-import './App.scss';
+
 import './boot.scss';
 import './daterangepicker.css';
 import './ali.css';
 import './diyselect.css';
+import './App.scss';
 import { Menu, Breadcrumb, Icon, Modal, Row, Col, Input, Button, Select, Tabs, Spin, Table, Checkbox } from 'antd';
 
 import ReactHighcharts from 'react-highcharts';
@@ -42,7 +43,7 @@ class App extends Component {
   renderAuthenticatedPage() {
     return (
       <div className="ant-layout-aside">
-        <aside className="ant-layout-sider" style={{ height: 1800 }}>
+        <aside className="ant-layout-sider" >
           <div className="ant-layout-logo"/>
           <Menu mode="inline" theme="dark"
             defaultSelectedKeys={['1']} defaultOpenKeys={['sub1']}>
@@ -70,15 +71,15 @@ class App extends Component {
               <Breadcrumb.Item>用户列表</Breadcrumb.Item>
             </Breadcrumb>
           </div>
-          <div className="ant-layout-container"   style={{ background: '#ECECEC' }}>
+          <div className="ant-layout-container">
             <div className="ant-layout-content">
               <div>
                 {this.props.children}
               </div>
             </div>
           </div>
-          <div className="ant-layout-footer" style={{ float: "left", marginTop: 50 }}>
-            Ant Design 版权所有 © 2015 由蚂蚁金服体验技术部支持
+          <div className="ant-layout-footer">
+            Ant Design & reactjs & redux & oneapm.com
           </div>
         </div>
       </div>

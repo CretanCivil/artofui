@@ -13,10 +13,17 @@ import { fetchAllMetrics } from './../../actions/all_metrics';
 import DialogChartView from './../../components/DialogChartView';
 import DialogChartSetting from './../../components/DialogChartSetting';
 import { setChartRange } from './../../actions/chart';
-
+import { setDraging } from './../../actions/app';
+var WidthProvider = require('react-grid-layout').WidthProvider;
+var ReactGridLayout = require('react-grid-layout');
+ReactGridLayout = WidthProvider(ReactGridLayout);
 import { Button, Row, Col, Select, Form, Icon, } from 'antd';
 let DateRangerPicker = require('react-bootstrap-daterangepicker');
 let moment = require('moment');
+import { retryFetch,toQueryString } from '../../utils/cFetch'
+import { API_CONFIG } from '../../config/api';
+import '../../../node_modules/react-grid-layout/css/styles.css';
+import '../../../node_modules/react-resizable/css/styles.css';
 
 import ReactHighcharts from 'react-highcharts';
 import highchartsTreemap from 'highcharts-treemap';
@@ -33,7 +40,8 @@ Highcharts.setOptions({
     global: {
         useUTC: false,
         //timezoneOffset: 8
-    }
+    },
+
 });
 
 
@@ -82,7 +90,8 @@ export class ChartsPage extends React.Component {
                 metric: null,
                 show: false,
                 type: null,
-            }
+            },
+            layout: [],
         };
 
         this.props.setChartRange({
@@ -101,10 +110,89 @@ export class ChartsPage extends React.Component {
     }
 
     componentDidMount() {
-        this.props.fetchDashboard();
-        this.props.fetchTags();
-        this.props.fetchAllMetrics();
+        this.doFetchData();
     }
+
+
+    doFetchData() {
+        retryFetch(API_CONFIG.show, {
+            method: "GET",
+            retries: 3,
+            retryDelay: 10000,
+            params: {
+            }
+        }).then(function(response) {
+            return response.json();
+        }).then((json) => {
+            let layout = [];
+            if (json.result) {
+
+
+                console.log("json.result.order", JSON.parse(json.result.order));
+                for (let data of JSON.parse(json.result.order)) {
+                    console.log(data);
+                    let tmp = {};
+                    tmp.i = data[0];
+                    tmp.x = data[1];
+                    tmp.y = data[2];
+                    tmp.w = data[3];
+                    tmp.h = data[4];
+                    tmp.minW = 3;
+                    layout.push(tmp);
+                }
+
+                this.setState({
+                    layout: layout,
+
+                });
+                console.log("json", json);
+            }
+            this.props.fetchDashboard();
+            this.props.fetchTags();
+            this.props.fetchAllMetrics();
+        });
+    }
+
+    updateLyaouts(layout) {
+        retryFetch(API_CONFIG.updateLayout, {
+            method: "POST",
+            retries: 3,
+            retryDelay: 10000,
+            body: 'charts='+encodeURIComponent(JSON.stringify(layout))
+        }).then(function(response) {
+            return response.json();
+        }).then((json) => {
+            let layout = [];
+            if (json.result) {
+                console.log("json.result.order", JSON.parse(json.result.order));
+                for (let data of JSON.parse(json.result.order)) {
+                    console.log(data);
+                    let tmp = {};
+                    tmp.i = data[0];
+                    tmp.x = data[1];
+                    tmp.y = data[2];
+                    tmp.w = data[3];
+                    tmp.h = data[4];
+                    tmp.minW = 3;
+                    layout.push(tmp);
+                }
+
+                this.setState({
+                    layout: layout,
+
+                });
+                console.log("json", json);
+            }
+        });
+    }
+
+    //https://cloud.oneapm.com/v1/dashboards/11997/update.json
+    /*
+    charts:[["1335363",1,0,3,2],["1335324",4,0,4,2],["1334614",8,0,4,2],["1340727",0,2,4,2],["1335422",4,2,4,2],["1337562",8,2,4,2],["1334605",0,4,4,2],["1353676",4,4,4,2],["1335345",8,4,4,2],["1333992",3,6,5,3],["1335327",8,6,4,2],["1344412",8,8,4,2],["1340726",0,9,4,2],["1353280",0,11,4,2]]
+
+    
+     */
+
 
     onChange(value, selectedOptions) {
         const lastSelected = selectedOptions[selectedOptions.length - 1];
@@ -205,29 +293,78 @@ export class ChartsPage extends React.Component {
         });
     }
 
+    onLayoutChange(layout) {
+
+        let datas = [];
+
+
+        for (let data of layout) {
+            let tmp = [];
+            tmp.push(data.i, data.x, data.y, data.w, data.h)
+
+            datas.push(tmp);
+        }
+
+
+
+        this.updateLyaouts(datas);
+    }
+
+    onResize(layout, oldLayoutItem, layoutItem, placeholder, e, element) {
+        // `oldLayoutItem` contains the state of the item before the resize.
+        // You can modify `layoutItem` to enforce constraints.
+
+        console.log(this.refs["chart_" + layoutItem.i]);
+
+        if (layoutItem.h < 3 && layoutItem.w > 2) {
+            layoutItem.w = 2;
+            placeholder.w = 2;
+        }
+
+        if (layoutItem.h >= 3 && layoutItem.w < 2) {
+            layoutItem.w = 2;
+            placeholder.w = 2;
+        }
+    }
+
+
+    onDragStart(layout, oldLayoutItem, layoutItem, placeholder, e, element) {
+        this.props.setDraging({
+            isDraging: true,
+            item: layoutItem,
+        });
+    }
+    // Calls on each drag movement.
+    onDrag(layout, oldLayoutItem, layoutItem, placeholder, e, element) {
+
+    }
+    // Calls when drag is complete.
+    onDragStop(layout, oldLayoutItem, layoutItem, placeholder, e, element) {
+        this.props.setDraging({
+            isDraging: false,
+            item: null,
+        });
+    }
+
     render() {
-
-
-
         const { dashboard: { data, isFetching } } = this.props;
         const { tags } = this.props;
 
         if (isFetching) {
             return (
                 <div>gettting</div>
-
             );
         }
 
         let charts = [];
         for (let i = 0; i < data.length; i++) {
             let chart = data[i];
-            let col = <ChartsCard key={"div_" + chart.id}
+            let col = <div key={chart.id} style={{ backgroundColor: 'white', height: '100%' }}><ChartsCard
                 ref={"chart_" + chart.id}
                 chart={chart}
                 expand={this.showChartDialog.bind(this)}
                 setting={this.showDialog.bind(this)}
-                />;
+                /></div>;
             charts.push(col);
         }
 
@@ -240,6 +377,17 @@ export class ChartsPage extends React.Component {
 
 
         /*
+        var layouts = getLayoutsFromSomewhere();
+  return (
+    <ResponsiveReactGridLayout className="layout" layouts={layouts}
+      breakpoints={{lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0}}
+      cols={{lg: 12, md: 10, sm: 6, xs: 4, xxs: 2}}>
+      <div key={"1"}>1</div>
+      <div key={"2"}>2</div>
+      <div key={"3"}>3</div>
+    </ResponsiveReactGridLayout>
+  )
+
          <CascadeSelect style={{ width: 200, }}
                           defaultValue={['alibaba', 'platform', 'fe']}
                           options={casCadeoptions}
@@ -255,8 +403,12 @@ export class ChartsPage extends React.Component {
             timePickerSeconds: React.PropTypes.bool,
              */
         return (
-            <div style={{ marginLeft: -20 }}>
-                <Row type="flex" justify="space-between" style={{ marginLeft: 10 }}>
+            <div style={{}}>
+
+
+
+
+                <Row key={"4"} type="flex" justify="space-between" style={{ marginLeft: 10 }}>
                     <Col span={8}>
                         <Form inline >
                             <FormItem>
@@ -292,15 +444,20 @@ export class ChartsPage extends React.Component {
                         </Row>
                     </Col>
                 </Row>
+                <ReactGridLayout layout={this.state.layout} style={{ width: '100%' }} className="layout"
+                    onDragStart={this.onDragStart.bind(this)}
+                    onDrag={this.onDrag.bind(this)}
+                    onDragStop={this.onDragStop.bind(this)}
+                    onLayoutChange={this.onLayoutChange.bind(this)} >
 
-                {charts}
-
-                {this.state.settingChart.show ? <DialogChartSetting
+                    {charts}
+                </ReactGridLayout>
+                {this.state.settingChart.show ? <DialogChartSetting key="DialogChartSetting"
                     tags={tags}
                     type={this.state.settingChart.type}
                     metrics={this.state.settingChart.metric}
                     showDialog={this.showDialog.bind(this)} /> : ''}
-                {this.state.expandChart.show ? <DialogChartView
+                {this.state.expandChart.show ? <DialogChartView key="DialogChartView"
                     chart={this.state.expandChart.chart}
                     type={this.state.expandChart.type}
                     tags={tags}
@@ -330,7 +487,7 @@ function mapDispatchToProps(dispatch) {
         fetchTags: (params) => dispatch(fetchTags(params)),
         fetchAllMetrics: (params) => dispatch(fetchAllMetrics(params)),
         setChartRange: (params) => dispatch(setChartRange(params)),
-
+        setDraging: (params) => dispatch(setDraging(params)),
     };
 }
 

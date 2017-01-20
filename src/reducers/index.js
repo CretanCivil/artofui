@@ -7,6 +7,7 @@ import chart from './chart';
 import reducersGenerate from './reducersGenerate';
 import reducersCloundGenerate from './reducersCloundGenerate';
 import reducersMetricsGenerate from './reducersMetricsGenerate';
+import {dragingCharts} from './app';
 
 import {
   USER,
@@ -33,7 +34,8 @@ const rootReducer = combineReducers({
   tags,
   normalModel,
   allMetrics,
-  chart
+  chart,
+  dragingCharts
 });
 
 export default rootReducer;

@@ -93,7 +93,7 @@ function getUriParam(keys, object) {
   return array.join('&');
 }
 
-function toQueryString(object) {
+export function toQueryString(object) {
   const array = [];
 
   for (const key in object) {

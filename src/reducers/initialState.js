@@ -41,13 +41,17 @@ export default {
       endDate: 0,
     },
     selection: {
-      min:0,
-      max:0,
-      resetSelection:false,
+      min: 0,
+      max: 0,
+      resetSelection: false,
     },
     crossLine: {
-      pos:0,
+      pos: 0,
     }
+  },
+  dragingCharts: {
+    isDraging: false,
+    item:null,
   },
 
 };

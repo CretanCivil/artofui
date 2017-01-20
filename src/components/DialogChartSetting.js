@@ -8,6 +8,7 @@ import ChartsDetailSetting from './ChartsDetailSetting';
 const RadioButton = Radio.Button;
 const RadioGroup = Radio.Group;
 import { fetchNormal } from './../actions/normal';
+import ChartsModelTypeSettingPro from './ChartsModelTypeSettingPro';
 
 // React.Component
 class DialogChartSetting extends React.Component {
@@ -18,6 +19,7 @@ class DialogChartSetting extends React.Component {
             metrics: null,
             chartType: "line",
             hasby: false,
+            modelType: 'normal',
         };
     }
 
@@ -33,19 +35,20 @@ class DialogChartSetting extends React.Component {
         this.props.fetchNormal();
     }
 
-    passData(params) {
+    passData(index,params) {
         let tags = params.host.map(function(item) {
             return item.replace(":", "=")
         });
         let arr = Array.from(this.state.metrics);
-        let metric = Object.assign({}, arr[0], {
+        let metric = Object.assign({}, arr[index], {
             aggregator: params.agg,
             by: params.by.length > 0 ? params.by : null,
             tags: tags.length > 0 ? tags : null,
             metric: params.metricName,
+            rate: params.rate ? true : false,
         });
 
-        arr[0] = metric;
+        arr[index] = metric;
 
         this.setState({
             metrics: arr,
@@ -70,9 +73,18 @@ class DialogChartSetting extends React.Component {
 
     genMetricPanelNormal() {
         let panels = this.state.metrics.map(function(item, index) {
-            return <ChartsDetailSetting passData={this.passData.bind(this)} key={index} metric={item} hasby={this.state.hasby} />
+            return <ChartsDetailSetting passData={this.passData.bind(this,index)} key={index} metric={item} hasby={this.state.hasby} />
         }, this);
         return panels;
+    }
+
+    genProModel() {
+        let panels = this.state.metrics.map(function(item, index) {
+            return <ChartsModelTypeSettingPro passData={this.passData.bind(this,index)} key={index} metric={item} hasby={this.state.hasby} />
+        }, this);
+        return panels;
+
+        
     }
 
     changeChartType(event) {
@@ -82,8 +94,15 @@ class DialogChartSetting extends React.Component {
         this.initHasby(event.target.value);
     }
 
+    changeModelType(event) {
+        this.setState({
+            modelType: event.target.value,
+        });
+    }
+
+
     render() {
-        let panelNormal = this.genMetricPanelNormal();
+        let panelNormal = this.state.modelType === 'normal' ? this.genMetricPanelNormal() : this.genProModel();
 
         return < Modal
             title={this.state.metrics ? "编辑图表" : "添加图表"}
@@ -124,56 +143,15 @@ class DialogChartSetting extends React.Component {
 
 
             <Row style={{ padding: 10, paddingLeft: 0 }}>选择和编辑指标</Row>
-            <Tabs className="dialog proTab">
-                <TabPane tab="普通模式" key="1">
-                    {panelNormal}
 
-                </TabPane>
-                <TabPane tab="专家模式" key="2">
-                    <div style={{ marginLeft: 20, paddingBottom: 20 }}>
-                        <Row type="flex" justify="start">
-                            <Col span={5}>
-                                <label className="pre">Get</label>
-                                <Select style={{ width: 150, }} size="large">
-                                    <Option key="1" value="1">lucy</Option>
-                                    <Option key="2" value="2">lucy</Option>
-                                </Select>
-                            </Col>
-                            <Col span={5}>
-                                <label className="pre" style={{ paddingLeft: 3 }}>From</label>
-                                <Select style={{ width: 150, }} size="large">
-                                    <Option key="1" value="1">平均值</Option>
-                                    <Option key="2" value="2">最小值</Option>
-                                    <Option key="3" value="3">最大值</Option>
-                                    <Option key="4" value="4">求和</Option>
-                                </Select>
-                            </Col>
-                            <Col span={6}>
-                                <label className="pre">Rate<Checkbox style={{ paddingLeft: 20 }}></Checkbox></label>
-                                <Select style={{ width: 150, }} size="large">
-                                    <Option key="1" value="1">平均值</Option>
-                                    <Option key="2" value="2">最小值</Option>
-                                    <Option key="3" value="3">最大值</Option>
-                                    <Option key="4" value="4">求和</Option>
-                                </Select>
-                            </Col>
-                            <Col span={5}>
-                                <label className="pre">By</label>
-                                <Select style={{ width: 150, }} size="large">
-                                    <Option key="1" value="1">平均值</Option>
-                                    <Option key="2" value="2">最小值</Option>
-                                    <Option key="3" value="3">最大值</Option>
-                                    <Option key="4" value="4">求和</Option>
-                                </Select>
-                            </Col>
+            <RadioGroup onChange={this.changeModelType.bind(this)} defaultValue={this.state.modelType} size="large">
+                <RadioButton value="normal">普通模式</RadioButton>
+                <RadioButton value="pro">专家模式</RadioButton>
+            </RadioGroup>
 
-                        </Row>
-
-                    </div>
-                </TabPane>
+            {panelNormal}
 
 
-            </Tabs>
 
             <Row style={{ backgroundColor: '#f1f1f1', height: 60, padding: 20 }}>
                 <Col span={20}><Input addonBefore="图表命名" /></Col>

@@ -3,11 +3,11 @@ import React from 'react';
 import { PropTypes } from 'react';
 import { fetchMetric } from './../actions/metric';
 import { connect } from 'react-redux';
-import {  Button, Row, Col, Select, Form, Icon, Card, Modal, Dropdown, Menu } from 'antd';
-import {retryFetch} from './../utils/cFetch'
+import { Button, Row, Col, Select, Form, Icon, Card, Modal, Dropdown, Menu } from 'antd';
+import { retryFetch } from './../utils/cFetch'
 import { API_CONFIG } from './../config/api';
 import cookie from 'js-cookie';
-import {setChartSelection, setChartCrossLine } from './../actions/chart';
+import { setChartSelection, setChartCrossLine } from './../actions/chart';
 import ReactDOM from 'react-dom';
 
 // React.Component
@@ -25,12 +25,13 @@ class ChartsLine extends React.Component {
                 data: [],
                 error: null,
             },
+            config: {},
         };
     }
 
     componentWillReceiveProps(nextProps) {
         if (nextProps.chart.range != this.props.chart.range
-        || this.props.metrics != nextProps.metrics) {
+            || this.props.metrics != nextProps.metrics) {
             this.doFetchData(nextProps.chart.range.startDate, nextProps.chart.range.endDate, nextProps.metrics);
         }
 
@@ -55,22 +56,38 @@ class ChartsLine extends React.Component {
             }
         });
 
-        let metricInfo = metrics[0];
-
-
+        let q = "";
         let interval = startDate / 60000;
+        for (let metricInfo of metrics) {
 
-        let q = metricInfo.aggregator + ":" + metricInfo.metric;
-        //avg:system.load.1
-        if (metricInfo.tags) {
-            q += "{" + metricInfo.tags + "}";
-        }
+            if (q)
+                q += ';';
 
-        if (metricInfo.by) {
-            if (!metricInfo.tags) {
-                q += "{}";
+            q += metricInfo.aggregator;
+            
+            if(metricInfo.rate) {
+                q += ":rate";
             }
-            q += "by{" + metricInfo.by + "}";
+            
+             q += ":" + metricInfo.metric;
+            //avg:system.load.1
+            let tags = null;
+
+            if (metricInfo.tags) {
+                tags = metricInfo.tags.map(function(item) {
+                    return item.replace(":", "=")
+                });
+            }
+            if (tags) {
+                q += "{" + tags + "}";
+            }
+
+            if (metricInfo.by) {
+                if (!metricInfo.tags) {
+                    q += "{}";
+                }
+                q += "by{" + metricInfo.by + "}";
+            }
         }
 
         retryFetch(API_CONFIG.metric, {
@@ -84,15 +101,24 @@ class ChartsLine extends React.Component {
                 interval: interval,
 
             }
-        }).then(function (response) {
+        }).then(function(response) {
             return response.json();
         }).then((json) => {
+            let config = this.initConfig({
+
+                isFetching: false,
+                data: json.result,
+                error: null,
+
+            });
+
             this.setState({
                 network: {
                     isFetching: false,
                     data: json.result,
                     error: null,
-                }
+                },
+                config: config,
             });
             console.log("json", json);
         }).catch((error) => {
@@ -154,7 +180,7 @@ class ChartsLine extends React.Component {
         return this.refs.chart.getChart();
     }
 
-    
+
 
     showCrossLine(props) {
         let ref = ReactDOM.findDOMNode(this.refs.chart);
@@ -226,15 +252,9 @@ class ChartsLine extends React.Component {
 
     }
 
- 
-
-    render() {
-        if (!this.props.metrics)
-            return <div/>;
-        let metric = this.props.metrics[0];
-
-        let isFetching = this.state.network.isFetching;
-        let data = this.state.network.data;
+    initConfig(network) {
+        let isFetching = network.isFetching;
+        let data = network.data;
 
         let series = [];
         let legend = {};
@@ -255,14 +275,14 @@ class ChartsLine extends React.Component {
         let eventMouseMove = null;
         let eventSelection = null;
 
-        let chartType = this.props.type ? this.props.type : metric.type;
 
         eventMouseMove = this.handleMouseMove.bind(this);
         eventSelection = this.handleChartSelection.bind(this);
         for (let key in data) {
             let serie = {};
             serie.data = [];
-            serie.type = this.props.type ? this.props.type : metric.type;
+            console.log(this.props.metrics, key, this.props.metrics[key]);
+            serie.type = this.props.metrics[data[key].queryId].type;//let metric = this.props.metrics[0];
             serie.name = "name";
             serie.showInLegend = false;
             let serieDatas = [];
@@ -304,6 +324,11 @@ class ChartsLine extends React.Component {
                 //事件配置
                 events: {
                     selection: eventSelection
+                },
+                resetZoomButton: {
+                    theme: {
+                        display: 'none'
+                    }
                 }
             },
             title: {
@@ -404,11 +429,27 @@ class ChartsLine extends React.Component {
             },
         };
 
-        let domProps = Object.assign({}, this.props.domProps, {
+        return config;
+    }
 
-            onMouseMove: eventMouseMove
+    render() {
+        if (!this.props.metrics)
+            return <div />;
+
+        let config = this.state.config;
+
+        let domProps = this.props.domProps;
+        //if (!this.props.dragingCharts.isDraging) {
+        domProps = Object.assign({}, this.props.domProps, {
+
+            onMouseMove: this.handleMouseMove.bind(this)
         });
- 
+        // }
+
+
+
+
+
         return <ReactHighcharts ref="chart" config={config} domProps={domProps} />;
     }
 }
@@ -425,9 +466,10 @@ ChartsLine.childContextTypes = {
 */
 // Which part of the Redux global state does our component want to receive as props?
 function mapStateToProps(state) {
-    const { chart } = state;
+    const { chart, } = state;
     return {
-        chart
+        chart,
+
     };
 }
 

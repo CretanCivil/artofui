@@ -23,42 +23,60 @@ import ChartsColumn from './ChartsColumn';
 
 // React.Component
 export default class CustomCharts extends React.Component {
-    render() {
 
+    getChart() {
+        if (this.refs.chart && this.refs.chart.getWrappedInstance().getChart)
+            return this.refs.chart.getWrappedInstance().getChart();
+        return null;
+    }
+
+    render() {
+      /*  return <div className="example">
+                    
+                </div>;*/
 
         switch (this.props.type) {
             case "heatmap":
                 return <ChartsHeatmap
                     metrics={this.props.metrics}
                     type={this.props.type}
+                    ref="chart"
                     domProps={this.props.domProps} />;
             case "line":
+            
                 return <ChartsLine metrics={this.props.metrics}
                     type={this.props.type}
+                    ref="chart"
                     domProps={this.props.domProps} />;
             case "area":
                 return <ChartsArea metrics={this.props.metrics}
                     type={this.props.type}
+                    ref="chart"
                     domProps={this.props.domProps} />;
             case "pie":
                 return <ChartsPie metrics={this.props.metrics}
                     type={this.props.type}
+                    ref="chart"
                     domProps={this.props.domProps} />;
             case "table":
                 return <ChartsTable metrics={this.props.metrics}
                     type={this.props.type}
+                    ref="chart"
                     domProps={this.props.domProps} />;
             case "bar":
                 return <ChartsTopN metrics={this.props.metrics}
                     type={this.props.type}
+                    ref="chart"
                     domProps={this.props.domProps} />;
             case "treemap":
                 return <ChartsTreeMap metrics={this.props.metrics}
                     type={this.props.type}
+                    ref="chart"
                     domProps={this.props.domProps} />;
-case "column":
-return <ChartsColumn metrics={this.props.metrics}
+            case "column":
+                return <ChartsColumn metrics={this.props.metrics}
                     type={this.props.type}
+                    ref="chart"
                     domProps={this.props.domProps} />;
 
 

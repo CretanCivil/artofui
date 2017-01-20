@@ -448,7 +448,7 @@ export default class DialogChartView extends React.Component {
                 pagination={false} bordered={false} size="middle" /> }
             >
             <CustomCharts
-                metrics={this.props.chart.metrics} ref="chart" domProps={{ style: { border: '1px solid #ddd', height: 160, width: 928 }, }} />
+                metrics={this.props.chart.metrics} ref="chart" type={this.props.chart.type == 'timeseries' ? 'line' : this.props.chart.type} domProps={{ style: { border: '1px solid #ddd', height: 160, width: 928 }, }} />
 
          
 

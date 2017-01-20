@@ -4,10 +4,10 @@ import { PropTypes } from 'react';
 import { fetchMetric } from './../actions/metric';
 import { connect } from 'react-redux';
 import { Table, Button, Row, Col, Select, Form, Icon, Card, Modal, Dropdown, Menu } from 'antd';
-import {retryFetch} from './../utils/cFetch'
+import { retryFetch } from './../utils/cFetch'
 import { API_CONFIG } from './../config/api';
 import cookie from 'js-cookie';
-import {setChartSelection, setChartCrossLine } from './../actions/chart';
+import { setChartSelection, setChartCrossLine } from './../actions/chart';
 import ReactDOM from 'react-dom';
 
 // React.Component
@@ -30,7 +30,7 @@ class ChartsTable extends React.Component {
 
     componentWillReceiveProps(nextProps) {
         if (nextProps.chart.range != this.props.chart.range || this.props.metrics != nextProps.metrics) {
-            this.doFetchData(nextProps.chart.range.startDate, nextProps.chart.range.endDate,nextProps.metrics);
+            this.doFetchData(nextProps.chart.range.startDate, nextProps.chart.range.endDate, nextProps.metrics);
         }
     }
 
@@ -45,23 +45,35 @@ class ChartsTable extends React.Component {
                 error: null,
             }
         });
-
-        let metricInfo = metrics[0];
-
+        let q = "";
         let interval = startDate / 1000 + 1;
+        for (let metricInfo of metrics) {
 
-        let q = metricInfo.aggregator + ":" + metricInfo.metric;
-        //avg:system.load.1
-        if (metricInfo.tags) {
-            q += "{" + metricInfo.tags + "}";
-        }
+            if (q)
+                q += ';';
+            q += metricInfo.aggregator + ":" + metricInfo.metric;
+            //avg:system.load.1
+            let tags = null;
 
-        if (metricInfo.by) {
-            if (!metricInfo.tags) {
-                q += "{}";
+            if (metricInfo.tags) {
+                tags = metricInfo.tags.map(function (item) {
+                    return item.replace(":", "=")
+                });
             }
-            q += "by{" + metricInfo.by + "}";
+
+            if (tags) {
+                q += "{" + tags + "}";
+            }
+
+            if (metricInfo.by) {
+                if (!metricInfo.tags) {
+                    q += "{}";
+                }
+                q += "by{" + metricInfo.by + "}";
+            }
         }
+
+
 
         retryFetch(API_CONFIG.metric, {
             method: "GET",
@@ -150,7 +162,7 @@ class ChartsTable extends React.Component {
 
     render() {
         if (!this.props.metrics)
-            return <div/>;
+            return <div />;
         let metric = this.props.metrics[0];
 
         let isFetching = this.state.network.isFetching;
@@ -162,14 +174,14 @@ class ChartsTable extends React.Component {
             dataIndex: 'name',
             width: 150,
         }, {
-                title: '值',
-                dataIndex: 'age',
-                width: 150,
-            }, {
-                title: '标签',
-                dataIndex: 'address',
-                width: 150,
-            }];
+            title: '值',
+            dataIndex: 'age',
+            width: 150,
+        }, {
+            title: '标签',
+            dataIndex: 'address',
+            width: 150,
+        }];
 
 
         const tableData = [];
@@ -183,7 +195,7 @@ class ChartsTable extends React.Component {
                 address: this.buildSerieName(data[key].tags),
             });
         }
-        return <Table style={{minHeight:160,}} scroll={{ y: 140 }} bordered={false} pagination={false} columns={columns} dataSource={tableData} size="small" />
+        return <Table style={{ minHeight: 160, }} scroll={{ y: 140 }} bordered={false} pagination={false} columns={columns} dataSource={tableData} size="small" />
     }
 }
 
