@@ -25,7 +25,7 @@ class ChartsCard extends React.Component {
 
     clickSetting() {
         // this.refs.chart.getWrappedInstance().getChart().showLoading();
-        this.props.setting(true, this.props.chart.metrics, this.props.chart.type);
+        this.props.setting(true, this.props.chart.metrics, this.props.chart.type, this.props.chart);
     }
 
     menuClick(e) {

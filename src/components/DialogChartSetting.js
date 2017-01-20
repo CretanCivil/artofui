@@ -9,6 +9,8 @@ const RadioButton = Radio.Button;
 const RadioGroup = Radio.Group;
 import { fetchNormal } from './../actions/normal';
 import ChartsModelTypeSettingPro from './ChartsModelTypeSettingPro';
+import { retryFetch, toQueryString } from '../utils/cFetch'
+import { API_CONFIG } from '../config/api';
 
 // React.Component
 class DialogChartSetting extends React.Component {
@@ -20,6 +22,7 @@ class DialogChartSetting extends React.Component {
             chartType: "line",
             hasby: false,
             modelType: 'normal',
+            name: '',
         };
     }
 
@@ -27,6 +30,7 @@ class DialogChartSetting extends React.Component {
         this.setState({
             metrics: Array.from(this.props.metrics),
             chartType: this.props.type == "timeseries" ? "line" : this.props.type,
+            name: this.props.chart.name,
         });
         this.initHasby(this.props.type);
     }
@@ -35,7 +39,43 @@ class DialogChartSetting extends React.Component {
         this.props.fetchNormal();
     }
 
-    passData(index,params) {
+    //chart:{
+    //"type":"timeseries",
+    //"metrics":[{"metric":"system.net.packets_in.count","aggregator":"avg","type":"line","rate":false,"id":1482717689331,"tags":null,"by":null}],
+    //"meta":{"modelType":"pro"},
+    //"name":"avg-system.net.packets_in.count-timeserie"}
+
+    //https://cloud.oneapm.com/v1/dashboards/11997/charts/1335327/update.json
+
+    /*
+    {"type":"timeseries","metrics":[{"metric":"system.net.packets_in.count","aggregator":"avg","type":"line","rate":false,"id":1482474283162,"tags":[],"by":["device_name"]}],"meta":{"modelType":"pro","indexBox":[1,0,0]},"name":"验证含有from里面仅含有两种数据"}
+    {"type":"timeseries","metrics":[{"metric":"system.net.packets_in.count","aggregator":"avg","type":"line","rate":false,"id":1482474283162,"tags":[],"by":["device_name"]}],"meta":{"modelType":"normal"},"name":"验证含有from里面仅含有两种数据",}
+     */
+
+    saveSetting() {
+        let layout = {};
+        layout.name = this.state.name;
+        layout.meta = {
+            modelType: this.state.modelType,
+           // indexBox: [1,0,0],
+        };
+        layout.type = this.state.chartType == 'line' ? 'timeseries' : this.state.chartType;
+        layout.metrics = this.state.metrics;
+
+        retryFetch(API_CONFIG.updateChartsSetting, {
+            method: "POST",
+            retries: 3,
+            retryDelay: 10000,
+            body: 'chart=' + encodeURIComponent(JSON.stringify(layout))
+        }).then(function(response) {
+            return response.json();
+        }).then(function(json) {
+            this.showDialog(false);
+            console.log("json", json);
+        });
+    }
+
+    passData(index, params) {
         let tags = params.host.map(function(item) {
             return item.replace(":", "=")
         });
@@ -73,18 +113,24 @@ class DialogChartSetting extends React.Component {
 
     genMetricPanelNormal() {
         let panels = this.state.metrics.map(function(item, index) {
-            return <ChartsDetailSetting passData={this.passData.bind(this,index)} key={index} metric={item} hasby={this.state.hasby} />
+            return <ChartsDetailSetting passData={this.passData.bind(this, index)} key={index} metric={item} hasby={this.state.hasby} />
         }, this);
         return panels;
     }
 
     genProModel() {
         let panels = this.state.metrics.map(function(item, index) {
-            return <ChartsModelTypeSettingPro passData={this.passData.bind(this,index)} key={index} metric={item} hasby={this.state.hasby} />
+            return <ChartsModelTypeSettingPro passData={this.passData.bind(this, index)} key={index} metric={item} hasby={this.state.hasby} />
         }, this);
         return panels;
 
-        
+
+    }
+
+    onChangeTitle(e) {
+        this.setState({
+            name: e.target.value,
+        });
     }
 
     changeChartType(event) {
@@ -151,12 +197,10 @@ class DialogChartSetting extends React.Component {
 
             {panelNormal}
 
-
-
             <Row style={{ backgroundColor: '#f1f1f1', height: 60, padding: 20 }}>
-                <Col span={20}><Input addonBefore="图表命名" /></Col>
+                <Col span={20}><Input ref="title" onChange={this.onChangeTitle.bind(this)} defaultValue={this.state.name} addonBefore="图表命名" /></Col>
                 <Col span={4}>
-                    <Button onClick={() => this.showDialog(false)} type="primary" style={{ width: 86, height: 40, position: 'absolute', right: 0, top: -10 }} >保存</Button>
+                    <Button onClick={() => this.saveSetting()} type="primary" style={{ width: 86, height: 40, position: 'absolute', right: 0, top: -10 }} >保存</Button>
                 </Col>
             </Row>
 

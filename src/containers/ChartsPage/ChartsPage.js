@@ -90,6 +90,7 @@ export class ChartsPage extends React.Component {
                 metric: null,
                 show: false,
                 type: null,
+                chart: null,
             },
             layout: [],
         };
@@ -255,12 +256,13 @@ export class ChartsPage extends React.Component {
 
 
 
-    showDialog(show, metric, type) {
+    showDialog(show, metric, type, chart) {
         this.setState({
             settingChart: {
                 metric: metric,
                 show: show,
                 type: type,
+                chart: chart,
             }
         });
     }
@@ -454,6 +456,7 @@ export class ChartsPage extends React.Component {
                 </ReactGridLayout>
                 {this.state.settingChart.show ? <DialogChartSetting key="DialogChartSetting"
                     tags={tags}
+                    chart={this.state.settingChart.chart}
                     type={this.state.settingChart.type}
                     metrics={this.state.settingChart.metric}
                     showDialog={this.showDialog.bind(this)} /> : ''}

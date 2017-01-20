@@ -20,5 +20,6 @@ export const API_CONFIG = {
   all_metrics: '/v1/metrics.json',
   buckets: '/v1/events/buckets.json',
   updateLayout: '/v1/dashboards/11997/update.json',
+  updateChartsSetting: '/v1/dashboards/11997/charts/1335327/update.json',
 };
 
