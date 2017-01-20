@@ -216,8 +216,9 @@ function mapStateToProps(state) {
 
 // Which action creators does it want to receive by props?
 
-
-
 export default connect(
     mapStateToProps,
+    null,
+    null, { withRef: true }
 )(ChartsTable);
+

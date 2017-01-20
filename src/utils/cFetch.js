@@ -5,7 +5,7 @@ import cookie from 'js-cookie';
 import StandardError from 'standard-error';
 import { API_CONFIG } from './../config/api';
 import { message, Modal } from 'antd';
-import rFetch from 'fetch-retry'
+import rFetch from 'fetch-retry';
 
 const errorMessages = (res) => `${res.status} ${res.statusText}`;
 
@@ -35,7 +35,7 @@ function check404(res) {
 }
 
 function checkStatus(response) {
-  console.log(response);
+ // console.log(response);
   if (response.status >= 200 && response.status < 303) {
     return response;
   } else {
@@ -168,7 +168,7 @@ export function retryFetch(url, options) {
         'Authorization': cookie.get('access_token') || ''
     };
 
-    console.log(opts);
+   // console.log(opts);
     return fetch(mergeUrl, opts);
 }
 

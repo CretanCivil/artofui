@@ -11,6 +11,7 @@ import { fetchNormal } from './../actions/normal';
 import ChartsModelTypeSettingPro from './ChartsModelTypeSettingPro';
 import { retryFetch, toQueryString } from '../utils/cFetch'
 import { API_CONFIG } from '../config/api';
+let moment = require('moment');
 
 // React.Component
 class DialogChartSetting extends React.Component {
@@ -61,16 +62,29 @@ class DialogChartSetting extends React.Component {
         };
         layout.type = this.state.chartType == 'line' ? 'timeseries' : this.state.chartType;
         layout.metrics = this.state.metrics;
+// `User ${user.name} is not authorized to do ${action}.`);
+//1484923220972
+//https://cloud.oneapm.com/v1/dashboards/11997/charts/add.json
 
-        retryFetch(API_CONFIG.updateChartsSetting, {
+        let url = `/v1/dashboards/${this.props.chart.dashboard_id}/charts/${this.props.chart.id}/update.json`;
+        
+        if(this.props.chart.id == 0){
+            url = `/v1/dashboards/${this.props.chart.dashboard_id}/charts/add.json`;
+        }
+
+        for(let metric of this.state.metrics) {
+            metric.id = moment().format('x');
+        }
+        
+        retryFetch(url, {
             method: "POST",
             retries: 3,
             retryDelay: 10000,
             body: 'chart=' + encodeURIComponent(JSON.stringify(layout))
         }).then(function(response) {
             return response.json();
-        }).then(function(json) {
-            this.showDialog(false);
+        }).then((json) => {
+            this.props.showDialog(false);
             console.log("json", json);
         });
     }
@@ -82,7 +96,7 @@ class DialogChartSetting extends React.Component {
         let arr = Array.from(this.state.metrics);
         let metric = Object.assign({}, arr[index], {
             aggregator: params.agg,
-            by: params.by.length > 0 ? params.by : null,
+            by: (params.by && params.by.length > 0) ? params.by : null,
             tags: tags.length > 0 ? tags : null,
             metric: params.metricName,
             rate: params.rate ? true : false,

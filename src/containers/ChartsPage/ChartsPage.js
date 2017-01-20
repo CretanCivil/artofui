@@ -14,13 +14,13 @@ import DialogChartView from './../../components/DialogChartView';
 import DialogChartSetting from './../../components/DialogChartSetting';
 import { setChartRange } from './../../actions/chart';
 import { setDraging } from './../../actions/app';
-var WidthProvider = require('react-grid-layout').WidthProvider;
-var ReactGridLayout = require('react-grid-layout');
+let WidthProvider = require('react-grid-layout').WidthProvider;
+let ReactGridLayout = require('react-grid-layout');
 ReactGridLayout = WidthProvider(ReactGridLayout);
 import { Button, Row, Col, Select, Form, Icon, } from 'antd';
 let DateRangerPicker = require('react-bootstrap-daterangepicker');
 let moment = require('moment');
-import { retryFetch,toQueryString } from '../../utils/cFetch'
+import { retryFetch, toQueryString } from '../../utils/cFetch'
 import { API_CONFIG } from '../../config/api';
 import '../../../node_modules/react-grid-layout/css/styles.css';
 import '../../../node_modules/react-resizable/css/styles.css';
@@ -122,7 +122,7 @@ export class ChartsPage extends React.Component {
             retryDelay: 10000,
             params: {
             }
-        }).then(function(response) {
+        }).then(function (response) {
             return response.json();
         }).then((json) => {
             let layout = [];
@@ -159,8 +159,8 @@ export class ChartsPage extends React.Component {
             method: "POST",
             retries: 3,
             retryDelay: 10000,
-            body: 'charts='+encodeURIComponent(JSON.stringify(layout))
-        }).then(function(response) {
+            body: 'charts=' + encodeURIComponent(JSON.stringify(layout))
+        }).then(function (response) {
             return response.json();
         }).then((json) => {
             let layout = [];
@@ -364,8 +364,8 @@ export class ChartsPage extends React.Component {
             let col = <div key={chart.id} style={{ backgroundColor: 'white', height: '100%' }}><ChartsCard
                 ref={"chart_" + chart.id}
                 chart={chart}
-                expand={this.showChartDialog.bind(this)}
-                setting={this.showDialog.bind(this)}
+                expand={this.showChartDialog.bind(this) }
+                setting={this.showDialog.bind(this) }
                 /></div>;
             charts.push(col);
         }
@@ -429,28 +429,39 @@ export class ChartsPage extends React.Component {
                                     opens="left"
                                     timePicker={true}
                                     dateLimit={{ days: 30 }}
-                                    maxDate={moment()}
+                                    maxDate={moment() }
                                     locale={{
                                         customRangeLabel: '自定义区间',
                                         applyLabel: '应用',
                                         cancelLabel: '取消',
                                     }}
-                                    onApply={this.handleDateRangeChanged.bind(this)}>
+                                    onApply={this.handleDateRangeChanged.bind(this) }>
                                     <Button type="primary" size="large" style={{ paddingRight: 10 }}><Icon type="calendar" />{this.state.chosenLabel}<Icon type="arrow-down" /></Button >
                                 </DateRangerPicker>
                             </Col>
                             <Col style={{ marginLeft: 4 }}>
-                                <Button icon="setting" className="ant-search-btn" onClick={() => this.showDialog(true)} />
+                                <Button icon="setting" className="ant-search-btn" onClick={() => this.showDialog(true,  
+                                    [{ metric: "system.load.1", aggregator: "avg", type: "line", rate: false, by: null, tags: null, id: 0 }],
+                                     'timeseries',
+                                    {
+                                        dashboard_id: 11997,
+                                        id: 0,
+                                        meta: { modelType: "normal" },
+                                        metrics:
+                                        [{ metric: "system.load.1", aggregator: "avg", type: "line",
+                                         rate: false, by: null, tags: null, id: 0 }],
+                                        name: "新建图表",
+                                        type: "timeseries"})} />
 
                             </Col>
                         </Row>
                     </Col>
                 </Row>
                 <ReactGridLayout layout={this.state.layout} style={{ width: '100%' }} className="layout"
-                    onDragStart={this.onDragStart.bind(this)}
-                    onDrag={this.onDrag.bind(this)}
-                    onDragStop={this.onDragStop.bind(this)}
-                    onLayoutChange={this.onLayoutChange.bind(this)} >
+                    onDragStart={this.onDragStart.bind(this) }
+                    onDrag={this.onDrag.bind(this) }
+                    onDragStop={this.onDragStop.bind(this) }
+                    onLayoutChange={this.onLayoutChange.bind(this) } >
 
                     {charts}
                 </ReactGridLayout>
@@ -459,12 +470,12 @@ export class ChartsPage extends React.Component {
                     chart={this.state.settingChart.chart}
                     type={this.state.settingChart.type}
                     metrics={this.state.settingChart.metric}
-                    showDialog={this.showDialog.bind(this)} /> : ''}
+                    showDialog={this.showDialog.bind(this) } /> : ''}
                 {this.state.expandChart.show ? <DialogChartView key="DialogChartView"
                     chart={this.state.expandChart.chart}
                     type={this.state.expandChart.type}
                     tags={tags}
-                    showDialog={this.showChartDialog.bind(this)} /> : ''}
+                    showDialog={this.showChartDialog.bind(this) } /> : ''}
 
 
             </div>

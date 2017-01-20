@@ -4,7 +4,7 @@ import { Route, IndexRoute } from 'react-router';
 import App from './containers/App/App';
 import HomePage from './containers/HomePage/HomePage';
 import ConnectedUsersPage from './containers/UsersPage/UsersPage';
-import NotFoundPage from './components/NotFoundPage/NotFoundPage';
+//import NotFoundPage from './components/NotFoundPage/NotFoundPage';
 import ChartsPage from './containers/ChartsPage/ChartsPage';
 
 export default (

@@ -25,7 +25,14 @@ class ChartsLine extends React.Component {
                 data: [],
                 error: null,
             },
-            config: {},
+            config: {
+                title: {
+                    text: null
+                },
+                credits: {
+                    enabled: false // 禁用版权信息
+                },
+            },
         };
     }
 
@@ -74,7 +81,7 @@ class ChartsLine extends React.Component {
             let tags = null;
 
             if (metricInfo.tags) {
-                tags = metricInfo.tags.map(function(item) {
+                tags = metricInfo.tags.map(function (item) {
                     return item.replace(":", "=")
                 });
             }
@@ -101,7 +108,7 @@ class ChartsLine extends React.Component {
                 interval: interval,
 
             }
-        }).then(function(response) {
+        }).then(function (response) {
             return response.json();
         }).then((json) => {
             let config = this.initConfig({
