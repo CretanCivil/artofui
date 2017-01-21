@@ -10,7 +10,6 @@ export default function reducersGenerate(actionType, initialState, optionsHandle
   _.each(actionType, (item) => {
     // PENDING action
     defaultHandler[`${item}_PENDING`] = (state) => {
-      console.log(state);
       return Object.assign({}, state, {
         isFetching: true
       });

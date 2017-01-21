@@ -17,7 +17,6 @@ export default function reducersGlobalGenerate(actionType, initialState, options
 
     // FULFILLED action
     defaultHandler[`${item}_FULFILLED`] = (state, action) => {
-      console.log(action.payload);
       return {
         isFetching: false,
         isFulfilled: true,

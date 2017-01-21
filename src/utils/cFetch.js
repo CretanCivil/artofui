@@ -5,7 +5,7 @@ import cookie from 'js-cookie';
 import StandardError from 'standard-error';
 import { API_CONFIG } from './../config/api';
 import { message, Modal } from 'antd';
-import rFetch from 'fetch-retry';
+//import rFetch from 'fetch-retry';
 
 const errorMessages = (res) => `${res.status} ${res.statusText}`;
 

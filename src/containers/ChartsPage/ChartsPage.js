@@ -20,17 +20,17 @@ ReactGridLayout = WidthProvider(ReactGridLayout);
 import { Button, Row, Col, Select, Form, Icon, } from 'antd';
 let DateRangerPicker = require('react-bootstrap-daterangepicker');
 let moment = require('moment');
-import { retryFetch, toQueryString } from '../../utils/cFetch'
+import { retryFetch } from '../../utils/cFetch'
 import { API_CONFIG } from '../../config/api';
 import '../../../node_modules/react-grid-layout/css/styles.css';
 import '../../../node_modules/react-resizable/css/styles.css';
 
-import ReactHighcharts from 'react-highcharts';
-import highchartsTreemap from 'highcharts-treemap';
+//import ReactHighcharts from 'react-highcharts';
+//import highchartsTreemap from 'highcharts-treemap';
 import 'rc-cascader/assets/index.css';
 import Highcharts from 'highcharts';
 
-highchartsTreemap(ReactHighcharts.Highcharts);
+//highchartsTreemap(ReactHighcharts.Highcharts);
 
 //const InputGroup = Input.Group;
 //const ButtonGroup = Button.Group;
@@ -330,18 +330,18 @@ export class ChartsPage extends React.Component {
     }
 
 
-    onDragStart(layout, oldLayoutItem, layoutItem, placeholder, e, element) {
+    onDragStart(layout, oldLayoutItem, layoutItem) {
         this.props.setDraging({
             isDraging: true,
             item: layoutItem,
         });
     }
     // Calls on each drag movement.
-    onDrag(layout, oldLayoutItem, layoutItem, placeholder, e, element) {
+    onDrag() {
 
     }
     // Calls when drag is complete.
-    onDragStop(layout, oldLayoutItem, layoutItem, placeholder, e, element) {
+    onDragStop() {
         this.props.setDraging({
             isDraging: false,
             item: null,

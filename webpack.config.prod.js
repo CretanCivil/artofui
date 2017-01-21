@@ -51,6 +51,10 @@ export default {
     }),
     new updateIndexHTML()
   ],
+    externals: {
+    "jquery": "jQuery",
+    "highcharts": "Highcharts",
+  },
   module: {
     loaders: [
       {test: /\.js$/, include: path.join(__dirname, 'src'), loaders: ['babel']},

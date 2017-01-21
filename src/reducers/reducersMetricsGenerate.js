@@ -31,7 +31,6 @@ export default function reducersMetricsGenerate(actionType, initialState, option
 
     // FULFILLED action
     defaultHandler[`${item}_FULFILLED`] = (state, action) => {
-      console.log("_FULFILLED");
      /* state.set(action.id, {
         isFetching: false,
         isFulfilled: true,
@@ -50,7 +49,6 @@ export default function reducersMetricsGenerate(actionType, initialState, option
 
     // REJECTED action
     defaultHandler[`${item}_REJECTED`] = (state, action) => {
-       console.log("_REJECTED");
     /*  state.set(action.id, {
         isFetching: false,
         isRejected: true,

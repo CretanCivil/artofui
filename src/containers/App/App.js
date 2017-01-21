@@ -8,15 +8,13 @@ import './daterangepicker.css';
 import './ali.css';
 import './diyselect.css';
 import './App.scss';
-import { Menu, Breadcrumb, Icon, Modal, Row, Col, Input, Button, Select, Tabs, Spin, Table, Checkbox } from 'antd';
+import { Menu, Breadcrumb, Icon, } from 'antd';
 
-import ReactHighcharts from 'react-highcharts';
-import highchartsTreemap from 'highcharts-treemap';
+//import ReactHighcharts from 'react-highcharts';
+//import highchartsTreemap from 'highcharts-treemap';
 
-const Option = Select.Option;
-const TabPane = Tabs.TabPane;
 
-highchartsTreemap(ReactHighcharts.Highcharts);
+//highchartsTreemap(ReactHighcharts.Highcharts);
 
 const SubMenu = Menu.SubMenu;
 class App extends Component {

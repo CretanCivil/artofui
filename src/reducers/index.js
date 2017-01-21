@@ -6,7 +6,7 @@ import chart from './chart';
 
 import reducersGenerate from './reducersGenerate';
 import reducersCloundGenerate from './reducersCloundGenerate';
-import reducersMetricsGenerate from './reducersMetricsGenerate';
+//import reducersMetricsGenerate from './reducersMetricsGenerate';
 import {dragingCharts} from './app';
 
 import {

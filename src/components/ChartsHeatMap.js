@@ -11,8 +11,8 @@ import { setChartSelection, setChartCrossLine } from './../actions/chart';
 import ReactDOM from 'react-dom';
 var moment = require('moment');
 
-import highchartsHeatmap from 'highcharts-heatmap';
-highchartsHeatmap(ReactHighcharts.Highcharts);
+//import highchartsHeatmap from 'highcharts-heatmap';
+//highchartsHeatmap(ReactHighcharts.Highcharts);
 
 // React.Component
 class ChartsHeatMap extends React.Component {

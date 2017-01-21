@@ -1,6 +1,5 @@
 import { Table } from 'antd';
 import { PropTypes } from 'react';
-import { connect } from 'react-redux';
 
 class CustomTable extends Table {
   constructor(props) {
@@ -65,8 +64,4 @@ class CustomTable extends Table {
 CustomTable.childContextTypes = {
   handleCustomFilter: PropTypes.func
 };
-export default connect(
-    null,
-    null,
-    null, { withRef: true }
-)(CustomTable);
+export default CustomTable;
