@@ -468,7 +468,7 @@ class ChartsLine extends React.Component {
     }
 
     render() {
-        if (!this.props.metrics || this.state.network.isFetching || 1) {
+        if (!this.props.metrics || this.state.network.isFetching ) {
 
             let style = Object.assign({}, this.props.domProps.style, {
                 position: 'relative',
