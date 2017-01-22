@@ -196,7 +196,13 @@ class ChartsTable extends React.Component {
                 address: this.buildSerieName(data[key].tags),
             });
         }
-        return <div style={{height: '100%',overflow: 'auto'}}><Table  bordered={false} pagination={false} columns={columns} dataSource={tableData} size="small" /></div>
+
+        let style = Object.assign({},this.props.domProps.style, {
+                overflow: 'auto',
+        })
+    
+
+        return <div style={style}><Table  bordered={false} pagination={false} columns={columns} dataSource={tableData} size="small" /></div>
     }
 }
 

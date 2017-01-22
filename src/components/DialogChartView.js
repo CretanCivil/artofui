@@ -34,7 +34,7 @@ export default class DialogChartView extends React.Component {
             width: 150,
 
             render: (value, row, index) => <Icon  type="appstore"
-                style={{ color: APP_CONFIG.colors[index], fontSize: 20 }}></Icon>
+                style={{ color: APP_CONFIG.colors[index], fontSize: 20 }}/>
         }, {
                 title: 'Age',
                 dataIndex: 'age',
@@ -49,19 +49,18 @@ export default class DialogChartView extends React.Component {
             title = {this.props.chart.name}
             wrapClassName = "vertical-center-modal"
             visible = {true}
-            onOk = {() => this.props.showDialog(false)
-            }
-            onCancel = {() => this.props.showDialog(false) }
-            width = { 960}
-            footer = { <Table columns={columns}  dataSource={data} showHeader={false}
-                pagination={false} bordered={false} size="middle" /> }
+            onOk = {() => this.props.showDialog(false)}
+            onCancel = {() => this.props.showDialog(false)}
+            width = {960}
+            footer = {<Table columns={columns}  dataSource={data} showHeader={false}
+                pagination={false} bordered={false} size="middle" />}
             >
-            <CustomCharts
-                metrics={this.props.chart.metrics} ref="chart" type={this.props.chart.type == 'timeseries' ? 'line' : this.props.chart.type} domProps={{ style: { border: '1px solid #ddd', height: 160, width: 928 }, }} />
-
-         
-
-        </Modal >;
+                <CustomCharts
+                    metrics={this.props.chart.metrics} 
+                    ref="chart" 
+                    type={this.props.chart.type == 'timeseries' ? 'line' : this.props.chart.type} 
+                    domProps={{style:{ border: '1px solid #ddd', height: 160, width: 928 }}}/>
+            </Modal >;
     }
 }
 

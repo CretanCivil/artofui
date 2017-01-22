@@ -12,6 +12,7 @@ import ChartsModelTypeSettingPro from './ChartsModelTypeSettingPro';
 import { retryFetch, toQueryString } from '../utils/cFetch'
 import { API_CONFIG } from '../config/api';
 let moment = require('moment');
+import PubSub from 'vanilla-pubsub';
 
 // React.Component
 class DialogChartSetting extends React.Component {
@@ -86,6 +87,8 @@ class DialogChartSetting extends React.Component {
         }).then((json) => {
             this.props.showDialog(false);
             console.log("json", json);
+
+            PubSub.publish('App.dashboard.refresh');
         });
     }
 
@@ -178,7 +181,6 @@ class DialogChartSetting extends React.Component {
             >
 
             <Row style={{ paddingTop: 25, }}></Row>
-
 
             <CustomCharts
                 metrics={this.state.metrics}

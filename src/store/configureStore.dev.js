@@ -19,7 +19,7 @@ const enhancer = compose(
   applyMiddleware(
     thunk,
     promiseMiddleware(),
-    logger,
+   // logger,
     router
   ),
   window.devToolsExtension ? window.devToolsExtension() : f => f

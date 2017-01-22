@@ -17,7 +17,7 @@ import { setDraging } from './../../actions/app';
 let WidthProvider = require('react-grid-layout').WidthProvider;
 let ReactGridLayout = require('react-grid-layout');
 ReactGridLayout = WidthProvider(ReactGridLayout);
-import { Button, Row, Col, Select, Form, Icon, } from 'antd';
+import { Button, Row, Col, Select, Form, Icon, Spin } from 'antd';
 let DateRangerPicker = require('react-bootstrap-daterangepicker');
 let moment = require('moment');
 import { retryFetch } from '../../utils/cFetch'
@@ -29,6 +29,7 @@ import '../../../node_modules/react-resizable/css/styles.css';
 //import highchartsTreemap from 'highcharts-treemap';
 import 'rc-cascader/assets/index.css';
 import Highcharts from 'highcharts';
+import PubSub from 'vanilla-pubsub';
 
 //highchartsTreemap(ReactHighcharts.Highcharts);
 
@@ -111,7 +112,13 @@ export class ChartsPage extends React.Component {
     }
 
     componentDidMount() {
+        PubSub.subscribe('App.dashboard.refresh', this.doFetchData.bind(this));
+
         this.doFetchData();
+    }
+
+    componentWillUnmount() {
+        PubSub.unsubscribe('App.dashboard.refresh', this.doFetchData.bind(this));
     }
 
 
@@ -136,6 +143,10 @@ export class ChartsPage extends React.Component {
                     tmp.i = data[0];
                     tmp.x = data[1];
                     tmp.y = data[2];
+                    if (data[3] == 1 && data[4] == 1) {
+                        data[3] = 3;
+                        data[4] = 2;
+                    }
                     tmp.w = data[3];
                     tmp.h = data[4];
                     tmp.minW = 3;
@@ -172,6 +183,10 @@ export class ChartsPage extends React.Component {
                     tmp.i = data[0];
                     tmp.x = data[1];
                     tmp.y = data[2];
+                    if (data[3] == 1 && data[4] == 1) {
+                        data[3] = 3;
+                        data[4] = 2;
+                    }
                     tmp.w = data[3];
                     tmp.h = data[4];
                     tmp.minW = 3;
@@ -354,7 +369,7 @@ export class ChartsPage extends React.Component {
 
         if (isFetching) {
             return (
-                <div>gettting</div>
+                <Row type="flex" justify="space-around" align="middle" style={{ minHeight: 500 }}><Col><Spin /></Col></Row>
             );
         }
 
@@ -364,8 +379,8 @@ export class ChartsPage extends React.Component {
             let col = <div key={chart.id} style={{ backgroundColor: 'white', height: '100%' }}><ChartsCard
                 ref={"chart_" + chart.id}
                 chart={chart}
-                expand={this.showChartDialog.bind(this) }
-                setting={this.showDialog.bind(this) }
+                expand={this.showChartDialog.bind(this)}
+                setting={this.showDialog.bind(this)}
                 /></div>;
             charts.push(col);
         }
@@ -429,39 +444,42 @@ export class ChartsPage extends React.Component {
                                     opens="left"
                                     timePicker={true}
                                     dateLimit={{ days: 30 }}
-                                    maxDate={moment() }
+                                    maxDate={moment()}
                                     locale={{
                                         customRangeLabel: '自定义区间',
                                         applyLabel: '应用',
                                         cancelLabel: '取消',
                                     }}
-                                    onApply={this.handleDateRangeChanged.bind(this) }>
+                                    onApply={this.handleDateRangeChanged.bind(this)}>
                                     <Button type="primary" size="large" style={{ paddingRight: 10 }}><Icon type="calendar" />{this.state.chosenLabel}<Icon type="arrow-down" /></Button >
                                 </DateRangerPicker>
                             </Col>
                             <Col style={{ marginLeft: 4 }}>
-                                <Button icon="setting" className="ant-search-btn" onClick={() => this.showDialog(true,  
+                                <Button icon="setting" className="ant-search-btn" onClick={() => this.showDialog(true,
                                     [{ metric: "system.load.1", aggregator: "avg", type: "line", rate: false, by: null, tags: null, id: 0 }],
-                                     'timeseries',
+                                    'timeseries',
                                     {
                                         dashboard_id: 11997,
                                         id: 0,
                                         meta: { modelType: "normal" },
                                         metrics:
-                                        [{ metric: "system.load.1", aggregator: "avg", type: "line",
-                                         rate: false, by: null, tags: null, id: 0 }],
+                                        [{
+                                            metric: "system.load.1", aggregator: "avg", type: "line",
+                                            rate: false, by: null, tags: null, id: 0
+                                        }],
                                         name: "新建图表",
-                                        type: "timeseries"})} />
+                                        type: "timeseries"
+                                    })} />
 
                             </Col>
                         </Row>
                     </Col>
                 </Row>
                 <ReactGridLayout layout={this.state.layout} style={{ width: '100%' }} className="layout"
-                    onDragStart={this.onDragStart.bind(this) }
-                    onDrag={this.onDrag.bind(this) }
-                    onDragStop={this.onDragStop.bind(this) }
-                    onLayoutChange={this.onLayoutChange.bind(this) } >
+                    onDragStart={this.onDragStart.bind(this)}
+                    onDrag={this.onDrag.bind(this)}
+                    onDragStop={this.onDragStop.bind(this)}
+                    onLayoutChange={this.onLayoutChange.bind(this)} >
 
                     {charts}
                 </ReactGridLayout>
@@ -470,12 +488,12 @@ export class ChartsPage extends React.Component {
                     chart={this.state.settingChart.chart}
                     type={this.state.settingChart.type}
                     metrics={this.state.settingChart.metric}
-                    showDialog={this.showDialog.bind(this) } /> : ''}
+                    showDialog={this.showDialog.bind(this)} /> : ''}
                 {this.state.expandChart.show ? <DialogChartView key="DialogChartView"
                     chart={this.state.expandChart.chart}
                     type={this.state.expandChart.type}
                     tags={tags}
-                    showDialog={this.showChartDialog.bind(this) } /> : ''}
+                    showDialog={this.showChartDialog.bind(this)} /> : ''}
 
 
             </div>
