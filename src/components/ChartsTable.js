@@ -3,7 +3,7 @@ import React from 'react';
 import { PropTypes } from 'react';
 import { fetchMetric } from './../actions/metric';
 import { connect } from 'react-redux';
-import { Table, Button, Row, Col, Select, Form, Icon, Card, Modal, Dropdown, Menu } from 'antd';
+import { Table, Button, Row, Col, Select, Form, Icon, Card, Modal, Dropdown, Menu,Spin } from 'antd';
 import { retryFetch } from './../utils/cFetch'
 import { API_CONFIG } from './../config/api';
 import cookie from 'js-cookie';
@@ -161,8 +161,19 @@ class ChartsTable extends React.Component {
     }
 
     render() {
-        if (!this.props.metrics)
-            return <div />;
+        if (!this.props.metrics || this.state.network.isFetching) {
+
+            let style = Object.assign({}, this.props.domProps.style, {
+                position: 'relative',
+            });
+
+            return <div style={style}><div style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%'
+            }}><Spin /></div></div>;
+
+        }
         let metric = this.props.metrics[0];
 
         let isFetching = this.state.network.isFetching;
@@ -197,12 +208,12 @@ class ChartsTable extends React.Component {
             });
         }
 
-        let style = Object.assign({},this.props.domProps.style, {
-                overflow: 'auto',
+        let style = Object.assign({}, this.props.domProps.style, {
+            overflow: 'auto',
         })
-    
 
-        return <div style={style}><Table  bordered={false} pagination={false} columns={columns} dataSource={tableData} size="small" /></div>
+
+        return <div style={style}><Table bordered={false} pagination={false} columns={columns} dataSource={tableData} size="small" /></div>
     }
 }
 

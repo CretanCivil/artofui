@@ -59,30 +59,30 @@ class DialogChartSetting extends React.Component {
         layout.name = this.state.name;
         layout.meta = {
             modelType: this.state.modelType,
-           // indexBox: [1,0,0],
+            // indexBox: [1,0,0],
         };
         layout.type = this.state.chartType == 'line' ? 'timeseries' : this.state.chartType;
         layout.metrics = this.state.metrics;
-// `User ${user.name} is not authorized to do ${action}.`);
-//1484923220972
-//https://cloud.oneapm.com/v1/dashboards/11997/charts/add.json
+        // `User ${user.name} is not authorized to do ${action}.`);
+        //1484923220972
+        //https://cloud.oneapm.com/v1/dashboards/11997/charts/add.json
 
         let url = `/v1/dashboards/${this.props.chart.dashboard_id}/charts/${this.props.chart.id}/update.json`;
-        
-        if(this.props.chart.id == 0){
+
+        if (this.props.chart.id == 0) {
             url = `/v1/dashboards/${this.props.chart.dashboard_id}/charts/add.json`;
         }
 
-        for(let metric of this.state.metrics) {
+        for (let metric of this.state.metrics) {
             metric.id = moment().format('x');
         }
-        
+
         retryFetch(url, {
             method: "POST",
             retries: 3,
             retryDelay: 10000,
             body: 'chart=' + encodeURIComponent(JSON.stringify(layout))
-        }).then(function(response) {
+        }).then(function (response) {
             return response.json();
         }).then((json) => {
             this.props.showDialog(false);
@@ -93,7 +93,7 @@ class DialogChartSetting extends React.Component {
     }
 
     passData(index, params) {
-        let tags = params.host.map(function(item) {
+        let tags = params.host.map(function (item) {
             return item.replace(":", "=")
         });
         let arr = Array.from(this.state.metrics);
@@ -129,14 +129,14 @@ class DialogChartSetting extends React.Component {
     }
 
     genMetricPanelNormal() {
-        let panels = this.state.metrics.map(function(item, index) {
+        let panels = this.state.metrics.map(function (item, index) {
             return <ChartsDetailSetting passData={this.passData.bind(this, index)} key={index} metric={item} hasby={this.state.hasby} />
         }, this);
         return panels;
     }
 
     genProModel() {
-        let panels = this.state.metrics.map(function(item, index) {
+        let panels = this.state.metrics.map(function (item, index) {
             return <ChartsModelTypeSettingPro passData={this.passData.bind(this, index)} key={index} metric={item} hasby={this.state.hasby} />
         }, this);
         return panels;

@@ -3,7 +3,7 @@ import React from 'react';
 import { PropTypes } from 'react';
 import { fetchMetric } from './../actions/metric';
 import { connect } from 'react-redux';
-import { Button, Row, Col, Select, Form, Icon, Card, Modal, Dropdown, Menu } from 'antd';
+import { Button, Row, Col, Select, Form, Icon, Card, Modal, Dropdown, Menu,Spin } from 'antd';
 import { retryFetch } from './../utils/cFetch'
 import { API_CONFIG } from './../config/api';
 import cookie from 'js-cookie';
@@ -36,7 +36,7 @@ class ChartsTreeMap extends React.Component {
 
     }
 
-    doFetchData(startDate, endDate,metrics) {
+    doFetchData(startDate, endDate, metrics) {
         if (!metrics)
             return;
 
@@ -123,8 +123,10 @@ class ChartsTreeMap extends React.Component {
     }
 
     componentDidUpdate() {
-        if (this.state.network.isFetching)
-            this.refs.chart.getChart().showLoading();
+        if (this.state.network.isFetching) {
+            if (this.refs.chart)
+                this.refs.chart.getChart().showLoading();
+        }
         else if (this.state.network.data.length == 0) {
             //this.doFetchData(this.props.startDate, this.props.endDate);
             // this.refs.chart.getChart().showLoading();
@@ -142,7 +144,7 @@ class ChartsTreeMap extends React.Component {
     }
 
     getChart() {
-        return this.refs.chart.getChart();
+        return !this.refs.chart ? null : this.refs.chart.getChart();
     }
 
     buildSerieName(tags) {
@@ -160,8 +162,19 @@ class ChartsTreeMap extends React.Component {
     }
 
     render() {
-        if (!this.props.metrics)
-            return <div />;
+        if (!this.props.metrics || this.state.network.isFetching) {
+
+            let style = Object.assign({}, this.props.domProps.style, {
+                position: 'relative',
+            });
+
+            return <div style={style}><div style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%'
+            }}><Spin /></div></div>;
+
+        }
         let metric = this.props.metrics[0];
 
         let isFetching = this.state.network.isFetching;

@@ -3,6 +3,7 @@ import React, { PropTypes } from 'react';
 import { connect } from 'react-redux';
 import { retryFetch } from './../utils/cFetch';
 import { API_CONFIG } from './../config/api';
+import { Spin } from 'antd';
 
 // React.Component
 class ChartsTopN extends React.Component {
@@ -120,8 +121,10 @@ class ChartsTopN extends React.Component {
     }
 
     componentDidUpdate() {
-        if (this.state.network.isFetching)
-            this.refs.chart.getChart().showLoading();
+        if (this.state.network.isFetching) {
+            if (this.refs.chart)
+                this.refs.chart.getChart().showLoading();
+        }
         else if (this.state.network.data.length == 0) {
             //this.doFetchData(this.props.startDate, this.props.endDate);
             // this.refs.chart.getChart().showLoading();
@@ -132,7 +135,7 @@ class ChartsTopN extends React.Component {
 
 
     getChart() {
-        return this.refs.chart.getChart();
+        return !this.refs.chart ? null : this.refs.chart.getChart();
     }
 
 
@@ -153,8 +156,19 @@ class ChartsTopN extends React.Component {
     }
 
     render() {
-        if (!this.props.metrics)
-            return <div />;
+        if (!this.props.metrics || this.state.network.isFetching) {
+
+            let style = Object.assign({}, this.props.domProps.style, {
+                position: 'relative',
+            });
+
+            return <div style={style}><div style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%'
+            }}><Spin /></div></div>;
+
+        }
         let metric = this.props.metrics[0];
 
         let data = this.state.network.data;
@@ -225,7 +239,7 @@ class ChartsTopN extends React.Component {
                 //[129.2, 144.0, 176.0, 135.6, 148.5, 216.4, 194.1, 95.6, 54.4, 29.9, 71.5, 106.4]
             }
             serie.data = serieDatas;
-            if(serie.data.length > 4)
+            if (serie.data.length > 4)
                 break;
 
         }

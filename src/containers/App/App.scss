@@ -208,4 +208,44 @@ body{
   background-color: #eee;
 }
 
- 
+ .inspector {
+    background: rgba(52,52,52,.8);
+    color: #fff;
+    position: fixed;
+    bottom: 0;
+    left: 150px;
+    right: 0;
+    height: 120px;
+    padding: 0 30px 20px;
+    overflow-y: hidden;
+    transform: translate(0)!important;
+    z-index: 1001!important;
+    transition: bottom .1s;
+}
+
+.inspector .inspector-toggle {
+    background: rgba(51,51,51,.4);
+    position: absolute;
+    top: -4px;
+    left: 50%;
+    margin-left: -28px;
+    line-height: 40px;
+    border-radius: 8px;
+}
+.inspector .inspector-toggle .anticon {
+    cursor: row-resize;
+    padding: 12px;
+    font-size: 20px;
+
+}
+
+.iconfont {
+    font-family: iconfont!important;
+    font-style: normal;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.inspector .inspector-header {
+    margin: 10px 0 4px;
+}

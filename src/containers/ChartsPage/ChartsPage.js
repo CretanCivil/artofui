@@ -30,7 +30,8 @@ import '../../../node_modules/react-resizable/css/styles.css';
 import 'rc-cascader/assets/index.css';
 import Highcharts from 'highcharts';
 import PubSub from 'vanilla-pubsub';
-
+import Draggable from 'react-draggable';
+import InspectorToggle from './../../components/InspectorToggle';
 //highchartsTreemap(ReactHighcharts.Highcharts);
 
 //const InputGroup = Input.Group;
@@ -94,6 +95,7 @@ export class ChartsPage extends React.Component {
                 chart: null,
             },
             layout: [],
+
         };
 
         this.props.setChartRange({
@@ -176,9 +178,9 @@ export class ChartsPage extends React.Component {
         }).then((json) => {
             let layout = [];
             if (json.result) {
-                console.log("json.result.order", JSON.parse(json.result.order));
+                //console.log("json.result.order", JSON.parse(json.result.order));
                 for (let data of JSON.parse(json.result.order)) {
-                    console.log(data);
+                    //console.log(data);
                     let tmp = {};
                     tmp.i = data[0];
                     tmp.x = data[1];
@@ -331,7 +333,7 @@ export class ChartsPage extends React.Component {
         // `oldLayoutItem` contains the state of the item before the resize.
         // You can modify `layoutItem` to enforce constraints.
 
-        console.log(this.refs["chart_" + layoutItem.i]);
+        //console.log(this.refs["chart_" + layoutItem.i]);
 
         if (layoutItem.h < 3 && layoutItem.w > 2) {
             layoutItem.w = 2;
@@ -362,6 +364,8 @@ export class ChartsPage extends React.Component {
             item: null,
         });
     }
+
+
 
     render() {
         const { dashboard: { data, isFetching } } = this.props;
@@ -494,6 +498,9 @@ export class ChartsPage extends React.Component {
                     type={this.state.expandChart.type}
                     tags={tags}
                     showDialog={this.showChartDialog.bind(this)} /> : ''}
+
+                <InspectorToggle />
+
 
 
             </div>

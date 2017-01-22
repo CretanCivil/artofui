@@ -100,7 +100,7 @@ class ChartsLine extends React.Component {
             let tags = null;
 
             if (metricInfo.tags) {
-                tags = metricInfo.tags.map(function (item) {
+                tags = metricInfo.tags.map(function(item) {
                     return item.replace(":", "=")
                 });
             }
@@ -127,7 +127,7 @@ class ChartsLine extends React.Component {
                 interval: interval,
 
             }
-        }).then(function (response) {
+        }).then(function(response) {
             return response.json();
         }).then((json) => {
             let config = this.initConfig({
@@ -183,13 +183,14 @@ class ChartsLine extends React.Component {
     }
 
     componentDidUpdate() {
-        if (this.state.network.isFetching)
+        if (this.state.network.isFetching) {
             if (this.refs.chart)
                 this.refs.chart.getChart().showLoading();
-            else if (this.state.network.data.length == 0) {
-                //this.doFetchData(this.props.startDate, this.props.endDate);
-                // this.refs.chart.getChart().showLoading();
-            }
+        }
+        else if (this.state.network.data.length == 0) {
+            //this.doFetchData(this.props.startDate, this.props.endDate);
+            // this.refs.chart.getChart().showLoading();
+        }
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -468,7 +469,7 @@ class ChartsLine extends React.Component {
     }
 
     render() {
-        if (!this.props.metrics || this.state.network.isFetching ) {
+        if (!this.props.metrics || this.state.network.isFetching) {
 
             let style = Object.assign({}, this.props.domProps.style, {
                 position: 'relative',
