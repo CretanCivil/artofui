@@ -249,3 +249,41 @@ body{
 .inspector .inspector-header {
     margin: 10px 0 4px;
 }
+
+.modal-dialog-max {
+  width: 90%!important;
+    height: 90%!important;
+}
+
+.ant-modal-wrap {
+    z-index: 1050;
+}
+
+.ant-modal-content {
+  height: 100%;
+}
+
+.modal-dialog-max .ant-modal-body {
+    height: 100%;
+    min-height: 400px;
+}
+
+.inspector .inspector-body .wrapper .iconfont {
+    margin-right: 10px;
+}
+
+.inspector .inspector-body .wrapper .numberic {
+    display: inline-block;
+    width: 20%;
+    vertical-align: top;
+}
+
+.inspector .inspector-body .wrapper .inspector-line-item {
+    display: inline-block;
+    color: #aaa;
+}
+
+.inspector .inspector-body .wrapper .inspector-line-item.active {
+    font-weight: bolder;
+    color: #fff;
+}

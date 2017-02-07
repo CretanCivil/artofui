@@ -9,9 +9,11 @@ import { API_CONFIG } from './../config/api';
 import cookie from 'js-cookie';
 import { setChartSelection, setChartCrossLine } from './../actions/chart';
 import ReactDOM from 'react-dom';
+import moment from 'moment';
+import ChartsBase from './ChartsBase';
 
 // React.Component
-class ChartsArea extends React.Component {
+class ChartsArea extends ChartsBase {
     static propTypes = {
         fetchMetric: React.PropTypes.func,
         metric: React.PropTypes.any
@@ -19,18 +21,11 @@ class ChartsArea extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = {
-            network: {
-                isFetching: false,
-                data: [],
-                error: null,
-            },
-        };
     }
 
     componentWillReceiveProps(nextProps) {
         if (nextProps.chart.range != this.props.chart.range || this.props.metrics != nextProps.metrics) {
-            this.doFetchData(nextProps.chart.range.startDate, nextProps.chart.range.endDate, nextProps.metrics);
+            this.doFetchData(nextProps);
         }
 
         if (nextProps.chart.crossLine.pos != this.props.chart.crossLine.pos) {
@@ -42,15 +37,15 @@ class ChartsArea extends React.Component {
         }
     }
 
-    doFetchData(startDate, endDate, metrics) {
-        if (!metrics)
-            return;
+    doFetchDataInner(startDate,endDate,metrics) {
+       
 
         this.setState({
             network: {
                 isFetching: true,
                 data: [],
                 error: null,
+                lastTime: endDate,
             }
         });
 
@@ -91,6 +86,7 @@ class ChartsArea extends React.Component {
                     isFetching: false,
                     data: json.result,
                     error: null,
+                    lastTime: endDate,
                 }
             });
             console.log("json", json);
@@ -100,6 +96,7 @@ class ChartsArea extends React.Component {
                     isFetching: false,
                     data: [],
                     error: error,
+                    lastTime: endDate,
                 }
             });
             console.log("error", error);
@@ -125,9 +122,7 @@ class ChartsArea extends React.Component {
     "rate":false,"id":1482717404051,
     "tags":["address=wuhan","host=102"],"by":["host"]}
      */
-    componentDidMount() {
-        this.doFetchData(this.props.chart.range.startDate, this.props.chart.range.endDate, this.props.metrics);
-    }
+
 
     componentDidUpdate() {
         if (this.state.network.isFetching) {
@@ -149,13 +144,6 @@ class ChartsArea extends React.Component {
 
         return data2 != data || isFetching != isFetching2;
     }
-
-
-    getChart() {
-        return !this.refs.chart ? null : this.refs.chart.getChart();
-    }
-
-
 
     showCrossLine(props) {
         let ref = ReactDOM.findDOMNode(this.refs.chart);

@@ -4,9 +4,11 @@ import { connect } from 'react-redux';
 import { retryFetch } from './../utils/cFetch';
 import { API_CONFIG } from './../config/api';
 import { Spin } from 'antd';
+import moment from 'moment';
+import ChartsBase from './ChartsBase';
 
 // React.Component
-class ChartsTopN extends React.Component {
+class ChartsTopN extends ChartsBase {
     static propTypes = {
         fetchMetric: React.PropTypes.func,
         metric: React.PropTypes.any
@@ -14,14 +16,9 @@ class ChartsTopN extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = {
-            network: {
-                isFetching: false,
-                data: [],
-                error: null,
-            },
+        this.state = Object.assign(this.state, {
             metrics: null,
-        };
+        });
     }
 
 
@@ -29,12 +26,12 @@ class ChartsTopN extends React.Component {
         this.setState({
             metrics: JSON.parse(JSON.stringify(this.props.metrics)),
         });
-        this.doFetchData(this.props.chart.range.startDate, this.props.chart.range.endDate, this.props.metrics);
+        super.componentDidMount();
     }
 
     componentWillReceiveProps(nextProps) {
         if (nextProps.chart.range != this.props.chart.range || this.props.metrics != nextProps.metrics) {
-            this.doFetchData(nextProps.chart.range.startDate, nextProps.chart.range.endDate, nextProps.metrics);
+            this.doFetchData(nextProps);
         }
         /*  if (nextProps.metrics[0].metric !== this.state.metrics[0].metric) {
               this.setState({
@@ -44,17 +41,15 @@ class ChartsTopN extends React.Component {
           }*/
     }
 
-
-
-    doFetchData(startDate, endDate, metrics) {
-        if (!metrics)
-            return;
+    
+    doFetchDataInner(startDate,endDate,metrics) {
 
         this.setState({
             network: {
                 isFetching: true,
                 data: [],
                 error: null,
+                lastTime: endDate,
             }
         });
 
@@ -95,6 +90,7 @@ class ChartsTopN extends React.Component {
                     isFetching: false,
                     data: json.result,
                     error: null,
+                    lastTime: endDate,
                 }
             });
         }).catch((error) => {
@@ -103,6 +99,7 @@ class ChartsTopN extends React.Component {
                     isFetching: false,
                     data: [],
                     error: error,
+                    lastTime: endDate,
                 }
             });
         });
@@ -130,17 +127,7 @@ class ChartsTopN extends React.Component {
             // this.refs.chart.getChart().showLoading();
         }
     }
-
-
-
-
-    getChart() {
-        return !this.refs.chart ? null : this.refs.chart.getChart();
-    }
-
-
-
-
+  
     buildSerieName(tags) {
         let name = "";
         for (let [key, value] of Object.entries(tags)) {

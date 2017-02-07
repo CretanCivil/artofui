@@ -9,13 +9,14 @@ import { API_CONFIG } from './../config/api';
 import cookie from 'js-cookie';
 import { setChartSelection, setChartCrossLine } from './../actions/chart';
 import ReactDOM from 'react-dom';
-var moment = require('moment');
+import moment from 'moment';
+import ChartsBase from './ChartsBase';
 
 //import highchartsHeatmap from 'highcharts-heatmap';
 //highchartsHeatmap(ReactHighcharts.Highcharts);
 
 // React.Component
-class ChartsHeatMap extends React.Component {
+class ChartsHeatMap extends ChartsBase {
     static propTypes = {
         fetchMetric: React.PropTypes.func,
         metric: React.PropTypes.any
@@ -23,32 +24,24 @@ class ChartsHeatMap extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = {
-            network: {
-                isFetching: true,
-                data: [],
-                error: null,
-            },
-        };
     }
 
     componentWillReceiveProps(nextProps) {
         if (nextProps.chart.range != this.props.chart.range
             || this.props.metrics != nextProps.metrics) {
-            this.doFetchData(nextProps.chart.range.startDate, nextProps.chart.range.endDate, nextProps.metrics);
+            this.doFetchData(nextProps);
         }
 
     }
 
-    doFetchData(startDate, endDate, metrics) {
-        if (!metrics)
-            return;
+    doFetchDataInner(startDate,endDate,metrics) {
 
         this.setState({
             network: {
                 isFetching: true,
                 data: [],
                 error: null,
+                lastTime: endDate,
             }
         });
 
@@ -92,6 +85,7 @@ class ChartsHeatMap extends React.Component {
                     isFetching: false,
                     data: json.result,
                     error: null,
+                    lastTime: endDate,
                 }
             });
             console.log("json", json);
@@ -117,10 +111,6 @@ class ChartsHeatMap extends React.Component {
     "rate":false,"id":1482717404051,
     "tags":["address=wuhan","host=102"],"by":["host"]}
      */
-    componentDidMount() {
-        this.doFetchData(this.props.chart.range.startDate, this.props.chart.range.endDate, this.props.metrics);
-    }
-
     componentDidUpdate() {
         if (this.state.network.isFetching) {
             if (this.refs.chart)
@@ -141,14 +131,6 @@ class ChartsHeatMap extends React.Component {
 
         return data2 != data || isFetching != isFetching2;
     }
-
-
-    getChart() {
-        return !this.refs.chart ? null : this.refs.chart.getChart();
-    }
-
-
-
 
     buildSerieName(tags) {
         if (tags == null || tags.length == 0)

@@ -3,6 +3,7 @@ import { routerReducer } from 'react-router-redux';
 
 import auth from './auth';
 import chart from './chart';
+import points from './points';
 
 import reducersGenerate from './reducersGenerate';
 import reducersCloundGenerate from './reducersCloundGenerate';
@@ -35,6 +36,7 @@ const rootReducer = combineReducers({
   normalModel,
   allMetrics,
   chart,
+  points,
   dragingCharts
 });
 

@@ -53,5 +53,8 @@ export default {
     isDraging: false,
     item:null,
   },
+  points: {//选中的序列点
+    points:[],
+  },
 
 };

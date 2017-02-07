@@ -7,6 +7,7 @@ import CustomCharts from './CustomCharts';
 import ReactDOM from 'react-dom';
 import Dimensions from 'react-dimensions';
 import Measure from 'react-measure';
+import VisibilitySensor from 'react-visibility-sensor';
 
 // React.Component
 class ChartsCard extends React.Component {
@@ -19,7 +20,7 @@ class ChartsCard extends React.Component {
             dimensions: {
                 width: -1,
                 height: -1
-            }
+            },
         }
     }
 
@@ -28,20 +29,39 @@ class ChartsCard extends React.Component {
         this.props.setting(true, this.props.chart.metrics, this.props.chart.type, this.props.chart);
     }
 
-    menuClick(e) {
-        message.info('Click on menu item.');
-        console.log('click', e);
+    menuClick(item, key, keyPath) {
+        // message.info('Click on menu item.');
+        console.log('click', item, key, keyPath);
     }
 
     componentDidMount() {
 
     }
 
+    shouldComponentUpdate(nextProps, nextState) {
+
+        return false;
+    }
+
     onMeasure(dimensions) {
-        this.setState({ dimensions: dimensions });
-        console.log(this.refs.chart);
+        //  this.setState({ dimensions: dimensions });
+        // console.log(this.refs.chart);
         if (this.refs.chart && this.refs.chart.getChart()) {
             this.refs.chart.getChart().setSize(dimensions.width, dimensions.height - 48);
+            // this.refs.chart.getChart().reflow();
+            //  this.refs.chart.getChart().redraw();
+        }
+
+    }
+
+    onChangeVisible(isVisible) {
+        // this.setState({
+        //     isVisible: isVisible,
+        //  });
+        //  return;
+       // console.log(p2);
+        if (isVisible && this.refs.chart) {
+            this.refs.chart.reloadData();
             // this.refs.chart.getChart().reflow();
             //  this.refs.chart.getChart().redraw();
         }
@@ -51,6 +71,7 @@ class ChartsCard extends React.Component {
     render() {
         let key = "key" + this.props.id;
 
+        console.log("ChartsLine");
         let series = [];
 
 
@@ -61,13 +82,13 @@ class ChartsCard extends React.Component {
 
         const menu = (
             <Menu onClick={() => this.menuClick()}>
-                <Menu.Item key="1">1st menu item</Menu.Item>
-                <Menu.Item key="2">2nd menu item</Menu.Item>
-                <Menu.Item key="3">3d menu item</Menu.Item>
+                <Menu.Item key="delete">删除</Menu.Item>
+                <Menu.Item key="copy">创建副本</Menu.Item>
+                <Menu.Item key="share">分享图表</Menu.Item>
             </Menu>
         );
 
-        return <Measure style={{ height: '100%' }} onMeasure={this.onMeasure.bind(this)}><Card title={this.props.chart.name}
+        return <Measure style={{ height: '100%' }} onMeasure={this.onMeasure.bind(this)}><VisibilitySensor intervalDelay={500} partialVisibility={true} onChange={this.onChangeVisible.bind(this)}><Card title={this.props.chart.name}
             className="chart"
             style={{ height: '100%' }}
             extra={
@@ -89,11 +110,12 @@ class ChartsCard extends React.Component {
             }
             bordered={false} >
             <CustomCharts
+                chart={this.props.chart}
                 metrics={this.props.chart.metrics}
                 type={this.props.chart.type == 'timeseries' ? 'line' : this.props.chart.type}
                 ref="chart"
                 domProps={domProps} />
-        </Card></Measure>;
+        </Card></VisibilitySensor></Measure>;
     }
 }
 

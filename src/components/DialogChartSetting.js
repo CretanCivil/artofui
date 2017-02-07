@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { Button, Row, Col, Select, Modal, Tabs, Spin, Checkbox, Input, Radio } from 'antd';
+import { Button, Row, Col, Select, Modal, Tabs, Spin, Checkbox, Input, Radio, Form } from 'antd';
 const Option = Select.Option;
 const TabPane = Tabs.TabPane;
 import CustomCharts from './CustomCharts';
@@ -33,6 +33,7 @@ class DialogChartSetting extends React.Component {
             metrics: Array.from(this.props.metrics),
             chartType: this.props.type == "timeseries" ? "line" : this.props.type,
             name: this.props.chart.name,
+            modelType: this.props.chart.meta.modelType,
         });
         this.initHasby(this.props.type);
     }
@@ -140,7 +141,9 @@ class DialogChartSetting extends React.Component {
             return <ChartsModelTypeSettingPro passData={this.passData.bind(this, index)} key={index} metric={item} hasby={this.state.hasby} />
         }, this);
         return panels;
+    }
 
+    genBucket() {
 
     }
 
@@ -165,7 +168,29 @@ class DialogChartSetting extends React.Component {
 
 
     render() {
-        let panelNormal = this.state.modelType === 'normal' ? this.genMetricPanelNormal() : this.genProModel();
+
+        /*
+            points
+
+                    active
+                    aggregator
+                    chartName
+                    color
+                    metric
+                    name
+                    value
+                    x
+                    y
+        
+         */
+        let panelNormal = null;
+
+
+        if (this.state.chartType == "events") {
+            panelNormal = this.genBucket();
+        } else {
+            this.state.modelType === 'normal' ? this.genMetricPanelNormal() : this.genProModel();
+        }
 
         return < Modal
             title={this.state.metrics ? "编辑图表" : "添加图表"}
@@ -183,13 +208,14 @@ class DialogChartSetting extends React.Component {
             <Row style={{ paddingTop: 25, }}></Row>
 
             <CustomCharts
+                chart={this.props.chart}
                 metrics={this.state.metrics}
                 type={this.state.chartType}
                 ref="chart_heatmap"
                 domProps={{ style: { height: 160, width: 928 }, }} />
 
             <RadioGroup onChange={this.changeChartType.bind(this)} defaultValue={this.state.chartType} size="large">
-                <RadioButton value="column">事件流</RadioButton>
+                <RadioButton value="events">事件流</RadioButton>
                 <RadioButton value="heatmap">热力图</RadioButton>
                 <RadioButton value="icon">图标</RadioButton>
                 <RadioButton value="pie">饼图</RadioButton>
@@ -206,10 +232,11 @@ class DialogChartSetting extends React.Component {
 
             <Row style={{ padding: 10, paddingLeft: 0 }}>选择和编辑指标</Row>
 
-            <RadioGroup onChange={this.changeModelType.bind(this)} defaultValue={this.state.modelType} size="large">
+            {this.state.chartType == "events" ? null : <RadioGroup onChange={this.changeModelType.bind(this)} defaultValue={this.state.modelType} size="large">
                 <RadioButton value="normal">普通模式</RadioButton>
                 <RadioButton value="pro">专家模式</RadioButton>
             </RadioGroup>
+            }
 
             {panelNormal}
 

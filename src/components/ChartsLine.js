@@ -8,10 +8,13 @@ import { retryFetch } from './../utils/cFetch'
 import { API_CONFIG } from './../config/api';
 import cookie from 'js-cookie';
 import { setChartSelection, setChartCrossLine } from './../actions/chart';
+import { selectPoints } from './../actions/points';
 import ReactDOM from 'react-dom';
+import ChartsBase from './ChartsBase';
+import moment from 'moment';
 
 // React.Component
-class ChartsLine extends React.Component {
+class ChartsLine extends ChartsBase {
     static propTypes = {
         fetchMetric: React.PropTypes.func,
         metric: React.PropTypes.any
@@ -19,17 +22,12 @@ class ChartsLine extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = {
-            network: {
-                isFetching: false,
-                data: [],
-                error: null,
-            },
+        this.state = Object.assign(this.state,{
             config: {
-                /* title: {
+                 title: {
                      text: null
                  },
-                 xAxis: {
+                /* xAxis: {
                      id: "xaxis",
                      title: {
                          text: null
@@ -47,18 +45,18 @@ class ChartsLine extends React.Component {
                  series: [{
                      showInLegend: false,
                      data: [0],
-                 }],
+                 }],*/
                  credits: {
                      enabled: false // 禁用版权信息
-                 },*/
+                 },
             },
-        };
+        });
     }
 
     componentWillReceiveProps(nextProps) {
         if (nextProps.chart.range != this.props.chart.range
             || this.props.metrics != nextProps.metrics) {
-            this.doFetchData(nextProps.chart.range.startDate, nextProps.chart.range.endDate, nextProps.metrics);
+            this.doFetchData(nextProps);
         }
 
         if (nextProps.chart.crossLine.pos != this.props.chart.crossLine.pos) {
@@ -70,15 +68,15 @@ class ChartsLine extends React.Component {
         }
     }
 
-    doFetchData(startDate, endDate, metrics) {
-        if (!metrics)
-            return;
+    doFetchDataInner(startDate,endDate,metrics) {
+
 
         this.setState({
             network: {
                 isFetching: true,
                 data: [],
                 error: null,
+                lastTime: endDate,
             }
         });
 
@@ -100,7 +98,7 @@ class ChartsLine extends React.Component {
             let tags = null;
 
             if (metricInfo.tags) {
-                tags = metricInfo.tags.map(function(item) {
+                tags = metricInfo.tags.map(function (item) {
                     return item.replace(":", "=")
                 });
             }
@@ -127,7 +125,7 @@ class ChartsLine extends React.Component {
                 interval: interval,
 
             }
-        }).then(function(response) {
+        }).then(function (response) {
             return response.json();
         }).then((json) => {
             let config = this.initConfig({
@@ -143,16 +141,18 @@ class ChartsLine extends React.Component {
                     isFetching: false,
                     data: json.result,
                     error: null,
+                    lastTime: endDate,
                 },
                 config: config,
             });
-            console.log("json", json);
+           // console.log("json", json);
         }).catch((error) => {
             this.setState({
                 network: {
                     isFetching: false,
                     data: [],
                     error: error,
+                    lastTime: endDate,
                 }
             });
             console.log("error", error);
@@ -178,9 +178,7 @@ class ChartsLine extends React.Component {
     "rate":false,"id":1482717404051,
     "tags":["address=wuhan","host=102"],"by":["host"]}
      */
-    componentDidMount() {
-        this.doFetchData(this.props.chart.range.startDate, this.props.chart.range.endDate, this.props.metrics);
-    }
+   
 
     componentDidUpdate() {
         if (this.state.network.isFetching) {
@@ -203,6 +201,12 @@ class ChartsLine extends React.Component {
         return data2 != data || isFetching != isFetching2;
     }
 
+ 
+
+    reloadData() {
+        this.doFetchData(this.props);
+    }
+
 
     getChart() {
         return !this.refs.chart ? null : this.refs.chart.getChart();
@@ -211,7 +215,7 @@ class ChartsLine extends React.Component {
 
 
     showCrossLine(props) {
-        if (!this.refs.chart)
+        if (!this.refs.chart || this.state.network.isFetching || this.state.network.data.length == 0)
             return;
         let ref = ReactDOM.findDOMNode(this.refs.chart);
         let box = ref.getBoundingClientRect();
@@ -288,12 +292,36 @@ class ChartsLine extends React.Component {
 
     }
 
+    buildSerieName(tags) {
+        if (tags == null || tags.length == 0)
+            return "*";
+        let name = "";
+        for (let [key, value] of Object.entries(tags)) {
+            if (key == "user")
+                continue;
+            if (name)
+                name += ",";
+            else
+                name += "{";
+            name += key + ":" + value;
+        }
+        if (!name)
+            name = "*";
+        else
+            name += "}";
+        return name;
+    }
+
     initConfig(network) {
         let isFetching = network.isFetching;
         let data = network.data;
 
         let series = [];
         let legend = {};
+
+
+        let internal = this.props.chart.range.startDate / 60000 / 60
+
         let tooltip = {
             backgroundColor: "rgba(0,0,0,0.5)",
             style: {                      // 文字内容相关样式
@@ -302,8 +330,27 @@ class ChartsLine extends React.Component {
                 fontWeight: "blod",
                 fontFamily: "Courir new"
             },
-            pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y:.1f}</b> ({point.minute:,.0f} millions)<br/>',
-            shared: true
+            // pointFormat: '{series.name}<br/><b>{series.aggregator}:{point.y:.2f}</b> <br/>',
+            formatter: function () {
+                var s = this.series.name + '<br/>';
+                let endTime = moment(parseInt(this.point.x));
+                let beginTime = moment(parseInt(this.point.x)).subtract(internal, "minutes");
+                //console.log(internal);
+                let timeFomatter = "HH:mm";
+                if (internal >= 12) {
+                    timeFomatter = "MM/DD HH:mm";
+                }
+                s += beginTime.format(timeFomatter) + " ~ ";
+                s += endTime.format(timeFomatter) + "<br/>";
+
+
+
+                s += '<b>' + this.series.userOptions.aggregator + ':' + this.point.y.toFixed(2) + '</b><br/>';
+                //console.log(this);
+
+                return s;
+            },
+            shared: false
         };
 
         let xAxisVisible = true;
@@ -317,10 +364,13 @@ class ChartsLine extends React.Component {
         for (let key in data) {
             let serie = {};
             serie.data = [];
-            console.log(this.props.metrics, key, this.props.metrics[key]);
+           // console.log(this.props.metrics, key, this.props.metrics[key]);
             serie.type = this.props.metrics[data[key].queryId].type;//let metric = this.props.metrics[0];
-            serie.name = "name";
+            serie.tags =  this.buildSerieName(data[key].tags);
+            serie.name = data[key].metric + ' - ' + this.buildSerieName(data[key].tags);
+            serie.metric = data[key].metric;
             serie.showInLegend = false;
+            serie.aggregator = data[key].aggregator;
             let serieDatas = [];
             let pointlist = data[key].pointlist;
 
@@ -339,7 +389,8 @@ class ChartsLine extends React.Component {
 
 
 
-
+        let cardChart = this.props.cardChart;
+        let selectPoints = this.props.selectPoints;
 
 
         const config = {
@@ -442,6 +493,91 @@ class ChartsLine extends React.Component {
                         enabled: false,//是否显示节点
                     },
                     stickyTracking: true,
+
+                    point: {
+                        events: {
+                            mouseOver: function () {
+                             //   console.log(this);
+                                let points = [];
+                                for(let i = 0;i < this.series.chart.series.length;i++) {
+                                    
+                                    let serie = this.series.chart.series[i];
+                                    let point = {};
+                                    if(this.x < serie.points[0].x || serie.points[serie.points.length - 1].x < this.x)
+                                        continue;
+                                    point.aggregator = serie.userOptions.aggregator;
+                                    point.chartName = cardChart.name;
+                                    point.active = this.series.index == i ? true : false;
+                                    point.color = serie.color;
+                                    point.name = serie.userOptions.tags;
+                                    point.metric = serie.userOptions.metric;
+
+                                    let tmpPoint = null;
+                                    for (let j  in serie.points) {
+                                         if(serie.points[j].x == this.x) {
+                                            tmpPoint = serie.points[j];
+                                            break;
+                                        } else {
+                                           // console.log(j);
+                                        }
+                                    } 
+                                    if(!tmpPoint)
+                                        continue;
+                                    
+                                    point.x = tmpPoint.x;
+                                    point.y = tmpPoint.y;
+                                    point.value = tmpPoint.y;
+                                    points.push(point);
+
+
+                                }
+
+                             //   console.log(points);
+                                selectPoints(points);
+                                return;
+                                /*
+                                    points
+
+                                            active
+                                            aggregator
+                                            chartName
+                                            color
+
+                                            metric
+                                            name
+                                            value
+                                            x
+                                            y
+                                
+                                */
+                                var chart = this.series.chart;
+                                if (!chart.lbl) {
+                                    chart.lbl = chart.renderer.label('')
+                                        .attr({
+                                            padding: 10,
+                                            r: 10,
+                                            fill: Highcharts.getOptions().colors[1]
+                                        })
+                                        .css({
+                                            color: '#FFFFFF'
+                                        })
+                                        .add();
+                                }
+                                chart.lbl
+                                    .show()
+                                    .attr({
+                                        text: 'x: ' + this.x + ', y: ' + this.y
+                                    });
+                            }
+                        }
+                    },
+                    events: {
+                        mouseOut: function () {
+                            if (this.chart.lbl) {
+                                this.chart.lbl.hide();
+                            }
+                        }
+                    }
                 },
                 scatter: {
                     tooltip: {
@@ -469,36 +605,36 @@ class ChartsLine extends React.Component {
     }
 
     render() {
-        if (!this.props.metrics || this.state.network.isFetching) {
+
+        let childContent = null;
+        if (!this.props.metrics || this.state.network.isFetching || this.state.network.error) {
 
             let style = Object.assign({}, this.props.domProps.style, {
                 position: 'relative',
             });
 
-            return <div style={style}><div style={{
+            childContent =  <div style={style}><div style={{
                 position: 'absolute',
                 top: '50%',
                 left: '50%'
             }}><Spin /></div></div>;
 
+        } else {
+            let config = this.state.config;
+
+            let domProps = this.props.domProps;
+            //if (!this.props.dragingCharts.isDraging) {
+            domProps = Object.assign({}, this.props.domProps, {
+                onMouseDown: this.handleMouseDown.bind(this),
+                onMouseMove: this.handleMouseMove.bind(this)
+            });
+            // }
+
+            childContent = <ReactHighcharts ref="chart" config={config} domProps={domProps} />;
         }
 
+        return childContent;
 
-        let config = this.state.config;
-
-        let domProps = this.props.domProps;
-        //if (!this.props.dragingCharts.isDraging) {
-        domProps = Object.assign({}, this.props.domProps, {
-            onMouseDown: this.handleMouseDown.bind(this),
-            onMouseMove: this.handleMouseMove.bind(this)
-        });
-        // }
-
-
-
-
-
-        return <ReactHighcharts ref="chart" config={config} domProps={domProps} />;
     }
 }
 
@@ -527,7 +663,8 @@ function mapDispatchToProps(dispatch) {
     // bindActionCreators(ActionCreators, dispatch)
     return {
         setChartSelection: (params) => dispatch(setChartSelection(params)),
-        setChartCrossLine: (params) => dispatch(setChartCrossLine(params))
+        setChartCrossLine: (params) => dispatch(setChartCrossLine(params)),
+        selectPoints: (params) => dispatch(selectPoints(params)),
     };
 }
 

@@ -78,6 +78,7 @@ export class ChartsPage extends React.Component {
             startDate: moment().subtract(12, 'hours').startOf('minute'),
             endDate: moment().startOf('minute'),
             chosenLabel: '最近12小时',
+            chosenFlag: false,//是否为自定义时间，自定义时间列表不更新
             inputValue: '',
             value: [],
             show: false,
@@ -138,9 +139,9 @@ export class ChartsPage extends React.Component {
             if (json.result) {
 
 
-                console.log("json.result.order", JSON.parse(json.result.order));
+               // console.log("json.result.order", JSON.parse(json.result.order));
                 for (let data of JSON.parse(json.result.order)) {
-                    console.log(data);
+                   // console.log(data);
                     let tmp = {};
                     tmp.i = data[0];
                     tmp.x = data[1];
@@ -301,14 +302,16 @@ export class ChartsPage extends React.Component {
         this.setState({
             startDate: picker.startDate,
             endDate: picker.endDate,
+            chosenFlag: picker.chosenLabel == '自定义区间',
             chosenLabel: picker.chosenLabel == '自定义区间' ? picker.startDate.format('YYYY-MM-DD') + " - " + picker.endDate.format('YYYY-MM-DD') : picker.chosenLabel,
         });
         //   console.log(moment().subtract(7, 'hours').format('YYYY-MM-DD HH:mm:ss'));
         //console.log(this.state.startDate.format('YYYY-MM-DD HH:mm:ss') + " - " + this.state.endDate.format('YYYY-MM-DD HH:mm:ss'));
 
         this.props.setChartRange({
-            startDate: this.state.endDate.diff(this.state.startDate),
-            endDate: this.state.endDate.format('x')
+            startDate: picker.endDate.diff(picker.startDate),
+            endDate: picker.endDate.format('x'),
+            chosenFlag: picker.chosenLabel == '自定义区间',
         });
     }
 
@@ -328,24 +331,6 @@ export class ChartsPage extends React.Component {
 
         this.updateLyaouts(datas);
     }
-
-    onResize(layout, oldLayoutItem, layoutItem, placeholder, e, element) {
-        // `oldLayoutItem` contains the state of the item before the resize.
-        // You can modify `layoutItem` to enforce constraints.
-
-        //console.log(this.refs["chart_" + layoutItem.i]);
-
-        if (layoutItem.h < 3 && layoutItem.w > 2) {
-            layoutItem.w = 2;
-            placeholder.w = 2;
-        }
-
-        if (layoutItem.h >= 3 && layoutItem.w < 2) {
-            layoutItem.w = 2;
-            placeholder.w = 2;
-        }
-    }
-
 
     onDragStart(layout, oldLayoutItem, layoutItem) {
         this.props.setDraging({

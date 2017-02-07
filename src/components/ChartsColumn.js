@@ -10,9 +10,10 @@ import cookie from 'js-cookie';
 import { setChartSelection, setChartCrossLine } from './../actions/chart';
 import ReactDOM from 'react-dom';
 import moment from 'moment';
+import ChartsBase from './ChartsBase';
 
 // React.Component
-class ChartsColumn extends React.Component {
+class ChartsColumn extends ChartsBase {
     static propTypes = {
         fetchMetric: React.PropTypes.func,
         metric: React.PropTypes.any
@@ -20,22 +21,15 @@ class ChartsColumn extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = {
-            network: {
-                isFetching: false,
-                data: [],
-                error: null,
-            },
-        };
     }
 
     componentWillReceiveProps(nextProps) {
         if (nextProps.chart.range != this.props.chart.range
             || this.props.metrics != nextProps.metrics) {
-            this.doFetchData(nextProps.chart.range.startDate, nextProps.chart.range.endDate, nextProps.metrics);
+            this.doFetchData(nextProps);
         }
 
-      
+
         if (nextProps.chart.crossLine.pos != this.props.chart.crossLine.pos) {
             this.showCrossLine(nextProps);
         }
@@ -46,15 +40,17 @@ class ChartsColumn extends React.Component {
 
     }
 
-    doFetchData(startDate, endDate, metrics) {
-        if (!metrics)
-            return;
+
+    
+    doFetchDataInner(startDate,endDate,metrics) {
+        
 
         this.setState({
             network: {
                 isFetching: true,
                 data: [],
                 error: null,
+                lastTime: endDate,
             }
         });
 
@@ -85,6 +81,7 @@ class ChartsColumn extends React.Component {
                     isFetching: false,
                     data: json.result,
                     error: null,
+                    lastTime: endDate,
                 }
             });
             console.log("json", json);
@@ -94,6 +91,7 @@ class ChartsColumn extends React.Component {
                     isFetching: false,
                     data: [],
                     error: error,
+                    lastTime: endDate,
                 }
             });
             console.log("error", error);
@@ -119,9 +117,7 @@ class ChartsColumn extends React.Component {
     "rate":false,"id":1482717404051,
     "tags":["address=wuhan","host=102"],"by":["host"]}
      */
-    componentDidMount() {
-        this.doFetchData(this.props.chart.range.startDate, this.props.chart.range.endDate, this.props.metrics);
-    }
+
 
     componentDidUpdate() {
         if (this.state.network.isFetching) {
@@ -144,14 +140,10 @@ class ChartsColumn extends React.Component {
         return data2 != data || isFetching != isFetching2;
     }
 
-    getChart() {
-        return !this.refs.chart ? null : this.refs.chart.getChart();
-    }
-
-
-
     showCrossLine(props) {
         let ref = ReactDOM.findDOMNode(this.refs.chart);
+        if(!ref)
+            return;
         let box = ref.getBoundingClientRect();
         let x = props.chart.crossLine.pos * (box.width - 20);
         x += 10;
@@ -305,15 +297,16 @@ class ChartsColumn extends React.Component {
             formatter: function () {
                 let tips = '<b>' + moment(this.x).format('YYYY-MM-DD HH:mm') + '</b><br/>';
                 if (this.points[0].y > 0) {
-                    tips += '<b><span color=' + this.points[0].color + '>alert:</span>' + this.y + '</b><br/>';
+                    tips += '<b><span color=' + this.points[0].color + '>alert:</span>' + this.points[0].y + '</b><br/>';
                 }
 
                 if (this.points[1].y > 0) {
-                    tips += '<b>warning:' + this.y + '</b><br/>';
+                    tips += '<b>warning:' + this.points[1].y + '</b><br/>';
                 }
 
                 if (this.points[2].y > 0) {
-                    tips += '<b>info:' + this.y + '</b><br/>';
+                   // console.log(this);
+                    tips += '<b>info:' + this.points[2].y + '</b><br/>';
                 }
 
                 return tips;
@@ -347,6 +340,7 @@ class ChartsColumn extends React.Component {
                 }
             },
             xAxis: {
+                id: "xaxis",
                 type: 'datetime',
                 title: {
                     text: null
@@ -389,7 +383,7 @@ class ChartsColumn extends React.Component {
             plotOptions: {
                 column: {
                     stacking: 'normal'
-                }
+                },
             },
             tooltip: tooltip,
             legend: {},
