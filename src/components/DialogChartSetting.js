@@ -144,7 +144,8 @@ class DialogChartSetting extends React.Component {
     }
 
     genBucket() {
-
+        let pannels = null;
+        return panels;
     }
 
     onChangeTitle(e) {
