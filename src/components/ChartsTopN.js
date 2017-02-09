@@ -42,7 +42,8 @@ class ChartsTopN extends ChartsBase {
     }
 
     
-    doFetchDataInner(startDate,endDate,metrics) {
+    doFetchDataInner(startDate,endDate,chart) {
+        let metrics = chart.metrics;
 
         this.setState({
             network: {
@@ -85,6 +86,9 @@ class ChartsTopN extends ChartsBase {
         }).then(function (response) {
             return response.json();
         }).then((json) => {
+            if(!this.mounted) {
+                return;
+            }
             this.setState({
                 network: {
                     isFetching: false,
@@ -94,6 +98,9 @@ class ChartsTopN extends ChartsBase {
                 }
             });
         }).catch((error) => {
+            if(!this.mounted) {
+                return;
+            }
             this.setState({
                 network: {
                     isFetching: false,

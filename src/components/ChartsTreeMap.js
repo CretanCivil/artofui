@@ -31,7 +31,8 @@ class ChartsTreeMap extends ChartsBase {
 
     }
 
-    doFetchDataInner(startDate,endDate,metrics) {
+    doFetchDataInner(startDate,endDate,chart) {
+        let metrics = chart.metrics;
 
         this.setState({
             network: {
@@ -73,6 +74,9 @@ class ChartsTreeMap extends ChartsBase {
         }).then(function (response) {
             return response.json();
         }).then((json) => {
+            if(!this.mounted) {
+                return;
+            }
             this.setState({
                 network: {
                     isFetching: false,
@@ -83,6 +87,9 @@ class ChartsTreeMap extends ChartsBase {
             });
             console.log("json", json);
         }).catch((error) => {
+            if(!this.mounted) {
+                return;
+            }
             this.setState({
                 network: {
                     isFetching: false,

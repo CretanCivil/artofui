@@ -25,7 +25,8 @@ class ChartsColumn extends ChartsBase {
 
     componentWillReceiveProps(nextProps) {
         if (nextProps.chart.range != this.props.chart.range
-            || this.props.metrics != nextProps.metrics) {
+            || this.props.metrics != nextProps.metrics
+            || this.props.cardChart != nextProps.cardChart) {
             this.doFetchData(nextProps);
         }
 
@@ -42,8 +43,8 @@ class ChartsColumn extends ChartsBase {
 
 
     
-    doFetchDataInner(startDate,endDate,metrics) {
-        
+    doFetchDataInner(startDate,endDate,chart) {
+        let metrics = chart.metrics;
 
         this.setState({
             network: {
@@ -71,11 +72,14 @@ class ChartsColumn extends ChartsBase {
                 start: endDate - startDate,
                 end: endDate,
                 interval: interval,
-
+                q:chart.meta.events_query,
             }
         }).then(function (response) {
             return response.json();
         }).then((json) => {
+            if(!this.mounted) {
+                return;
+            }
             this.setState({
                 network: {
                     isFetching: false,
@@ -86,6 +90,9 @@ class ChartsColumn extends ChartsBase {
             });
             console.log("json", json);
         }).catch((error) => {
+            if(!this.mounted) {
+                return;
+            }
             this.setState({
                 network: {
                     isFetching: false,
@@ -141,6 +148,8 @@ class ChartsColumn extends ChartsBase {
     }
 
     showCrossLine(props) {
+        if (!this.refs.chart || this.state.network.isFetching || this.state.network.data.length == 0)
+            return;
         let ref = ReactDOM.findDOMNode(this.refs.chart);
         if(!ref)
             return;
@@ -155,13 +164,14 @@ class ChartsColumn extends ChartsBase {
         let path = ['M', x, chart.plotTop,
             'L', x, chart.plotTop + chart.plotHeight];
         if (chart.crossLines) {
-            chart.crossLines.attr({ d: path });
+            chart.crossLines.attr({ d: path }).toFront();
         } else {
             chart.crossLines = chart.renderer.path(path).attr({
-                'stroke-width': 2,
+                'stroke-width': 1,
                 stroke: 'green',
-                zIndex: 1
-            }).add();
+                'z-index': 1,
+                opacity: 1,
+            }).add().toFront();
         }
     }
 
@@ -298,6 +308,10 @@ class ChartsColumn extends ChartsBase {
                 let tips = '<b>' + moment(this.x).format('YYYY-MM-DD HH:mm') + '</b><br/>';
                 if (this.points[0].y > 0) {
                     tips += '<b><span color=' + this.points[0].color + '>alert:</span>' + this.points[0].y + '</b><br/>';
+                }
+
+                if(!this.points[1]) {
+                    console.log(this);
                 }
 
                 if (this.points[1].y > 0) {

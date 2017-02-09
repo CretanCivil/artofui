@@ -26,7 +26,14 @@ export default class ChartsBase extends React.Component {
         };
     }
 
+
+
+    componentWillUnmount() {
+        this.mounted = false;
+    }
+
     componentDidMount() {
+        this.mounted = true;
         this.doFetchData(this.props);
     }
 
@@ -41,17 +48,18 @@ export default class ChartsBase extends React.Component {
     doFetchData(props) {
         let startDate = props.chart.range.startDate;
         let endDate = props.chart.range.endDate;
-        if(!props.chart.range.chosenFlag)
+        if (!props.chart.range.chosenFlag)
             endDate = moment().format('x');
-        let metrics = props.metrics;
+        let metrics = props.cardChart.metrics;
 
-        
-        if (!metrics || this.state.network.isFetching || (moment().diff(moment(parseInt(this.state.network.lastTime))) < 1000 * 60 && !this.state.network.error))
+        //|| (moment().diff(moment(parseInt(this.state.network.lastTime))) < 1000 * 60 && !this.state.network.error)
+        //|| this.state.network.isFetching
+        if (!metrics)
             return;
 
-       
 
-        this.doFetchDataInner(startDate,endDate,metrics);
+
+        this.doFetchDataInner(startDate, endDate, props.cardChart);
     }
 }
 

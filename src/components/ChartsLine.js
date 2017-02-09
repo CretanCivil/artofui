@@ -68,7 +68,8 @@ class ChartsLine extends ChartsBase {
         }
     }
 
-    doFetchDataInner(startDate,endDate,metrics) {
+    doFetchDataInner(startDate,endDate,chart) {
+        let metrics = chart.metrics;
 
 
         this.setState({
@@ -128,6 +129,9 @@ class ChartsLine extends ChartsBase {
         }).then(function (response) {
             return response.json();
         }).then((json) => {
+            if(!this.mounted) {
+                return;
+            }
             let config = this.initConfig({
 
                 isFetching: false,
@@ -147,6 +151,9 @@ class ChartsLine extends ChartsBase {
             });
            // console.log("json", json);
         }).catch((error) => {
+            if(!this.mounted) {
+                return;
+            }
             this.setState({
                 network: {
                     isFetching: false,
@@ -229,13 +236,13 @@ class ChartsLine extends ChartsBase {
         let path = ['M', x, chart.plotTop,
             'L', x, chart.plotTop + chart.plotHeight];
         if (chart.crossLines) {
-            chart.crossLines.attr({ d: path });
+            chart.crossLines.attr({ d: path }).toFront();
         } else {
             chart.crossLines = chart.renderer.path(path).attr({
-                'stroke-width': 2,
+                'stroke-width': 1,
                 stroke: 'green',
                 zIndex: 1
-            }).add();
+            }).add().toFront();
         }
     }
 

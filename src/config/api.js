@@ -12,13 +12,13 @@ export const API_CONFIG = {
   baseUri: baseUri,
   auth: '/pages/v2/login',
   users: '/api/v1/users',
-  dashboard: '/v1/dashboards/11997/charts.json',
-  show: '/v1/dashboards/11997/show.json',
+  dashboard: '/v1/dashboards/{}/charts.json',
+  show: '/v1/dashboards/{}/show.json',
   metric: '/v1/query.json',
   tags: '/v1/tags.json',
   normal_model: '/v1/metric_types/normal_mode_list',
   all_metrics: '/v1/metrics.json',
   buckets: '/v1/events/buckets.json',
-  updateLayout: '/v1/dashboards/11997/update.json',
+  updateLayout: '/v1/dashboards/{}/update.json',
 };
 

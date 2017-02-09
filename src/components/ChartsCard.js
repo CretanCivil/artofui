@@ -8,6 +8,9 @@ import ReactDOM from 'react-dom';
 import Dimensions from 'react-dimensions';
 import Measure from 'react-measure';
 import VisibilitySensor from 'react-visibility-sensor';
+import PubSub from 'vanilla-pubsub';
+import { retryFetch, toQueryString } from '../utils/cFetch'
+import { API_CONFIG } from '../config/api';
 
 // React.Component
 class ChartsCard extends React.Component {
@@ -29,9 +32,78 @@ class ChartsCard extends React.Component {
         this.props.setting(true, this.props.chart.metrics, this.props.chart.type, this.props.chart);
     }
 
-    menuClick(item, key, keyPath) {
+    deleteChart() {
+        const confirm = Modal.confirm;
+
+        confirm({
+            title: '删除仪表盘图表?',
+            content: `确认要删除  ${this.props.chart.name} 这个图表?`,
+            onOk:this.doDeleteChart.bind(this),
+            /*return new Promise((resolve, reject) => {
+                setTimeout(Math.random() > 0.5 ? resolve : reject, 1000);
+            }).catch(() => console.log('Oops errors!'));*/
+              
+            onCancel() {},
+        });
+    }
+
+    doDeleteChart() {
+        // `User ${user.name} is not authorized to do ${action}.`);
+        //1484923220972
+        //https://cloud.oneapm.com/v1/dashboards/11997/charts/add.json
+        //https://cloud.oneapm.com/v1/dashboards/11997/charts/1361641/delete.json
+        let url = `/v1/dashboards/${this.props.chart.dashboard_id}/charts/${this.props.chart.id}/delete.json`;
+
+        retryFetch(url, {
+            method: "POST",
+            retries: 3,
+            retryDelay: 10000,
+            body: ''
+        }).then(function (response) {
+            return response.json();
+        }).then((json) => {
+            //this.props.showDialog(false);
+            console.log("json", json);
+
+            PubSub.publish('App.dashboard.refresh');
+        });
+    }
+
+    addChart() {
+        let layout = this.props.chart;
+        // `User ${user.name} is not authorized to do ${action}.`);
+        //1484923220972
+        //https://cloud.oneapm.com/v1/dashboards/11997/charts/add.json
+
+        let url = `/v1/dashboards/${this.props.chart.dashboard_id}/charts/add.json`;
+
+        retryFetch(url, {
+            method: "POST",
+            retries: 3,
+            retryDelay: 10000,
+            body: 'chart=' + encodeURIComponent(JSON.stringify(layout))
+        }).then(function (response) {
+            return response.json();
+        }).then((json) => {
+            //this.props.showDialog(false);
+            console.log("json", json);
+
+            PubSub.publish('App.dashboard.refresh');
+        });
+    }
+
+
+    menuClick(item) {
         // message.info('Click on menu item.');
-        console.log('click', item, key, keyPath);
+        console.log('click', item);
+        switch(item.key) {
+            case "copy":
+                this.addChart();
+                break;
+             case "delete":
+                this.deleteChart();
+                break;   
+        }
     }
 
     componentDidMount() {
@@ -81,8 +153,8 @@ class ChartsCard extends React.Component {
         });
 
         const menu = (
-            <Menu onClick={() => this.menuClick()}>
-                <Menu.Item key="delete">删除</Menu.Item>
+            <Menu onClick={this.menuClick.bind(this)}>
+                <Menu.Item key="delete">删除图表</Menu.Item>
                 <Menu.Item key="copy">创建副本</Menu.Item>
                 <Menu.Item key="share">分享图表</Menu.Item>
             </Menu>

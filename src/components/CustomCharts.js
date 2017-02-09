@@ -43,6 +43,7 @@ export default class CustomCharts extends React.Component {
         switch (this.props.type) {
             case "heatmap":
                 return <ChartsHeatmap
+                    cardChart={this.props.chart} 
                     metrics={this.props.metrics}
                     type={this.props.type}
                     ref="chart"
@@ -56,37 +57,51 @@ export default class CustomCharts extends React.Component {
                     ref="chart"
                     domProps={this.props.domProps} />;
             case "area":
-                return <ChartsArea metrics={this.props.metrics}
+                return <ChartsArea 
+                    cardChart={this.props.chart} 
+                    metrics={this.props.metrics}
                     type={this.props.type}
                     ref="chart"
                     domProps={this.props.domProps} />;
             case "pie":
-                return <ChartsPie metrics={this.props.metrics}
+                return <ChartsPie 
+                    cardChart={this.props.chart} 
+                    metrics={this.props.metrics}
                     type={this.props.type}
                     ref="chart"
                     domProps={this.props.domProps} />;
             case "table":
-                return <ChartsTable metrics={this.props.metrics}
+                return <ChartsTable 
+                    cardChart={this.props.chart} 
+                    metrics={this.props.metrics}
                     type={this.props.type}
                     ref="chart"
                     domProps={this.props.domProps} />;
             case "bar":
-                return <ChartsTopN metrics={this.props.metrics}
+                return <ChartsTopN 
+                    cardChart={this.props.chart} 
+                    metrics={this.props.metrics}
                     type={this.props.type}
                     ref="chart"
                     domProps={this.props.domProps} />;
             case "treemap":
-                return <ChartsTreeMap metrics={this.props.metrics}
+                return <ChartsTreeMap 
+                    cardChart={this.props.chart} 
+                    metrics={this.props.metrics}
                     type={this.props.type}
                     ref="chart"
                     domProps={this.props.domProps} />;
             case "events":
-                return <ChartsColumn metrics={this.props.metrics}
+                return <ChartsColumn 
+                    cardChart={this.props.chart} 
+                    metrics={this.props.metrics}
                     type="column"
                     ref="chart"
                     domProps={this.props.domProps} />;
             case "column":
-                return <ChartsColumn metrics={this.props.metrics}
+                return <ChartsColumn 
+                    cardChart={this.props.chart} 
+                    metrics={this.props.metrics}
                     type={this.props.type}
                     ref="chart"
                     domProps={this.props.domProps} />;

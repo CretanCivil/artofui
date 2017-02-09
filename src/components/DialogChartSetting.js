@@ -13,6 +13,7 @@ import { retryFetch, toQueryString } from '../utils/cFetch'
 import { API_CONFIG } from '../config/api';
 let moment = require('moment');
 import PubSub from 'vanilla-pubsub';
+const FormItem = Form.Item;
 
 // React.Component
 class DialogChartSetting extends React.Component {
@@ -23,17 +24,19 @@ class DialogChartSetting extends React.Component {
             metrics: null,
             chartType: "line",
             hasby: false,
-            modelType: 'normal',
             name: '',
+            eventsQuery: '',
+            chart: null,
         };
     }
 
     componentWillMount() {
         this.setState({
+            chart: Object.assign({},this.props.chart),
             metrics: Array.from(this.props.metrics),
             chartType: this.props.type == "timeseries" ? "line" : this.props.type,
             name: this.props.chart.name,
-            modelType: this.props.chart.meta.modelType,
+            eventsQuery: this.props.chart.meta.events_query,
         });
         this.initHasby(this.props.type);
     }
@@ -58,12 +61,9 @@ class DialogChartSetting extends React.Component {
     saveSetting() {
         let layout = {};
         layout.name = this.state.name;
-        layout.meta = {
-            modelType: this.state.modelType,
-            // indexBox: [1,0,0],
-        };
+        layout.meta = this.state.chart.meta;
         layout.type = this.state.chartType == 'line' ? 'timeseries' : this.state.chartType;
-        layout.metrics = this.state.metrics;
+        layout.metrics = this.state.chart.metrics;
         // `User ${user.name} is not authorized to do ${action}.`);
         //1484923220972
         //https://cloud.oneapm.com/v1/dashboards/11997/charts/add.json
@@ -108,8 +108,13 @@ class DialogChartSetting extends React.Component {
 
         arr[index] = metric;
 
+
+        let chart = Object.assign({},this.state.chart) ;
+        chart.metrics = arr;
+
         this.setState({
             metrics: arr,
+            chart:chart,
         });
     }
 
@@ -144,8 +149,24 @@ class DialogChartSetting extends React.Component {
     }
 
     genBucket() {
-        let pannels = null;
+        ////events_query
+        //onChange={this.onChangeTitle.bind(this)} defaultValue={this.state.name}
+        let panels = <Form vertical={true}><FormItem
+            label="关键字"
+          >
+            <Input ref="eventsQuery" placeholder="Anything" onChange={this.onChangeEventsQuery.bind(this)} defaultValue={this.state.eventsQuery} />
+          </FormItem></Form>;
         return panels;
+    }
+    onChangeEventsQuery(e) {
+        let chart = Object.assign({},this.state.chart) ;
+        chart.meta.events_query = e.target.value;
+        this.setState({
+            eventsQuery: e.target.value,
+            chart:chart,
+        });
+
+
     }
 
     onChangeTitle(e) {
@@ -153,6 +174,9 @@ class DialogChartSetting extends React.Component {
             name: e.target.value,
         });
     }
+
+    
+
 
     changeChartType(event) {
         this.setState({
@@ -162,9 +186,10 @@ class DialogChartSetting extends React.Component {
     }
 
     changeModelType(event) {
-        this.setState({
+        this.state.chart.meta.modelType = event.target.value;
+        /*this.setState({
             modelType: event.target.value,
-        });
+        });*/
     }
 
 
@@ -183,6 +208,8 @@ class DialogChartSetting extends React.Component {
                     x
                     y
         
+        <RadioButton value="icon">图标</RadioButton>
+        
          */
         let panelNormal = null;
 
@@ -190,7 +217,7 @@ class DialogChartSetting extends React.Component {
         if (this.state.chartType == "events") {
             panelNormal = this.genBucket();
         } else {
-            this.state.modelType === 'normal' ? this.genMetricPanelNormal() : this.genProModel();
+            panelNormal = this.state.chart.meta.modelType === 'normal' ? this.genMetricPanelNormal() : this.genProModel();
         }
 
         return < Modal
@@ -209,7 +236,7 @@ class DialogChartSetting extends React.Component {
             <Row style={{ paddingTop: 25, }}></Row>
 
             <CustomCharts
-                chart={this.props.chart}
+                chart={this.state.chart}
                 metrics={this.state.metrics}
                 type={this.state.chartType}
                 ref="chart_heatmap"
@@ -218,7 +245,7 @@ class DialogChartSetting extends React.Component {
             <RadioGroup onChange={this.changeChartType.bind(this)} defaultValue={this.state.chartType} size="large">
                 <RadioButton value="events">事件流</RadioButton>
                 <RadioButton value="heatmap">热力图</RadioButton>
-                <RadioButton value="icon">图标</RadioButton>
+                
                 <RadioButton value="pie">饼图</RadioButton>
 
                 <RadioButton value="area">状态值</RadioButton>
@@ -233,7 +260,7 @@ class DialogChartSetting extends React.Component {
 
             <Row style={{ padding: 10, paddingLeft: 0 }}>选择和编辑指标</Row>
 
-            {this.state.chartType == "events" ? null : <RadioGroup onChange={this.changeModelType.bind(this)} defaultValue={this.state.modelType} size="large">
+            {this.state.chartType == "events" ? null : <RadioGroup onChange={this.changeModelType.bind(this)} defaultValue={this.state.chart.meta.modelType} size="large">
                 <RadioButton value="normal">普通模式</RadioButton>
                 <RadioButton value="pro">专家模式</RadioButton>
             </RadioGroup>

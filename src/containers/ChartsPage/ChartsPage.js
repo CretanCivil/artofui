@@ -33,6 +33,8 @@ import PubSub from 'vanilla-pubsub';
 import Draggable from 'react-draggable';
 import InspectorToggle from './../../components/InspectorToggle';
 //highchartsTreemap(ReactHighcharts.Highcharts);
+import format from 'string-format';
+import $ from 'jquery';
 
 //const InputGroup = Input.Group;
 //const ButtonGroup = Button.Group;
@@ -126,7 +128,7 @@ export class ChartsPage extends React.Component {
 
 
     doFetchData() {
-        retryFetch(API_CONFIG.show, {
+        retryFetch(format(API_CONFIG.show,$("#dashboard").attr("dashboardid")), {
             method: "GET",
             retries: 3,
             retryDelay: 10000,
@@ -160,7 +162,7 @@ export class ChartsPage extends React.Component {
                     layout: layout,
 
                 });
-                console.log("json", json);
+                console.log("layoutlayoutjson", json);
             }
             this.props.fetchDashboard();
             this.props.fetchTags();
@@ -169,7 +171,7 @@ export class ChartsPage extends React.Component {
     }
 
     updateLyaouts(layout) {
-        retryFetch(API_CONFIG.updateLayout, {
+        retryFetch(format(API_CONFIG.updateLayout,$("#dashboard").attr("dashboardid")), {
             method: "POST",
             retries: 3,
             retryDelay: 10000,
@@ -296,8 +298,6 @@ export class ChartsPage extends React.Component {
     }
 
     handleDateRangeChanged(event, picker) {
-
-
         //  picker.chosenLabel
         this.setState({
             startDate: picker.startDate,
@@ -316,19 +316,13 @@ export class ChartsPage extends React.Component {
     }
 
     onLayoutChange(layout) {
-
         let datas = [];
-
-
         for (let data of layout) {
             let tmp = [];
             tmp.push(data.i, data.x, data.y, data.w, data.h)
 
             datas.push(tmp);
         }
-
-
-
         this.updateLyaouts(datas);
     }
 
@@ -356,7 +350,7 @@ export class ChartsPage extends React.Component {
         const { dashboard: { data, isFetching } } = this.props;
         const { tags } = this.props;
 
-        if (isFetching) {
+        if (isFetching && data.length == 0) {
             return (
                 <Row type="flex" justify="space-around" align="middle" style={{ minHeight: 500 }}><Col><Spin /></Col></Row>
             );
@@ -411,9 +405,6 @@ export class ChartsPage extends React.Component {
         return (
             <div style={{}}>
 
-
-
-
                 <Row key={"4"} type="flex" justify="space-between" style={{ marginLeft: 10 }}>
                     <Col span={8}>
                         <Form inline >
@@ -448,7 +439,7 @@ export class ChartsPage extends React.Component {
                                     [{ metric: "system.load.1", aggregator: "avg", type: "line", rate: false, by: null, tags: null, id: 0 }],
                                     'timeseries',
                                     {
-                                        dashboard_id: 11997,
+                                        dashboard_id: $("#dashboard").attr("dashboardid"),
                                         id: 0,
                                         meta: { modelType: "normal" },
                                         metrics:
