@@ -98,7 +98,6 @@ export class ChartsPage extends React.Component {
                 chart: null,
             },
             layout: [],
-
         };
 
         this.props.setChartRange({
@@ -359,7 +358,7 @@ export class ChartsPage extends React.Component {
         let charts = [];
         for (let i = 0; i < data.length; i++) {
             let chart = data[i];
-            let col = <div key={chart.id} style={{ backgroundColor: 'white', height: '100%' }}><ChartsCard
+            let col = <div key={chart.id} data-grid={this.state.layout[i]} style={{ backgroundColor: 'white', height: '100%' }}><ChartsCard
                 ref={"chart_" + chart.id}
                 chart={chart}
                 expand={this.showChartDialog.bind(this)}
