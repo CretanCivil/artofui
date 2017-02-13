@@ -90,7 +90,7 @@ http.createServer(function (req, res) {
     console.error(errorMsg);
    
   }
-}).listen(10010);
+}).listen(10020);
 
 var proxy = httpProxy.createServer({
   target: {
@@ -98,7 +98,7 @@ var proxy = httpProxy.createServer({
     host: 'localhost'
   },
   forward: {
-    port: 10010,
+    port: 10020,
     host: 'localhost'
   },
   /*forward: {
