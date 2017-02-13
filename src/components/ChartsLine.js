@@ -56,7 +56,7 @@ class ChartsLine extends ChartsBase {
     componentWillReceiveProps(nextProps) {
         if (nextProps.chart.range != this.props.chart.range
             || this.props.metrics != nextProps.metrics) {
-            this.doFetchData(nextProps);
+            this.doFetchData(nextProps,true);
         }
 
         if (nextProps.chart.crossLine.pos != this.props.chart.crossLine.pos) {
@@ -77,9 +77,9 @@ class ChartsLine extends ChartsBase {
                 isFetching: true,
                 data: [],
                 error: null,
-                lastTime: endDate,
             }
         });
+        this.state.network.lastTime = endDate;
 
         let q = "";
         let interval = startDate / 60000;

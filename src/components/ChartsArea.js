@@ -25,7 +25,7 @@ class ChartsArea extends ChartsBase {
 
     componentWillReceiveProps(nextProps) {
         if (nextProps.chart.range != this.props.chart.range || this.props.metrics != nextProps.metrics) {
-            this.doFetchData(nextProps);
+            this.doFetchData(nextProps,true);
         }
 
         if (nextProps.chart.crossLine.pos != this.props.chart.crossLine.pos) {
@@ -40,13 +40,12 @@ class ChartsArea extends ChartsBase {
     doFetchDataInner(startDate,endDate,chart) {
         let metrics = chart.metrics;
        
-
+        this.state.network.lastTime = endDate;
         this.setState({
             network: {
                 isFetching: true,
                 data: [],
                 error: null,
-                lastTime: endDate,
             }
         });
 

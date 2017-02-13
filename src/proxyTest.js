@@ -2,20 +2,28 @@ var https = require('https');
 var httpProxy = require('http-proxy');
 var http = require('http');
 
-httpProxy.createProxyServer({
+var proxyDD = httpProxy.createProxyServer({
   target: 'https://app.datadoghq.com',
   agent: https.globalAgent,
   headers: {
     host: 'app.datadoghq.com'
   },
-}).listen(10001);
+});
+proxyDD.on("error", function(err,req,res) {
+    console.log("dderror",err);
+});
+proxyDD.listen(10001);
 
-httpProxy.createProxyServer({
+var proxy70 = httpProxy.createProxyServer({
   target: {
     host: '172.29.231.70',
     port: 8000
   }
-}).listen(10002);
+});
+proxy70.on("error", function(err,req,res) {
+    console.log("70error",err);
+});
+proxy70.listen(10002);
 
 var proxyCI = httpProxy.createServer({
   target: 'https://dc-cloud.oneapm.com',
@@ -24,6 +32,11 @@ var proxyCI = httpProxy.createServer({
     host: 'dc-cloud.oneapm.com'
   },
 });//.listen(10000);
+
+
+proxyCI.on("error", function(err,req,res) {
+    console.log("CIerror",err);
+});
 
 http.createServer(function (req, res) {
   req.url  = req.url.replace("\/?","?");
@@ -55,6 +68,10 @@ var proxy70CI = httpProxy.createServer({
     host: 'localhost'
   },*/
 });//.listen(10000);
+
+proxy70CI.on("error", function(err,req,res) {
+    console.log("70CIerror",err);
+});
 
 http.createServer(function (req, res) {
   req.url  = req.url.replace("\/?","?");

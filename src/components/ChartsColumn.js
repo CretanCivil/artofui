@@ -27,7 +27,7 @@ class ChartsColumn extends ChartsBase {
         if (nextProps.chart.range != this.props.chart.range
             || this.props.metrics != nextProps.metrics
             || this.props.cardChart != nextProps.cardChart) {
-            this.doFetchData(nextProps);
+            this.doFetchData(nextProps,true);
         }
 
 
@@ -51,9 +51,9 @@ class ChartsColumn extends ChartsBase {
                 isFetching: true,
                 data: [],
                 error: null,
-                lastTime: endDate,
             }
         });
+        this.state.network.lastTime = endDate;
 
         //start=1484727960000&end=1484731560000&interval=120000
 

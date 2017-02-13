@@ -25,7 +25,7 @@ class ChartsTable extends ChartsBase {
 
     componentWillReceiveProps(nextProps) {
         if (nextProps.chart.range != this.props.chart.range || this.props.metrics != nextProps.metrics) {
-            this.doFetchData(nextProps);
+            this.doFetchData(nextProps,true);
         }
     }
 
@@ -37,9 +37,10 @@ class ChartsTable extends ChartsBase {
                 isFetching: true,
                 data: [],
                 error: null,
-                lastTime: endDate,
             }
         });
+        this.state.network.lastTime = endDate;
+        
         let q = "";
         let interval = startDate / 1000 + 1;
         for (let metricInfo of metrics) {

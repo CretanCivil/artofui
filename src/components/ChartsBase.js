@@ -41,11 +41,11 @@ export default class ChartsBase extends React.Component {
         return !this.refs.chart ? null : this.refs.chart.getChart();
     }
 
-    reloadData() {
-        this.doFetchData(this.props);
+    reloadData(must) {
+        this.doFetchData(this.props,must);
     }
 
-    doFetchData(props) {
+    doFetchData(props,must) {
         let startDate = props.chart.range.startDate;
         let endDate = props.chart.range.endDate;
         if (!props.chart.range.chosenFlag)
@@ -54,11 +54,12 @@ export default class ChartsBase extends React.Component {
 
         //|| (moment().diff(moment(parseInt(this.state.network.lastTime))) < 1000 * 60 && !this.state.network.error)
         //|| this.state.network.isFetching
-        if (!metrics)
-            return;
-
-
-
+        console.log(must,endDate,this.state.network.lastTime,moment().diff(moment(parseInt(this.state.network.lastTime))));
+        if(!must) {
+            if (!metrics|| (moment().diff(moment(parseInt(this.state.network.lastTime))) < 1000 * 60 && !this.state.network.error) || this.state.network.isFetching)
+                return;
+        }
+        
         this.doFetchDataInner(startDate, endDate, props.cardChart);
     }
 }

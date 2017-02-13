@@ -31,7 +31,7 @@ class ChartsTopN extends ChartsBase {
 
     componentWillReceiveProps(nextProps) {
         if (nextProps.chart.range != this.props.chart.range || this.props.metrics != nextProps.metrics) {
-            this.doFetchData(nextProps);
+            this.doFetchData(nextProps,true);
         }
         /*  if (nextProps.metrics[0].metric !== this.state.metrics[0].metric) {
               this.setState({
@@ -50,9 +50,9 @@ class ChartsTopN extends ChartsBase {
                 isFetching: true,
                 data: [],
                 error: null,
-                lastTime: endDate,
             }
         });
+        this.state.network.lastTime = endDate;
 
         let metricInfo = metrics[0];
 
