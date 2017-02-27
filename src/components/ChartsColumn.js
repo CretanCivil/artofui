@@ -237,6 +237,13 @@ class ChartsColumn extends ChartsBase {
         return name;
     }
 
+    handleMouseDown(e) {
+        //精髓 精髓 屏蔽事件穿透 否则拖拽拉伸时间轴不行
+        e.stopPropagation();
+
+    }
+
+
     render() {
         if (!this.props.metrics || this.state.network.isFetching) {
 
@@ -408,8 +415,9 @@ class ChartsColumn extends ChartsBase {
             },
         };
 
-        let domProps = Object.assign({}, this.props.domProps, {
 
+        let domProps = Object.assign({}, this.props.domProps, {
+            onMouseDown: this.handleMouseDown.bind(this),
             onMouseMove: eventMouseMove
         });
 

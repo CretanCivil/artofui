@@ -3,7 +3,7 @@ import React from 'react';
 import { PropTypes } from 'react';
 import { fetchMetric } from './../actions/metric';
 import { connect } from 'react-redux';
-import { Table, Button, Row, Col, Select, Form, Icon, Card, Modal, Dropdown, Menu,Spin } from 'antd';
+import { Table, Button, Row, Col, Select, Form, Icon, Card, Modal, Dropdown, Menu, Spin } from 'antd';
 import { retryFetch } from './../utils/cFetch'
 import { API_CONFIG } from './../config/api';
 import cookie from 'js-cookie';
@@ -25,11 +25,11 @@ class ChartsTable extends ChartsBase {
 
     componentWillReceiveProps(nextProps) {
         if (nextProps.chart.range != this.props.chart.range || this.props.metrics != nextProps.metrics) {
-            this.doFetchData(nextProps,true);
+            this.doFetchData(nextProps, true);
         }
     }
 
-    doFetchDataInner(startDate,endDate,chart) {
+    doFetchDataInner(startDate, endDate, chart) {
         let metrics = chart.metrics;
 
         this.setState({
@@ -40,14 +40,24 @@ class ChartsTable extends ChartsBase {
             }
         });
         this.state.network.lastTime = endDate;
-        
-        let q = "";
-        let interval = startDate / 1000 + 1;
+
+
+        let interval = startDate / 1000;// + 1;
+        let queries = [];
         for (let metricInfo of metrics) {
 
-            if (q)
-                q += ';';
-            q += metricInfo.aggregator + ":" + metricInfo.metric;
+            let metric = { begin: (endDate - startDate) / 1000, end: endDate / 1000, interval: interval, attributes: { index: metrics.indexOf(metricInfo) } };
+            let q = "";
+
+            queries.push(metric);
+
+            q += metricInfo.aggregator;
+
+            if (metricInfo.rate) {
+                q += ":rate";
+            }
+
+            q += ":" + metricInfo.metric;
             //avg:system.load.1
             let tags = null;
 
@@ -56,36 +66,41 @@ class ChartsTable extends ChartsBase {
                     return item.replace(":", "=")
                 });
             }
-
             if (tags) {
                 q += "{" + tags + "}";
             }
-
+            if (!metricInfo.tags) {
+                q += "{*}";
+            }
             if (metricInfo.by) {
-                if (!metricInfo.tags) {
-                    q += "{}";
-                }
+
                 q += "by{" + metricInfo.by + "}";
             }
+
+            metric.q = q;
         }
 
 
 
+
+
         retryFetch(API_CONFIG.metric, {
-            method: "GET",
+            method: "POST",
             retries: 3,
             retryDelay: 10000,
-            params: {
+            /*params: {
                 q: q,
                 begin: startDate,
                 end: endDate,
                 interval: interval,
 
-            }
+            }*/
+            ContentType: "application/json",
+            body: JSON.stringify({ queries: queries }),
         }).then(function (response) {
             return response.json();
         }).then((json) => {
-            if(!this.mounted) {
+            if (!this.mounted) {
                 return;
             }
             this.setState({
@@ -98,7 +113,7 @@ class ChartsTable extends ChartsBase {
             });
             console.log("json", json);
         }).catch((error) => {
-            if(!this.mounted) {
+            if (!this.mounted) {
                 return;
             }
             this.setState({
@@ -132,7 +147,7 @@ class ChartsTable extends ChartsBase {
     "rate":false,"id":1482717404051,
     "tags":["address=wuhan","host=102"],"by":["host"]}
      */
- 
+
 
     componentDidUpdate() {
 
@@ -200,14 +215,16 @@ class ChartsTable extends ChartsBase {
 
         const tableData = [];
 
-
-        for (let key in data) {
-            tableData.push({
-                key: key,
-                name: data[key].metric,
-                age: data[key].pointlist[Object.keys(data[key].pointlist)],
-                address: this.buildSerieName(data[key].tags),
-            });
+        if (data.length > 0) {
+            data = data[0].series;
+            for (let key in data) {
+                tableData.push({
+                    key: key,
+                    name: this.props.metrics[data[key].queryId].metric,//data[key].metric,
+                    age: data[key].pointlist[Object.keys(data[key].pointlist)],
+                    address: this.buildSerieName(data[key].tags),
+                });
+            }
         }
 
         let style = Object.assign({}, this.props.domProps.style, {

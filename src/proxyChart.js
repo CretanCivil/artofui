@@ -10,10 +10,12 @@ httpProxy.createProxyServer({
   },
 }).listen(10001);
 
+//host: '172.29.231.70',
 httpProxy.createProxyServer({
   target: {
-    host: '172.29.231.70',
-    port: 8000
+    
+    host: '172.29.228.234',
+    port: 8080
   }
 }).listen(10002);
 
@@ -109,3 +111,83 @@ var proxyServer = http.createServer(function (req, res) {
   }
 }).listen(10000);
 //forever start proxyTest.js 
+
+/*
+curl -XPUT http://172.29.225.16:9200/shakespeare -d '
+{
+ "mappings" : {
+  "_default_" : {
+   "properties" : {
+    "speaker" : {"type": "string", "index" : "not_analyzed" },
+    "play_name" : {"type": "string", "index" : "not_analyzed" },
+    "line_id" : { "type" : "integer" },
+    "speech_number" : { "type" : "integer" }
+   }
+  }
+ }
+}
+';
+
+
+curl -XPUT http://172.29.225.16:9200/logstash-2015.05.18 -d '
+{
+  "mappings": {
+    "log": {
+      "properties": {
+        "geo": {
+          "properties": {
+            "coordinates": {
+              "type": "geo_point"
+            }
+          }
+        }
+      }
+    }
+  }
+}
+';
+
+
+
+curl -XPUT http://172.29.225.16:9200/logstash-2015.05.19 -d '
+{
+  "mappings": {
+    "log": {
+      "properties": {
+        "geo": {
+          "properties": {
+            "coordinates": {
+              "type": "geo_point"
+            }
+          }
+        }
+      }
+    }
+  }
+}
+';
+
+
+curl -XPUT http://172.29.225.16:9200/logstash-2015.05.20 -d '
+{
+  "mappings": {
+    "log": {
+      "properties": {
+        "geo": {
+          "properties": {
+            "coordinates": {
+              "type": "geo_point"
+            }
+          }
+        }
+      }
+    }
+  }
+}
+';
+
+curl -XPOST '172.29.225.16:9200/bank/account/_bulk?pretty' --data-binary @accounts.json
+curl -XPOST '172.29.225.16:9200/shakespeare/_bulk?pretty' --data-binary @shakespeare.json
+curl -XPOST '172.29.225.16:9200/_bulk?pretty' --data-binary @logs.jsonl
+
+ */

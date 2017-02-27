@@ -31,7 +31,7 @@ class ChartsTopN extends ChartsBase {
 
     componentWillReceiveProps(nextProps) {
         if (nextProps.chart.range != this.props.chart.range || this.props.metrics != nextProps.metrics) {
-            this.doFetchData(nextProps,true);
+            this.doFetchData(nextProps, true);
         }
         /*  if (nextProps.metrics[0].metric !== this.state.metrics[0].metric) {
               this.setState({
@@ -41,8 +41,8 @@ class ChartsTopN extends ChartsBase {
           }*/
     }
 
-    
-    doFetchDataInner(startDate,endDate,chart) {
+
+    doFetchDataInner(startDate, endDate, chart) {
         let metrics = chart.metrics;
 
         this.setState({
@@ -56,37 +56,66 @@ class ChartsTopN extends ChartsBase {
 
         let metricInfo = metrics[0];
 
-        let interval = startDate / 1000 + 1;
+        let interval = startDate / 1000;//+ 1;
+        // let interval = startDate / 60000;
+        let queries = [];
+        for (let metricInfo of metrics) {
 
+            let metric = { begin: (endDate - startDate) / 1000, end: endDate / 1000, interval: interval, attributes: { index: metrics.indexOf(metricInfo) } };
+            let q = "";
 
-        let q = metricInfo.aggregator + ":" + metricInfo.metric;
-        //avg:system.load.1
-        if (metricInfo.tags) {
-            q += "{" + metricInfo.tags + "}";
-        }
+            queries.push(metric);
 
-        if (metricInfo.by) {
-            if (!metricInfo.tags) {
-                q += "{}";
+            q += metricInfo.aggregator;
+
+            if (metricInfo.rate) {
+                q += ":rate";
             }
-            q += "by{" + metricInfo.by + "}";
+
+            q += ":" + metricInfo.metric;
+            //avg:system.load.1
+            let tags = null;
+
+            if (metricInfo.tags) {
+                tags = metricInfo.tags.map(function (item) {
+                    return item.replace(":", "=")
+                });
+            }
+            if (tags) {
+                q += "{" + tags + "}";
+            }
+            if (!metricInfo.tags) {
+                q += "{*}";
+            }
+            if (metricInfo.by) {
+
+                q += "by{" + metricInfo.by + "}";
+            }
+
+            metric.q = q;
         }
+
+
+
+
 
         retryFetch(API_CONFIG.metric, {
-            method: "GET",
+            method: "POST",
             retries: 3,
             retryDelay: 10000,
-            params: {
+            /*params: {
                 q: q,
                 begin: startDate,
                 end: endDate,
                 interval: interval,
 
-            }
+            }*/
+            ContentType: "application/json",
+            body: JSON.stringify({ queries: queries }),
         }).then(function (response) {
             return response.json();
         }).then((json) => {
-            if(!this.mounted) {
+            if (!this.mounted) {
                 return;
             }
             this.setState({
@@ -98,7 +127,7 @@ class ChartsTopN extends ChartsBase {
                 }
             });
         }).catch((error) => {
-            if(!this.mounted) {
+            if (!this.mounted) {
                 return;
             }
             this.setState({
@@ -134,7 +163,7 @@ class ChartsTopN extends ChartsBase {
             // this.refs.chart.getChart().showLoading();
         }
     }
-  
+
     buildSerieName(tags) {
         let name = "";
         for (let [key, value] of Object.entries(tags)) {
@@ -214,29 +243,31 @@ class ChartsTopN extends ChartsBase {
 
 
         let serieDatas = [];
+        if (data.length > 0) {
+            data = data[0].series;
+            data.sort(function (a, b) {
+                return Object.values(b.pointlist)[0] - Object.values(a.pointlist)[0]
+            });
+            for (let key in data) {
+                let pointlist = data[key].pointlist;
+                serieNames[key] = this.buildSerieName(data[key].tags);
 
-        data.sort(function (a, b) {
-            return Object.values(b.pointlist)[0] - Object.values(a.pointlist)[0]
-        });
-        for (let key in data) {
-            let pointlist = data[key].pointlist;
-            serieNames[key] = this.buildSerieName(data[key].tags);
+                for (var keyTime in pointlist) {
+                    if (pointlist[keyTime] == null)
+                        continue;
+                    let tmp = [];
 
-            for (var keyTime in pointlist) {
-                if (pointlist[keyTime] == null)
-                    continue;
-                let tmp = [];
-
-                tmp.push(pointlist[keyTime].toFixed(2) + " pkt");
-                tmp.push(pointlist[keyTime]);
-                serieDatas.push(tmp);
-                //[129.2, 144.0, 176.0, 135.6, 148.5, 216.4, 194.1, 95.6, 54.4, 29.9, 71.5, 106.4]
+                    tmp.push(pointlist[keyTime].toFixed(2) + " pkt");
+                    tmp.push(pointlist[keyTime]);
+                    serieDatas.push(tmp);
+                    //[129.2, 144.0, 176.0, 135.6, 148.5, 216.4, 194.1, 95.6, 54.4, 29.9, 71.5, 106.4]
+                }
+                serie.data = serieDatas;
+                if (serie.data.length > 4)
+                    break;
             }
-            serie.data = serieDatas;
-            if (serie.data.length > 4)
-                break;
-
         }
+
         series.push(serie);
         xAxisVisible = false;
 

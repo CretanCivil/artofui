@@ -42,8 +42,8 @@ class InspectorToggle extends React.Component {
             } else {
                 diff = parseInt(diff) + "分钟前";
             }
-
-            let metricName = this.props.points.points[0].metric;
+           
+            /*let metricName = this.props.points.points[0].metric;
             let agg = this.props.points.points[0].aggregator;
             for(let i  = 0; i < this.props.points.points.length; i ++) {
                 let point = this.props.points.points[i];
@@ -57,6 +57,10 @@ class InspectorToggle extends React.Component {
             if(metricName) {
                 metricName = agg + ":" + metricName;
             }
+            
+            
+            //metricName ? point.name : point.aggregator + ":" + point.metric + " - " + point.name
+            */
 
             let rows = [];
 
@@ -70,7 +74,7 @@ class InspectorToggle extends React.Component {
                                    
                                     {point.value.toFixed(2)}
                                 </div>
-                                <div className={point.active ? "inspector-line-item metric active"  : "inspector-line-item metric" }>{metricName ? point.name : point.aggregator + ":" + point.metric + " - " + point.name}</div>
+                                <div className={point.active ? "inspector-line-item metric active"  : "inspector-line-item metric" }>{point.name}</div>
                             </div>
                         </Col>;
 
@@ -82,7 +86,7 @@ class InspectorToggle extends React.Component {
                 <div className="inspector-header">
                     <span title={this.props.points.points[0].chartName}>{this.props.points.points[0].chartName}</span>
                     &nbsp;&nbsp;|&nbsp;&nbsp;
-                    <span style={{ color: 'orange' }}>{day}</span>&nbsp;&nbsp; （距现在： {diff}）<small><br />{metricName}</small>
+                    <span style={{ color: 'orange' }}>{day}</span>&nbsp;&nbsp; （距现在： {diff}）
                 </div>
                 <div className="inspector-body container-fluid">
                     <Row>

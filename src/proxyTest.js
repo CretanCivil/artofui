@@ -16,12 +16,15 @@ proxyDD.listen(10001);
 
 var proxy70 = httpProxy.createProxyServer({
   target: {
-    host: '172.29.231.70',
+    host: 'localhost',
     port: 8000
+    //host: '172.29.228.234',
+    //port: 8080
   }
 });
 proxy70.on("error", function(err,req,res) {
     console.log("70error",err);
+    res.end("Agent server runnning");
 });
 proxy70.listen(10002);
 
@@ -40,7 +43,10 @@ proxyCI.on("error", function(err,req,res) {
 
 http.createServer(function (req, res) {
   req.url  = req.url.replace("\/?","?");
-  if(req.url == "/intake?api_key=e7afaf986f5cc822406cbd5831328462") {
+  console.log("cciciciicicicici",req.url);
+  if(req.url == "/intake?api_key=e7afaf986f5cc822406cbd5831328462"
+  || req.url == "/api/v1/series?api_key=e7afaf986f5cc822406cbd5831328462") {
+    console.log("cciciciicicicici");
     req.url = "/infrastructure/metrics?license_key=VgAAA1sNB1Ze953TH1YTVV5KXxb55aBVWR9QBQRXSe38fAMASwkKSgNU92f1CAMeUgIYUFA=";
     proxyCI.web(req, res);
   } else {

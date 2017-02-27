@@ -68,10 +68,10 @@ class DialogChartSetting extends React.Component {
         //1484923220972
         //https://cloud.oneapm.com/v1/dashboards/11997/charts/add.json
 
-        let url = `/v1/dashboards/${this.props.chart.dashboard_id}/charts/${this.props.chart.id}/update.json`;
+        let url = `/p1/dashboards/${this.props.chart.dashboard_id}/charts/${this.props.chart.id}/update.json`;
 
         if (this.props.chart.id == 0) {
-            url = `/v1/dashboards/${this.props.chart.dashboard_id}/charts/add.json`;
+            url = `/p1/dashboards/${this.props.chart.dashboard_id}/charts/add.json`;
         }
 
         for (let metric of this.state.metrics) {
@@ -82,6 +82,9 @@ class DialogChartSetting extends React.Component {
             method: "POST",
             retries: 3,
             retryDelay: 10000,
+            params: {
+                api_key:API_CONFIG.apiKey
+            },
             body: 'chart=' + encodeURIComponent(JSON.stringify(layout))
         }).then(function (response) {
             return response.json();
@@ -186,10 +189,14 @@ class DialogChartSetting extends React.Component {
     }
 
     changeModelType(event) {
-        this.state.chart.meta.modelType = event.target.value;
+        let chart = Object.assign({},this.state.chart) ;
+        chart.meta.modelType = event.target.value;
         /*this.setState({
             modelType: event.target.value,
         });*/
+        this.setState({
+            chart:chart,
+        });
     }
 
 
@@ -213,7 +220,7 @@ class DialogChartSetting extends React.Component {
          */
         let panelNormal = null;
 
-
+        console.log(this.state.chart.meta.modelType);
         if (this.state.chartType == "events") {
             panelNormal = this.genBucket();
         } else {

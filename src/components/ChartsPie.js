@@ -25,11 +25,11 @@ class ChartsPie extends ChartsBase {
 
     componentWillReceiveProps(nextProps) {
         if (nextProps.chart.range != this.props.chart.range || this.props.metrics != nextProps.metrics) {
-            this.doFetchData(nextProps,true);
+            this.doFetchData(nextProps, true);
         }
     }
 
-    doFetchDataInner(startDate,endDate,chart) {
+    doFetchDataInner(startDate, endDate, chart) {
         let metrics = chart.metrics;
 
         this.setState({
@@ -44,36 +44,62 @@ class ChartsPie extends ChartsBase {
         let metricInfo = metrics[0];
 
         let chartType = this.props.type ? this.props.type : metricInfo.type;
-        let interval = startDate / 1000 + 1;
+        let interval = startDate / 1000;// + 1;
 
-        let q = metricInfo.aggregator + ":" + metricInfo.metric;
-        //avg:system.load.1
-        if (metricInfo.tags) {
-            q += "{" + metricInfo.tags + "}";
-        }
+        let queries = [];
+        for (let metricInfo of metrics) {
 
-        if (metricInfo.by) {
-            if (!metricInfo.tags) {
-                q += "{}";
+            let metric = { begin: (endDate - startDate) / 1000, end: endDate / 1000, interval: interval, attributes: { index: metrics.indexOf(metricInfo) } };
+            let q = "";
+
+            queries.push(metric);
+
+            q += metricInfo.aggregator;
+
+            if (metricInfo.rate) {
+                q += ":rate";
             }
-            q += "by{" + metricInfo.by + "}";
+
+            q += ":" + metricInfo.metric;
+            //avg:system.load.1
+            let tags = null;
+
+            if (metricInfo.tags) {
+                tags = metricInfo.tags.map(function (item) {
+                    return item.replace(":", "=")
+                });
+            }
+            if (tags) {
+                q += "{" + tags + "}";
+            }
+            if (!metricInfo.tags) {
+                q += "{*}";
+            }
+            if (metricInfo.by) {
+
+                q += "by{" + metricInfo.by + "}";
+            }
+
+            metric.q = q;
         }
 
         retryFetch(API_CONFIG.metric, {
-            method: "GET",
+            method: "POST",
             retries: 3,
             retryDelay: 10000,
-            params: {
+            /*params: {
                 q: q,
                 begin: startDate,
                 end: endDate,
                 interval: interval,
 
-            }
+            }*/
+            ContentType: "application/json",
+            body: JSON.stringify({ queries: queries }),
         }).then(function (response) {
             return response.json();
         }).then((json) => {
-            if(!this.mounted) {
+            if (!this.mounted) {
                 return;
             }
             this.setState({
@@ -86,7 +112,7 @@ class ChartsPie extends ChartsBase {
             });
             console.log("json", json);
         }).catch((error) => {
-            if(!this.mounted) {
+            if (!this.mounted) {
                 return;
             }
             this.setState({
@@ -107,7 +133,7 @@ class ChartsPie extends ChartsBase {
     "rate":false,"id":1482717404051,
     "tags":["address=wuhan","host=102"],"by":["host"]}
      */
-     
+
 
     componentDidUpdate() {
         if (this.state.network.isFetching) {
@@ -129,7 +155,7 @@ class ChartsPie extends ChartsBase {
 
         return data2 != data || isFetching != isFetching2;
     }
- 
+
 
     buildSerieName(tags) {
         let name = "";
@@ -194,23 +220,38 @@ class ChartsPie extends ChartsBase {
         serie.data = [];
         serie.type = this.props.type ? this.props.type : metric.type;
 
-        for (let key in data) {
+        let title = null;
+        if (data.length > 0) {
+            data = data[0].series;
 
-            let pointlist = data[key].pointlist;
-            let metricTags = data[key].tags;
+            data.sort(function (a, b) {
+                return Object.values(b.pointlist)[0] - Object.values(a.pointlist)[0]
+            });
 
-            for (var keyTime in pointlist) {
-                if (pointlist[keyTime] == null)
-                    continue;
-                let piePice = {};
-                piePice.y = pointlist[keyTime];
+            for (let key in data) {
 
-                piePice.name = this.buildSerieName(metricTags);
+                let pointlist = data[key].pointlist;
+                let metricTags = data[key].tags;
 
-                serie.data.push(piePice);
-                //[129.2, 144.0, 176.0, 135.6, 148.5, 216.4, 194.1, 95.6, 54.4, 29.9, 71.5, 106.4]
+                for (var keyTime in pointlist) {
+                    if (pointlist[keyTime] == null)
+                        continue;
+                    
+
+                    let piePice = {};
+                    piePice.y = pointlist[keyTime];
+
+                    piePice.name = piePice.y.toFixed(2) + "   " + this.buildSerieName(metricTags);
+
+                    if(!title) {
+                        title = piePice.y.toFixed(2) + "<br/>" + this.buildSerieName(metricTags);
+                    }
+
+                    serie.data.push(piePice);
+                    //[129.2, 144.0, 176.0, 135.6, 148.5, 216.4, 194.1, 95.6, 54.4, 29.9, 71.5, 106.4]
+                }
+
             }
-
         }
 
         series.push(serie);
@@ -238,7 +279,12 @@ class ChartsPie extends ChartsBase {
                 }
             },
             title: {
-                text: null
+                text: title,
+                align:"center",
+                verticalAlign: "middle",
+                style: {
+                    fontSize: '8px',
+                }
             },
 
             legend: legend,
@@ -249,10 +295,11 @@ class ChartsPie extends ChartsBase {
                     allowPointSelect: true,
                     cursor: 'pointer',
                     dataLabels: {
-                        enabled: false
+                        enabled: false,
+                        //distance: -10,
                     },
                     showInLegend: true,
-                    innerSize: '50%'
+                    innerSize: '70%'
                 },
             },
 

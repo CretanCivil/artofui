@@ -3,7 +3,7 @@ import React from 'react';
 import { PropTypes } from 'react';
 import { fetchMetric } from './../actions/metric';
 import { connect } from 'react-redux';
-import { Button, Row, Col, Select, Form, Icon, Card, Modal, Dropdown, Menu,Spin } from 'antd';
+import { Button, Row, Col, Select, Form, Icon, Card, Modal, Dropdown, Menu, Spin } from 'antd';
 import { retryFetch } from './../utils/cFetch'
 import { API_CONFIG } from './../config/api';
 import cookie from 'js-cookie';
@@ -26,12 +26,12 @@ class ChartsTreeMap extends ChartsBase {
     componentWillReceiveProps(nextProps) {
         if (nextProps.chart.range != this.props.chart.range
             || this.props.metrics != nextProps.metrics) {
-            this.doFetchData(nextProps,true);
+            this.doFetchData(nextProps, true);
         }
 
     }
 
-    doFetchDataInner(startDate,endDate,chart) {
+    doFetchDataInner(startDate, endDate, chart) {
         let metrics = chart.metrics;
 
         this.setState({
@@ -44,37 +44,61 @@ class ChartsTreeMap extends ChartsBase {
         this.state.network.lastTime = endDate;
 
         let metricInfo = metrics[0];
+        let interval = startDate / 1000;//+ 1;
+        let queries = [];
+        for (let metricInfo of metrics) {
 
-        let chartType = this.props.type ? this.props.type : metricInfo.type;
-        let interval = startDate / 1000 + 1;
-        let q = metricInfo.aggregator + ":" + metricInfo.metric;
-        //avg:system.load.1
-        if (metricInfo.tags) {
-            q += "{" + metricInfo.tags + "}";
-        }
+            let metric = { begin: (endDate - startDate) / 1000, end: endDate / 1000, interval: interval, attributes: { index: metrics.indexOf(metricInfo) } };
+            let q = "";
 
-        if (metricInfo.by) {
-            if (!metricInfo.tags) {
-                q += "{}";
+            queries.push(metric);
+
+            q += metricInfo.aggregator;
+
+            if (metricInfo.rate) {
+                q += ":rate";
             }
-            q += "by{" + metricInfo.by + "}";
+
+            q += ":" + metricInfo.metric;
+            //avg:system.load.1
+            let tags = null;
+
+            if (metricInfo.tags) {
+                tags = metricInfo.tags.map(function (item) {
+                    return item.replace(":", "=")
+                });
+            }
+            if (tags) {
+                q += "{" + tags + "}";
+            }
+            if (!metricInfo.tags) {
+                q += "{*}";
+            }
+            if (metricInfo.by) {
+
+                q += "by{" + metricInfo.by + "}";
+            }
+
+            metric.q = q;
         }
 
         retryFetch(API_CONFIG.metric, {
-            method: "GET",
+            method: "POST",
             retries: 3,
             retryDelay: 10000,
-            params: {
+            /*params: {
                 q: q,
                 begin: startDate,
                 end: endDate,
                 interval: interval,
 
-            }
+            }*/
+            ContentType: "application/json",
+            body: JSON.stringify({ queries: queries }),
         }).then(function (response) {
             return response.json();
         }).then((json) => {
-            if(!this.mounted) {
+            if (!this.mounted) {
                 return;
             }
             this.setState({
@@ -87,7 +111,7 @@ class ChartsTreeMap extends ChartsBase {
             });
             console.log("json", json);
         }).catch((error) => {
-            if(!this.mounted) {
+            if (!this.mounted) {
                 return;
             }
             this.setState({
@@ -121,7 +145,7 @@ class ChartsTreeMap extends ChartsBase {
     "rate":false,"id":1482717404051,
     "tags":["address=wuhan","host=102"],"by":["host"]}
      */
-  
+
 
     componentDidUpdate() {
         if (this.state.network.isFetching) {
@@ -144,7 +168,7 @@ class ChartsTreeMap extends ChartsBase {
         return data2 != data || isFetching != isFetching2;
     }
 
-  
+
 
     buildSerieName(tags) {
         let name = "";
@@ -190,17 +214,22 @@ class ChartsTreeMap extends ChartsBase {
         serie.data = [];
         serie.type = this.props.type ? this.props.type : metric.type;
         serie.layoutAlgorithm = 'squarified';
-        for (let key in data) {
-            let pointlist = data[key].pointlist;
-            let metricTags = data[key].tags;
-            for (var keyTime in pointlist) {
-                if (pointlist[keyTime] == null)
-                    continue;
-                let piePice = {};
-                piePice.value = pointlist[keyTime];
-                piePice.name = this.buildSerieName(metricTags);
-                serie.data.push(piePice);
-                //[129.2, 144.0, 176.0, 135.6, 148.5, 216.4, 194.1, 95.6, 54.4, 29.9, 71.5, 106.4]
+
+        if (data.length > 0) {
+            data = data[0].series;
+
+            for (let key in data) {
+                let pointlist = data[key].pointlist;
+                let metricTags = data[key].tags;
+                for (var keyTime in pointlist) {
+                    if (pointlist[keyTime] == null)
+                        continue;
+                    let piePice = {};
+                    piePice.value = pointlist[keyTime];
+                    piePice.name =  this.buildSerieName(metricTags);//data[key].displayName//
+                    serie.data.push(piePice);
+                    //[129.2, 144.0, 176.0, 135.6, 148.5, 216.4, 194.1, 95.6, 54.4, 29.9, 71.5, 106.4]
+                }
             }
         }
         series.push(serie);

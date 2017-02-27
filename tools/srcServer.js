@@ -15,19 +15,25 @@ const bundler = webpack(config);
 import proxy from 'http-proxy-middleware';
 
  
-
+/*
 const apiProxy = proxy('/api/v1', {
   target: 'http://localhost:4000',
   changeOrigin: true,
   ws: true
 });
+*/
+
 ///dashboards/11997/charts.json
 const cloudProxy = proxy('/v1', {
   target: 'http://cloud.oneapm.com',
   changeOrigin: true,
   ws: true
 });
-
+const kongProxy = proxy('/p1', {
+  target: 'http://api.apmsys.com:8000',
+  changeOrigin: true,
+  ws: true
+});
 
 
 function onProxyRes(proxyRes) {
@@ -63,7 +69,8 @@ browserSync({
     baseDir: 'src',
 
     middleware: [
-      apiProxy,
+      //apiProxy,
+      kongProxy,
       cloudProxy,
       webProxy,
       webpackDevMiddleware(bundler, {

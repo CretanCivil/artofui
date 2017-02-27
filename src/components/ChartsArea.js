@@ -25,7 +25,7 @@ class ChartsArea extends ChartsBase {
 
     componentWillReceiveProps(nextProps) {
         if (nextProps.chart.range != this.props.chart.range || this.props.metrics != nextProps.metrics) {
-            this.doFetchData(nextProps,true);
+            this.doFetchData(nextProps, true);
         }
 
         if (nextProps.chart.crossLine.pos != this.props.chart.crossLine.pos) {
@@ -37,9 +37,9 @@ class ChartsArea extends ChartsBase {
         }
     }
 
-    doFetchDataInner(startDate,endDate,chart) {
+    doFetchDataInner(startDate, endDate, chart) {
         let metrics = chart.metrics;
-       
+
         this.state.network.lastTime = endDate;
         this.setState({
             network: {
@@ -54,34 +54,62 @@ class ChartsArea extends ChartsBase {
 
         let interval = startDate / 60000;
 
-        let q = metricInfo.aggregator + ":" + metricInfo.metric;
-        //avg:system.load.1
-        if (metricInfo.tags) {
-            q += "{" + metricInfo.tags + "}";
+        let queries = [];
+        for (let metricInfo of metrics) {
+
+            let metric = { begin: (endDate - startDate) / 1000, end: endDate / 1000, interval: interval, attributes: { index: metrics.indexOf(metricInfo) } };
+            let q = "";
+
+            queries.push(metric);
+
+            q += metricInfo.aggregator;
+
+            if (metricInfo.rate) {
+                q += ":rate";
+            }
+
+            q += ":" + metricInfo.metric;
+            //avg:system.load.1
+            let tags = null;
+
+            if (metricInfo.tags) {
+                tags = metricInfo.tags.map(function(item) {
+                    return item.replace(":", "=")
+                });
+            }
+            if (tags) {
+                q += "{" + tags + "}";
+            }
+            if (!metricInfo.tags) {
+                q += "{*}";
+            }
+            /* if (metricInfo.by) {
+ 
+                 q += "by{" + metricInfo.by + "}";
+             }
+             */
+
+            metric.q = q;
         }
 
-        if (metricInfo.by) {
-            if (!metricInfo.tags) {
-                q += "{}";
-            }
-            q += "by{" + metricInfo.by + "}";
-        }
 
         retryFetch(API_CONFIG.metric, {
-            method: "GET",
+            method: "POST",
             retries: 3,
             retryDelay: 10000,
-            params: {
+            /*params: {
                 q: q,
                 begin: startDate,
                 end: endDate,
                 interval: interval,
 
-            }
-        }).then(function (response) {
+            }*/
+            ContentType: "application/json",
+            body: JSON.stringify({ queries: queries }),
+        }).then(function(response) {
             return response.json();
         }).then((json) => {
-            if(!this.mounted) {
+            if (!this.mounted) {
                 return;
             }
             this.setState({
@@ -94,7 +122,7 @@ class ChartsArea extends ChartsBase {
             });
             console.log("json", json);
         }).catch((error) => {
-            if(!this.mounted) {
+            if (!this.mounted) {
                 return;
             }
             this.setState({
@@ -265,32 +293,30 @@ class ChartsArea extends ChartsBase {
 
         eventMouseMove = this.handleMouseMove.bind(this);
         eventSelection = this.handleChartSelection.bind(this);
-        for (let key in data) {
-            let serie = {};
-            serie.data = [];
-            serie.type = this.props.type ? this.props.type : metric.type;
-            serie.name = "name";
-            serie.showInLegend = false;
-            let serieDatas = [];
-            let pointlist = data[key].pointlist;
+        if (data.length > 0) {
+            data = data[0].series;
+            for (let key in data) {
+                let serie = {};
+                serie.data = [];
+                serie.type = this.props.type ? this.props.type : metric.type;
+                serie.name = "name";
+                serie.showInLegend = false;
+                let serieDatas = [];
+                let pointlist = data[key].pointlist;
 
-            for (var keyTime in pointlist) {
-                if (pointlist[keyTime] == null)
-                    continue;
-                let tmp = [];
-                tmp.push(keyTime * 1000);
-                tmp.push(pointlist[keyTime]);
-                serieDatas.push(tmp);
-                //[129.2, 144.0, 176.0, 135.6, 148.5, 216.4, 194.1, 95.6, 54.4, 29.9, 71.5, 106.4]
+                for (var keyTime in pointlist) {
+                    if (pointlist[keyTime] == null)
+                        continue;
+                    let tmp = [];
+                    tmp.push(keyTime * 1000);
+                    tmp.push(pointlist[keyTime]);
+                    serieDatas.push(tmp);
+                    //[129.2, 144.0, 176.0, 135.6, 148.5, 216.4, 194.1, 95.6, 54.4, 29.9, 71.5, 106.4]
+                }
+                serie.data = serieDatas;
+                series.push(serie);
             }
-            serie.data = serieDatas;
-            series.push(serie);
         }
-
-
-
-
-
 
         const config = {
             global: {

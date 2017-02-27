@@ -65,6 +65,7 @@ export class ChartsPage extends React.Component {
         this.handleTableChange = this.handleTableChange.bind(this);
         this.onSelectChange = this.onSelectChange.bind(this);
         this.state = {
+            readonly:true,
             selectedRowKeys: [],
 
             ranges: {
@@ -132,6 +133,7 @@ export class ChartsPage extends React.Component {
             retries: 3,
             retryDelay: 10000,
             params: {
+                api_key:API_CONFIG.apiKey
             }
         }).then(function (response) {
             return response.json();
@@ -174,6 +176,9 @@ export class ChartsPage extends React.Component {
             method: "POST",
             retries: 3,
             retryDelay: 10000,
+            params: {
+                api_key:API_CONFIG.apiKey
+            },
             body: 'charts=' + encodeURIComponent(JSON.stringify(layout))
         }).then(function (response) {
             return response.json();
@@ -363,6 +368,7 @@ export class ChartsPage extends React.Component {
                 chart={chart}
                 expand={this.showChartDialog.bind(this)}
                 setting={this.showDialog.bind(this)}
+                readonly={this.state.readonly}
                 /></div>;
             charts.push(col);
         }
@@ -434,7 +440,7 @@ export class ChartsPage extends React.Component {
                                 </DateRangerPicker>
                             </Col>
                             <Col style={{ marginLeft: 4 }}>
-                                <Button icon="setting" className="ant-search-btn" onClick={() => this.showDialog(true,
+                                {this.state.readonly ? null : <Button icon="setting" className="ant-search-btn" onClick={() => this.showDialog(true,
                                     [{ metric: "system.load.1", aggregator: "avg", type: "line", rate: false, by: null, tags: null, id: 0 }],
                                     'timeseries',
                                     {
@@ -448,7 +454,7 @@ export class ChartsPage extends React.Component {
                                         }],
                                         name: "新建图表",
                                         type: "timeseries"
-                                    })} />
+                                    })} />}
 
                             </Col>
                         </Row>
@@ -456,6 +462,11 @@ export class ChartsPage extends React.Component {
                 </Row>
                 <ReactGridLayout layout={this.state.layout} style={{ width: '100%' }} className="layout"
                     onDragStart={this.onDragStart.bind(this)}
+                    
+                    
+                    isDraggable={!this.state.readonly}
+                    isResizable={!this.state.readonly}
+
                     onDrag={this.onDrag.bind(this)}
                     onDragStop={this.onDragStop.bind(this)}
                     onLayoutChange={this.onLayoutChange.bind(this)} >

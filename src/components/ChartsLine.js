@@ -21,12 +21,13 @@ class ChartsLine extends ChartsBase {
     };
 
     constructor(props) {
+        
         super(props);
-        this.state = Object.assign(this.state,{
+        this.state = Object.assign(this.state, {
             config: {
-                 title: {
-                     text: null
-                 },
+                title: {
+                    text: null
+                },
                 /* xAxis: {
                      id: "xaxis",
                      title: {
@@ -46,9 +47,9 @@ class ChartsLine extends ChartsBase {
                      showInLegend: false,
                      data: [0],
                  }],*/
-                 credits: {
-                     enabled: false // 禁用版权信息
-                 },
+                credits: {
+                    enabled: false // 禁用版权信息
+                },
             },
         });
     }
@@ -56,7 +57,7 @@ class ChartsLine extends ChartsBase {
     componentWillReceiveProps(nextProps) {
         if (nextProps.chart.range != this.props.chart.range
             || this.props.metrics != nextProps.metrics) {
-            this.doFetchData(nextProps,true);
+            this.doFetchData(nextProps, true);
         }
 
         if (nextProps.chart.crossLine.pos != this.props.chart.crossLine.pos) {
@@ -68,124 +69,9 @@ class ChartsLine extends ChartsBase {
         }
     }
 
-    doFetchDataInner(startDate,endDate,chart) {
-        let metrics = chart.metrics;
-
-
-        this.setState({
-            network: {
-                isFetching: true,
-                data: [],
-                error: null,
-            }
-        });
-        this.state.network.lastTime = endDate;
-
-        let q = "";
-        let interval = startDate / 60000;
-        for (let metricInfo of metrics) {
-
-            if (q)
-                q += ';';
-
-            q += metricInfo.aggregator;
-
-            if (metricInfo.rate) {
-                q += ":rate";
-            }
-
-            q += ":" + metricInfo.metric;
-            //avg:system.load.1
-            let tags = null;
-
-            if (metricInfo.tags) {
-                tags = metricInfo.tags.map(function (item) {
-                    return item.replace(":", "=")
-                });
-            }
-            if (tags) {
-                q += "{" + tags + "}";
-            }
-
-            if (metricInfo.by) {
-                if (!metricInfo.tags) {
-                    q += "{}";
-                }
-                q += "by{" + metricInfo.by + "}";
-            }
-        }
-
-        retryFetch(API_CONFIG.metric, {
-            method: "GET",
-            retries: 3,
-            retryDelay: 10000,
-            params: {
-                q: q,
-                begin: startDate,
-                end: endDate,
-                interval: interval,
-
-            }
-        }).then(function (response) {
-            return response.json();
-        }).then((json) => {
-            if(!this.mounted) {
-                return;
-            }
-            let config = this.initConfig({
-
-                isFetching: false,
-                data: json.result,
-                error: null,
-
-            });
-
-            this.setState({
-                network: {
-                    isFetching: false,
-                    data: json.result,
-                    error: null,
-                    lastTime: endDate,
-                },
-                config: config,
-            });
-           // console.log("json", json);
-        }).catch((error) => {
-            if(!this.mounted) {
-                return;
-            }
-            this.setState({
-                network: {
-                    isFetching: false,
-                    data: [],
-                    error: error,
-                    lastTime: endDate,
-                }
-            });
-            console.log("error", error);
-        });
-
-
-        /*
-                //metricInfo.aggregator + ":" +　metricInfo.metric + "{" + metricInfo.tags+"}by{"+metricInfo.by + "}",
-                //"avg:system.mem.free{address=wuhan,host=102}by{host}"
-        
-                this.props.fetchMetric({
-                    id: this.props.id,
-                    q: q,
-                    begin: startDate,
-                    end: endDate,
-                    interval: startDate / 60000
-                });
-        */
-    }
-
-    /*
-    {"metric":"system.mem.free","aggregator":"avg","type":"line",
-    "rate":false,"id":1482717404051,
-    "tags":["address=wuhan","host=102"],"by":["host"]}
-     */
-   
+    getInterval(startDate) {
+        return startDate / 60000;
+    } 
 
     componentDidUpdate() {
         if (this.state.network.isFetching) {
@@ -208,7 +94,7 @@ class ChartsLine extends ChartsBase {
         return data2 != data || isFetching != isFetching2;
     }
 
- 
+
 
     reloadData() {
         this.doFetchData(this.props);
@@ -352,7 +238,7 @@ class ChartsLine extends ChartsBase {
 
 
 
-                s += '<b>' + this.series.userOptions.aggregator + ':' + this.point.y.toFixed(2) + '</b><br/>';
+                s += '<b>' + this.point.y.toFixed(2) + '</b><br/>';
                 //console.log(this);
 
                 return s;
@@ -368,16 +254,18 @@ class ChartsLine extends ChartsBase {
 
         eventMouseMove = this.handleMouseMove.bind(this);
         eventSelection = this.handleChartSelection.bind(this);
+
+        data = data[0].series;
         for (let key in data) {
             let serie = {};
             serie.data = [];
-           // console.log(this.props.metrics, key, this.props.metrics[key]);
+            // console.log(this.props.metrics, key, this.props.metrics[key]);
             serie.type = this.props.metrics[data[key].queryId].type;//let metric = this.props.metrics[0];
-            serie.tags =  this.buildSerieName(data[key].tags);
-            serie.name = data[key].metric + ' - ' + this.buildSerieName(data[key].tags);
-            serie.metric = data[key].metric;
+            serie.tags = this.buildSerieName(data[key].tags);
+            serie.name = data[key].displayName;// + ' - ' + this.buildSerieName(data[key].tags);
+            //serie.metric = data[key].displayName;
             serie.showInLegend = false;
-            serie.aggregator = data[key].aggregator;
+            //serie.aggregator = data[key].aggregator;
             let serieDatas = [];
             let pointlist = data[key].pointlist;
 
@@ -504,33 +392,35 @@ class ChartsLine extends ChartsBase {
                     point: {
                         events: {
                             mouseOver: function () {
-                             //   console.log(this);
+                                //   console.log(this);
                                 let points = [];
-                                for(let i = 0;i < this.series.chart.series.length;i++) {
-                                    
+                                for (let i = 0; i < this.series.chart.series.length; i++) {
+
                                     let serie = this.series.chart.series[i];
                                     let point = {};
-                                    if(this.x < serie.points[0].x || serie.points[serie.points.length - 1].x < this.x)
+                                    if (this.x < serie.points[0].x || serie.points[serie.points.length - 1].x < this.x)
                                         continue;
-                                    point.aggregator = serie.userOptions.aggregator;
+                                    //point.aggregator = serie.userOptions.aggregator;
                                     point.chartName = cardChart.name;
                                     point.active = this.series.index == i ? true : false;
                                     point.color = serie.color;
-                                    point.name = serie.userOptions.tags;
-                                    point.metric = serie.userOptions.metric;
+                                    point.name = serie.name;
+
+                                    //point.name = serie.userOptions.tags;
+                                    //point.metric = serie.userOptions.metric;
 
                                     let tmpPoint = null;
-                                    for (let j  in serie.points) {
-                                         if(serie.points[j].x == this.x) {
+                                    for (let j in serie.points) {
+                                        if (serie.points[j].x == this.x) {
                                             tmpPoint = serie.points[j];
                                             break;
                                         } else {
-                                           // console.log(j);
+                                            // console.log(j);
                                         }
-                                    } 
-                                    if(!tmpPoint)
+                                    }
+                                    if (!tmpPoint)
                                         continue;
-                                    
+
                                     point.x = tmpPoint.x;
                                     point.y = tmpPoint.y;
                                     point.value = tmpPoint.y;
@@ -539,42 +429,10 @@ class ChartsLine extends ChartsBase {
 
                                 }
 
-                             //   console.log(points);
+                                //   console.log(points);
                                 selectPoints(points);
-                                return;
-                                /*
-                                    points
-
-                                            active
-                                            aggregator
-                                            chartName
-                                            color
-
-                                            metric
-                                            name
-                                            value
-                                            x
-                                            y
+                                 
                                 
-                                */
-                                var chart = this.series.chart;
-                                if (!chart.lbl) {
-                                    chart.lbl = chart.renderer.label('')
-                                        .attr({
-                                            padding: 10,
-                                            r: 10,
-                                            fill: Highcharts.getOptions().colors[1]
-                                        })
-                                        .css({
-                                            color: '#FFFFFF'
-                                        })
-                                        .add();
-                                }
-                                chart.lbl
-                                    .show()
-                                    .attr({
-                                        text: 'x: ' + this.x + ', y: ' + this.y
-                                    });
                             }
                         }
                     },
@@ -620,7 +478,7 @@ class ChartsLine extends ChartsBase {
                 position: 'relative',
             });
 
-            childContent =  <div style={style}><div style={{
+            childContent = <div style={style}><div style={{
                 position: 'absolute',
                 top: '50%',
                 left: '50%'
@@ -630,12 +488,12 @@ class ChartsLine extends ChartsBase {
             let config = this.state.config;
 
             let domProps = this.props.domProps;
-            //if (!this.props.dragingCharts.isDraging) {
-            domProps = Object.assign({}, this.props.domProps, {
-                onMouseDown: this.handleMouseDown.bind(this),
-                onMouseMove: this.handleMouseMove.bind(this)
-            });
-            // }
+            if (this.state.network.data.length > 0) {
+                domProps = Object.assign({}, this.props.domProps, {
+                    onMouseDown: this.handleMouseDown.bind(this),
+                    onMouseMove: this.handleMouseMove.bind(this)
+                });
+            }
 
             childContent = <ReactHighcharts ref="chart" config={config} domProps={domProps} />;
         }

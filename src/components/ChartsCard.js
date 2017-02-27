@@ -52,12 +52,15 @@ class ChartsCard extends React.Component {
         //1484923220972
         //https://cloud.oneapm.com/v1/dashboards/11997/charts/add.json
         //https://cloud.oneapm.com/v1/dashboards/11997/charts/1361641/delete.json
-        let url = `/v1/dashboards/${this.props.chart.dashboard_id}/charts/${this.props.chart.id}/delete.json`;
+        let url = `/p1/dashboards/${this.props.chart.dashboard_id}/charts/${this.props.chart.id}/delete.json`;
 
         retryFetch(url, {
             method: "POST",
             retries: 3,
             retryDelay: 10000,
+            params: {
+                api_key:API_CONFIG.apiKey
+            },
             body: ''
         }).then(function (response) {
             return response.json();
@@ -75,12 +78,15 @@ class ChartsCard extends React.Component {
         //1484923220972
         //https://cloud.oneapm.com/v1/dashboards/11997/charts/add.json
 
-        let url = `/v1/dashboards/${this.props.chart.dashboard_id}/charts/add.json`;
+        let url = `/p1/dashboards/${this.props.chart.dashboard_id}/charts/add.json`;
 
         retryFetch(url, {
             method: "POST",
             retries: 3,
             retryDelay: 10000,
+            params: {
+                api_key:API_CONFIG.apiKey
+            },
             body: 'chart=' + encodeURIComponent(JSON.stringify(layout))
         }).then(function (response) {
             return response.json();
@@ -111,6 +117,8 @@ class ChartsCard extends React.Component {
     }
 
     shouldComponentUpdate(nextProps, nextState) {
+        if(this.props.chart.name != nextProps.chart.name || JSON.stringify(this.props.chart) != JSON.stringify(nextProps.chart))
+            return true;
 
         return false;
     }
@@ -160,11 +168,10 @@ class ChartsCard extends React.Component {
             </Menu>
         );
 
-        return <Measure style={{ height: '100%' }} onMeasure={this.onMeasure.bind(this)}><VisibilitySensor intervalDelay={500} partialVisibility={true} onChange={this.onChangeVisible.bind(this)}><Card title={this.props.chart.name}
-            className="chart"
-            style={{ height: '100%' }}
-            extra={
-                <Row>
+        let extra = null;
+
+        if(!this.props.readonly) {
+            extra = <Row>
                     <Col span="7" offset="1">
                         <Button icon="arrows-alt" size="small" onClick={() => this.props.expand(true, this.props.chart)} />
                     </Col>
@@ -178,7 +185,15 @@ class ChartsCard extends React.Component {
                             <Button icon="setting" size="small" />
                         </Dropdown>
                     </Col>
-                </Row>
+                </Row>;
+        }
+
+        return <Measure style={{ height: '100%' }} onMeasure={this.onMeasure.bind(this)}><VisibilitySensor intervalDelay={500} partialVisibility={true} onChange={this.onChangeVisible.bind(this)}>
+        <Card title={this.props.chart.name}
+            className="chart"
+            style={{ height: '100%' }}
+            extra={
+                extra
             }
             bordered={false} >
             <CustomCharts

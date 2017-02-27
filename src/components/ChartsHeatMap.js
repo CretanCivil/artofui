@@ -29,12 +29,12 @@ class ChartsHeatMap extends ChartsBase {
     componentWillReceiveProps(nextProps) {
         if (nextProps.chart.range != this.props.chart.range
             || this.props.metrics != nextProps.metrics) {
-            this.doFetchData(nextProps,true);
+            this.doFetchData(nextProps, true);
         }
 
     }
 
-    doFetchDataInner(startDate,endDate,chart) {
+    doFetchDataInner(startDate, endDate, chart) {
         let metrics = chart.metrics;
 
         this.setState({
@@ -53,34 +53,57 @@ class ChartsHeatMap extends ChartsBase {
         }
 
 
-        let q = metricInfo.aggregator + ":" + metricInfo.metric;
-        //avg:system.load.1
-        if (metricInfo.tags) {
-            q += "{" + metricInfo.tags + "}";
+        let queries = [];
+        for (let metricInfo of metrics) {
+
+            let metric = { begin: (endDate - startDate) / 1000, end: endDate / 1000, interval: interval, attributes: { index: metrics.indexOf(metricInfo) } };
+            let q = "";
+
+            queries.push(metric);
+
+            q += metricInfo.aggregator;
+
+            if (metricInfo.rate) {
+                q += ":rate";
+            }
+
+            q += ":" + metricInfo.metric;
+            //avg:system.load.1
+            let tags = null;
+
+            if (metricInfo.tags) {
+                tags = metricInfo.tags.map(function (item) {
+                    return item.replace(":", "=")
+                });
+            }
+            if (tags) {
+                q += "{" + tags + "}";
+            }
+            if (!metricInfo.tags) {
+                q += "{*}";
+            }
+ 
+
+            metric.q = q;
         }
 
-        /*if (metricInfo.by) {
-            if (!metricInfo.tags) {
-                q += "{}";
-            }
-            q += "by{" + metricInfo.by + "}";
-        }*/
-
         retryFetch(API_CONFIG.metric, {
-            method: "GET",
+            method: "POST",
             retries: 3,
             retryDelay: 10000,
-            params: {
+            /*params: {
                 q: q,
                 begin: startDate,
                 end: endDate,
                 interval: interval,
 
-            }
-        }).then(function(response) {
+            }*/
+            ContentType: "application/json",
+            body: JSON.stringify({ queries: queries }),
+        }).then(function (response) {
             return response.json();
         }).then((json) => {
-            if(!this.mounted) {
+            if (!this.mounted) {
                 return;
             }
             this.setState({
@@ -183,7 +206,7 @@ class ChartsHeatMap extends ChartsBase {
                 fontWeight: "blod",
                 fontFamily: "Courir new"
             },
-            formatter: function() {
+            formatter: function () {
                 console.log(this);
                 let endTime = moment(parseInt(chart.range.endDate));
 
@@ -216,76 +239,80 @@ class ChartsHeatMap extends ChartsBase {
         let xMax = null;
 
         let chartType = this.props.type ? this.props.type : metric.type;
+        if (data.length > 0) {
+            data = data[0].series;
+            for (let key in data) {
+                let serie = {
 
-        for (let key in data) {
-            let serie = {
+                };
+                serie.data = [];
+                serie.type = this.props.type ? this.props.type : metric.type;
+                serie.name = this.buildSerieName(metric.tags);
+                serie.showInLegend = false;
+                serie.colsize = 1;
 
-            };
-            serie.data = [];
-            serie.type = this.props.type ? this.props.type : metric.type;
-            serie.name = this.buildSerieName(metric.tags);
-            serie.showInLegend = false;
+                let pointlist = data[key].pointlist;
 
+                for (var keyTime in pointlist) {
+                    if (pointlist[keyTime] == null)
+                        continue;
+                    let tmp = [];
+                    
 
-            let pointlist = data[key].pointlist;
+                    //this.props.chart.range.startDate, this.props.chart.range.endDate
+                    if (this.props.chart.range.startDate <= 3600000 * 24) {
+                        //y 轴 0~60 分钟
+                        //x 轴 就是1~24小时
+                        xMin = 1;
+                        xMax = parseInt(this.props.chart.range.startDate) / 3600000;
 
-            for (var keyTime in pointlist) {
-                if (pointlist[keyTime] == null)
-                    continue;
-                let tmp = [];
+                        let endTime = moment(parseInt(this.props.chart.range.endDate));
+                        //  console.log(endTime.format("YYYY-MM-DD"));
 
+                        let time = moment(keyTime * 1000);
+                        let hour = endTime.diff(time, 'hours');
+                        time = time.add(hour, "hours");
+                        tmp.push(xMax - hour);
+                        tmp.push(60 - endTime.diff(time, 'minutes'));
+                        //console.log(time.format("YYYY-MM-DD"));
+                        // tmp.push('2013-12-11');
 
-                //this.props.chart.range.startDate, this.props.chart.range.endDate
-                if (this.props.chart.range.startDate <= 3600000 * 24) {
-                    //y 轴 0~60 分钟
-                    //x 轴 就是1~24小时
-                    xMin = 1;
-                    xMax = parseInt(this.props.chart.range.startDate) / 3600000;
-
-                    let endTime = moment(parseInt(this.props.chart.range.endDate));
-                    //  console.log(endTime.format("YYYY-MM-DD"));
-
-                    let time = moment(keyTime * 1000);
-                    let hour = endTime.diff(time, 'hours');
-                    time = time.add(hour, "hours");
-                    tmp.push(xMax - hour);
-                    tmp.push(60 - endTime.diff(time, 'minutes'));
-                    //console.log(time.format("YYYY-MM-DD"));
-                    // tmp.push('2013-12-11');
-
-
-
-                    tmp.push(pointlist[keyTime]);
-                } else {
-                    //y 轴 0~24 小时
-                    //x 轴 就是1~30天
-                    let endTime = moment(parseInt(this.props.chart.range.endDate));
-                    //  console.log(endTime.format("YYYY-MM-DD"));
-
-                    let time = moment(keyTime * 1000);
-                    let hour = endTime.diff(time, 'days');
-                    time = time.add(hour, "days");
-                    tmp.push(hour + 1);
-                    tmp.push(endTime.diff(time, 'hours'));
-                    //console.log(time.format("YYYY-MM-DD"));
-                    // tmp.push('2013-12-11');
-                    xMin = 1;
-                    xMax = parseInt(this.props.chart.range.startDate) / 3600000 / 24;
+                        
 
 
-                    tmp.push(pointlist[keyTime]);
+
+                        tmp.push(pointlist[keyTime]);
+                    } else {
+                        //y 轴 0~24 小时
+                        //x 轴 就是1~30天
+                        let endTime = moment(parseInt(this.props.chart.range.endDate));
+                        //  console.log(endTime.format("YYYY-MM-DD"));
+
+                        let time = moment(keyTime * 1000);
+                        let hour = endTime.diff(time, 'days');
+                        time = time.add(hour, "days");
+                        tmp.push(hour + 1);
+                        tmp.push(endTime.diff(time, 'hours'));
+                        //console.log(time.format("YYYY-MM-DD"));
+                        // tmp.push('2013-12-11');
+                        xMin = 1;
+                        xMax = parseInt(this.props.chart.range.startDate) / 3600000 / 24;
+
+
+                        tmp.push(pointlist[keyTime]);
+                    }
+
+
+
+                    serie.data.push(tmp);
+
+
+                    //[129.2, 144.0, 176.0, 135.6, 148.5, 216.4, 194.1, 95.6, 54.4, 29.9, 71.5, 106.4]
                 }
 
-
-
-                serie.data.push(tmp);
-
-
-                //[129.2, 144.0, 176.0, 135.6, 148.5, 216.4, 194.1, 95.6, 54.4, 29.9, 71.5, 106.4]
+                series.push(serie);
+                break;
             }
-
-            series.push(serie);
-            break;
         }
 
         const config = {
@@ -295,7 +322,7 @@ class ChartsHeatMap extends ChartsBase {
             legend: {
                 enabled: false
             },
-            //   colors: ['#008acd', '#2ec7c9', '#b6a2de', '#0cc2aa', '#6887ff', '#6cc788'],
+            colors: ['#008acd', '#2ec7c9', '#b6a2de', '#0cc2aa', '#6887ff', '#6cc788'],
             loading: {  // 加载中选项配置
                 labelStyle: {
                     fontSize: '12px'
@@ -308,12 +335,7 @@ class ChartsHeatMap extends ChartsBase {
             title: {
                 text: null
             },
-            colorAxis: {
-                min: 1,
-                max: 1000,
-                type: 'linear',
-                lineWidth: 100,
-            },
+            colorAxis:{minColor:"rgba(255,255,255,0.9)",maxColor:'#008acd',tickPixelInterval:1/0},
             plotOptions: {
                 heatmap: {
                     marker: {

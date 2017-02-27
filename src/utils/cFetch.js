@@ -35,7 +35,7 @@ function check404(res) {
 }
 
 function checkStatus(response) {
- // console.log(response);
+  // console.log(response);
   if (response.status >= 200 && response.status < 303) {
     return response;
   } else {
@@ -50,7 +50,7 @@ function checkStatus(response) {
 }
 
 function jsonParse(res) {
-  if(res.status == 302)
+  if (res.status == 302)
     return {};
   return res.json();
 }
@@ -72,11 +72,11 @@ function setUriParam(keys, value, keyPostfix) {
 function getUriParam(keys, object) {
   const array = [];
 
-  if (object instanceof(Array)) {
+  if (object instanceof (Array)) {
     object.forEach((value) => {
       array.push(setUriParam(keys, value, '[]'));
     });
-  } else if (object instanceof(Object)) {
+  } else if (object instanceof (Object)) {
     for (const key in object) {
       if (object.hasOwnProperty(key)) {
         const value = object[key];
@@ -113,70 +113,80 @@ export function toQueryString(object) {
 function cFetch(url, options) {
 
   let mergeUrl = API_CONFIG.baseUri + url;
- /* if(url.substr(0,4) == "http") {
-    mergeUrl = url;
-  }*/
+  /* if(url.substr(0,4) == "http") {
+     mergeUrl = url;
+   }*/
   const defaultOptions = {
     method: 'GET'
   };
 
   const opts = Object.assign({}, defaultOptions, {...options});
 
-  // add query params to url when method is GET
-  if (opts && opts.method == "GET" && opts['params']) {
-    mergeUrl = mergeUrl + '?' + toQueryString(opts['params']);
-  }
+// add query params to url when method is GET
+if (opts && opts.method == "GET" && opts['params']) {
+  mergeUrl = mergeUrl + '?' + toQueryString(opts['params']);
+}
 
-  opts.credentials = "include";
+opts.credentials = "include";
 
-  opts.headers = {
+opts.headers = {
     ...opts.headers,
-    'Content-type': "application/x-www-form-urlencoded",
-    'Authorization': cookie.get('access_token') || ''
-  };
+  'Content-type': "application/x-www-form-urlencoded",
+  'Authorization': cookie.get('access_token') || ''
+};
 
-  return fetch(mergeUrl, opts)
-    .then(check401)
-    .then(check404)
-    .then(checkStatus)
-    .then(jsonParse);
+if (options.ContentType) {
+  opts.headers = Object.assign({}, defaultOptions, {'Content-type' : options.ContentType});
+}
+
+return fetch(mergeUrl, opts)
+  .then(check401)
+  .then(check404)
+  .then(checkStatus)
+  .then(jsonParse);
 }
 
 export function retryFetch(url, options) {
-    let mergeUrl = API_CONFIG.baseUri + url;
-    /* if(url.substr(0,4) == "http") {
-        mergeUrl = url;
-      }*/
-    const defaultOptions = {
-        method: 'GET'
-    };
+  let mergeUrl = API_CONFIG.baseUri + url;
+  /* if(url.substr(0,4) == "http") {
+      mergeUrl = url;
+    }*/
+  const defaultOptions = {
+    method: 'GET'
+  };
 
-    const opts = Object.assign({}, defaultOptions, {...options});
+  const opts = Object.assign({}, defaultOptions, {...options});
 
-    // add query params to url when method is GET
-    if(opts && opts.method == "GET" && opts['params']) {
-        mergeUrl = mergeUrl + '?' + toQueryString(opts['params']);
-    }
+// add query params to url when method is GET
+if (opts && opts['params']) {
+  mergeUrl = mergeUrl + '?' + toQueryString(opts['params']);
+}
 
 
 
-    opts.credentials = "include";
+opts.credentials = "include";
 
-    opts.headers = {
-    ...opts.headers,
-        'Content-type': "application/x-www-form-urlencoded",
-        'Authorization': cookie.get('access_token') || ''
-    };
+opts.headers = {
+        ...opts.headers,
+  'Content-type': "application/x-www-form-urlencoded",
+  'Authorization': cookie.get('access_token') || ''
+};
 
-   // console.log(opts);
-    return fetch(mergeUrl, opts);
+if (options.ContentType) {
+
+  opts.headers = Object.assign({}, defaultOptions, {'Content-type' : options.ContentType});
+
+}
+
+// console.log(opts);
+return fetch(mergeUrl, opts);
 }
 
 
 //catch all the unhandled exception
-window.addEventListener("unhandledrejection", function(err) {
+window.addEventListener("unhandledrejection", function (err) {
   const ex = err.reason;
-  if(ex.constructor != null && ex.constructor == StandardError || ex.msg != null){
+  if (ex.constructor != null && ex.constructor == StandardError || ex.msg != null) {
     message.error(ex.msg, 2.5);
   }
 });

@@ -1,0 +1,42 @@
+
+
+metric:tag
+
+http://localhost:4242/api/search/lookup?m=system.disk.in_use{uid=1}
+
+http://localhost:4242/api/search/lookup?m=*{uid=1}
+
+
+http://localhost:4242/api/query?start=1h-ago&m=sum:rate:system.disk.in_use{uid=1}
+
+//第一个tag是 groupby的 如果不groupby第一个请用{}
+http://localhost:4242/api/query?start=1h-ago&m=sum:rate:1m-sum-null:system.disk.in_use{host=cfeng|wangxh.pc,device=*}{uid=1}&show_query=true&show_summary=true
+http://localhost:4242/api/query?start=1h-ago&m=sum:rate:1m-sum-null:system.disk.in_use{host=wangxh.pc,device=*}{uid=1}&m=sum:rate:1m-sum-null:system.disk.in_use{host=cfeng,device=*}{uid=1}&show_query=true&show_summary=true
+
+
+
+
+https://app.datadoghq.com/series/batch_query
+
+requests[0][from]:1487290901859
+requests[0][to]:1487294501859
+requests[0][interval]:20
+requests[0][q]:avg:system.cpu.user{*} by {host} + avg:cacti.hosts.count{*} by {lv}, avg:cacti.hosts.count{*} by {lv}
+requests[0][aggregator]:avg
+requests[0][type]:line
+requests[1][from]:1487290901859
+requests[1][to]:1487294501859
+requests[1][interval]:20
+requests[1][q]:avg:system.core.count{*} by {host} + avg:cacti.hosts.count{*} by {lv}, avg:cacti.hosts.count{*} by {lv}
+requests[1][aggregator]:avg
+requests[1][type]:line
+_authentication_token:f89dcfc0531c10bed68ae38662da53a65f2387d2
+
+curl -X PUT -d @scripts/tsmeta_map.json http://172.29.225.16:9200/opentsdb/tsmeta/_mapping
+curl -X PUT -d @scripts/uidmeta_map.json http://172.29.225.16:9200/opentsdb/uidmeta/_mapping 
+curl -X PUT -d @scripts/annotation_map.json http://172.29.225.16:9200/opentsdb/annotation/_mapping
+
+http://localhost:4242/api/search/uidmeta?query=name:cfeng wangxh AND custom.address:fsfsf&limit=3&start_index=0
+http://localhost:4242/api/search/uidmeta?query=custom.agent:e,a
+
+https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html#query-string-syntax
