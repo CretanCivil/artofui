@@ -42,33 +42,33 @@ export default class ChartsBase extends React.Component {
     }
 
     reloadData(must) {
-        this.doFetchData(this.props,must);
+        this.doFetchData(this.props, must);
     }
 
-    doFetchData(props,must) {
+    doFetchData(props, must) {
         let startDate = props.chart.range.startDate;
         let endDate = props.chart.range.endDate;
         if (!props.chart.range.chosenFlag)
-            endDate = moment().format('x');
+            endDate = moment().startOf('second').format('x');
         let metrics = props.cardChart.metrics;
 
         //|| (moment().diff(moment(parseInt(this.state.network.lastTime))) < 1000 * 60 && !this.state.network.error)
         //|| this.state.network.isFetching
         //console.log(must,endDate,this.state.network.lastTime,moment().diff(moment(parseInt(this.state.network.lastTime))));
-        if(!must) {
-            if (!metrics|| (moment().diff(moment(parseInt(this.state.network.lastTime))) < 1000 * 60 && !this.state.network.error) || this.state.network.isFetching)
+        if (!must) {
+            if (!metrics || (moment().diff(moment(parseInt(this.state.network.lastTime))) < 1000 * 60 && !this.state.network.error) || this.state.network.isFetching)
                 return;
         }
-        
-        this.doFetchDataInner(startDate, endDate, props.cardChart);
+
+        this.doFetchDataInner(startDate, endDate, props.cardChart, props);
     }
 
 
-/*
-其他图表 慢慢集成
-一定要实现 getInterval 和 initConfig
- */
-    doFetchDataInner(startDate, endDate, chart) {
+    /*
+    其他图表 慢慢集成
+    一定要实现 getInterval 和 initConfig
+     */
+    doFetchDataInner(startDate, endDate, chart, props) {
         let metrics = chart.metrics;
 
 
@@ -109,17 +109,38 @@ export default class ChartsBase extends React.Component {
             q += ":" + metricInfo.metric;
             //avg:system.load.1
             let tags = null;
-
+            let mustInterupt = false;
             if (metricInfo.tags) {
                 tags = metricInfo.tags.map(function (item) {
+                    if (props.params[metricInfo.tags]) {
+                        if (props.params[metricInfo.tags].value) {
+                            console.log(props.params[metricInfo.tags]);
+                            return props.params[metricInfo.tags].value.replace(":", "=");
+                        } else {
+                            mustInterupt = true;
+                            return "";
+                        }
+                    }
                     return item.replace(":", "=")
                 });
+            }
+
+            if (mustInterupt) {
+                this.setState({
+                    network: {
+                        isFetching: false,
+                        data: [],
+                        error: null,
+                    }
+                });
+
+                return;
             }
             if (tags) {
                 q += "{" + tags + "}";
             }
-            if (!metricInfo.tags) {
-                q += "{*}";
+            if (!metricInfo.tags) {//*
+                q += "{}";
             }
             if (metricInfo.by) {
 
@@ -128,7 +149,8 @@ export default class ChartsBase extends React.Component {
 
             metric.q = q;
         }
-
+        console.log(API_CONFIG.userHost + API_CONFIG.metric);
+        //API_CONFIG.userHost +
         retryFetch(API_CONFIG.metric, {
             method: "POST",
             retries: 3,
@@ -142,6 +164,7 @@ export default class ChartsBase extends React.Component {
             }*/
             ContentType: "application/json",
             body: JSON.stringify({ queries: queries }),
+
         }).then(function (response) {
             return response.json();
         }).then((json) => {

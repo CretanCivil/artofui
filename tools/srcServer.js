@@ -35,6 +35,13 @@ const kongProxy = proxy('/p1', {
   ws: true
 });
 
+const javaProxy = proxy('/apmsys', {
+  target: 'http://user.apmsys.com:8000',
+  changeOrigin: true,
+  ws: true
+});
+
+
 
 function onProxyRes(proxyRes) {
 
@@ -71,6 +78,7 @@ browserSync({
     middleware: [
       //apiProxy,
       kongProxy,
+      javaProxy,
       cloudProxy,
       webProxy,
       webpackDevMiddleware(bundler, {

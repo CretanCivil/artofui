@@ -56,5 +56,8 @@ export default {
   points: {//选中的序列点
     points:[],
   },
+  params:{
+    scope:{},
+  },
 
 };

@@ -1,4 +1,4 @@
-import {CHART_RANGE, CHART_SELECTION, CHART_CROSS_LINE } from './../constants/actionTypes';
+import {CHART_RANGE, CHART_SELECTION, CHART_CROSS_LINE,SCOPE_PARAMS } from './../constants/actionTypes';
 
 export const setChartRange = (params) => {
   return {
@@ -17,6 +17,14 @@ export const setChartSelection = (params) => {
 export const setChartCrossLine = (params) => {
   return {
     type: CHART_CROSS_LINE,
+    param: params,
+  };
+};
+
+
+export const setScopeParams = (params) => {
+  return {
+    type: SCOPE_PARAMS,
     param: params,
   };
 };

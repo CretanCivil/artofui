@@ -148,9 +148,9 @@ return fetch(mergeUrl, opts)
 
 export function retryFetch(url, options) {
   let mergeUrl = API_CONFIG.baseUri + url;
-  /* if(url.substr(0,4) == "http") {
+  if(url.substr(0,4) == "http") {
       mergeUrl = url;
-    }*/
+  }
   const defaultOptions = {
     method: 'GET'
   };

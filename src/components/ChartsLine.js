@@ -60,6 +60,12 @@ class ChartsLine extends ChartsBase {
             this.doFetchData(nextProps, true);
         }
 
+        if (nextProps.params.scope != this.props.params.scope) {
+            this.doFetchData(nextProps, true);
+        }
+
+        
+
         if (nextProps.chart.crossLine.pos != this.props.chart.crossLine.pos) {
             this.showCrossLine(nextProps);
         }
@@ -255,11 +261,13 @@ class ChartsLine extends ChartsBase {
         eventMouseMove = this.handleMouseMove.bind(this);
         eventSelection = this.handleChartSelection.bind(this);
 
+ 
         data = data[0].series;
         for (let key in data) {
             let serie = {};
             serie.data = [];
             // console.log(this.props.metrics, key, this.props.metrics[key]);
+           // console.log("dddddd",data[key],this.props.metrics[data[key].queryId]);
             serie.type = this.props.metrics[data[key].queryId].type;//let metric = this.props.metrics[0];
             serie.tags = this.buildSerieName(data[key].tags);
             serie.name = data[key].displayName;// + ' - ' + this.buildSerieName(data[key].tags);
@@ -515,10 +523,10 @@ ChartsLine.childContextTypes = {
 */
 // Which part of the Redux global state does our component want to receive as props?
 function mapStateToProps(state) {
-    const { chart, } = state;
+    const { chart,params } = state;
     return {
         chart,
-
+        params,
     };
 }
 

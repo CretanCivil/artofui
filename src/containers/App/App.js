@@ -40,19 +40,13 @@ class App extends Component {
 
   renderAuthenticatedPage() {
     return (
-      <div className="ant-layout-aside">
-        
-        <div className="ant-layout-main" >
-          <div className="ant-layout-header" />
-          
-          <div className="ant-layout-container">
-            <div className="ant-layout-content">
-              <div>
-                {this.props.children}
-              </div>
+      <div className="ant-layout-main" >
+        <div className="ant-layout-container">
+          <div className="ant-layout-content">
+            <div>
+              {this.props.children}
             </div>
           </div>
-         
         </div>
       </div>
     );
@@ -62,7 +56,7 @@ class App extends Component {
     const { isAuthenticated } = this.props;
     return (
       <div>
-        {isAuthenticated ? this.renderAuthenticatedPage() : <Login/>}
+        {isAuthenticated ? this.renderAuthenticatedPage() : <Login />}
       </div>
     );
   }

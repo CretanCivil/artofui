@@ -12,7 +12,7 @@ import { fetchTags } from './../../actions/tags';
 import { fetchAllMetrics } from './../../actions/all_metrics';
 import DialogChartView from './../../components/DialogChartView';
 import DialogChartSetting from './../../components/DialogChartSetting';
-import { setChartRange } from './../../actions/chart';
+import { setChartRange, setScopeParams } from './../../actions/chart';
 import { setDraging } from './../../actions/app';
 let WidthProvider = require('react-grid-layout').WidthProvider;
 let ReactGridLayout = require('react-grid-layout');
@@ -45,7 +45,6 @@ Highcharts.setOptions({
         useUTC: false,
         //timezoneOffset: 8
     },
-
 });
 
 
@@ -65,7 +64,7 @@ export class ChartsPage extends React.Component {
         this.handleTableChange = this.handleTableChange.bind(this);
         this.onSelectChange = this.onSelectChange.bind(this);
         this.state = {
-            readonly:true,
+            readonly: true,
             selectedRowKeys: [],
 
             ranges: {
@@ -99,6 +98,7 @@ export class ChartsPage extends React.Component {
                 chart: null,
             },
             layout: [],
+            scope: 0,
         };
 
         this.props.setChartRange({
@@ -128,23 +128,23 @@ export class ChartsPage extends React.Component {
 
 
     doFetchData() {
-        retryFetch(format(API_CONFIG.show,$("#dashboard").attr("dashboardid")), {
+        retryFetch(format(API_CONFIG.show, $("#dashboard").attr("dashboardid")), {
             method: "GET",
             retries: 3,
             retryDelay: 10000,
             params: {
-                api_key:API_CONFIG.apiKey
+                api_key: API_CONFIG.apiKey
             }
         }).then(function (response) {
             return response.json();
         }).then((json) => {
             let layout = [];
             if (json.result) {
+                let type = json.result.type;
 
-
-               // console.log("json.result.order", JSON.parse(json.result.order));
+                // console.log("json.result.order", JSON.parse(json.result.order));
                 for (let data of JSON.parse(json.result.order)) {
-                   // console.log(data);
+                    // console.log(data);
                     let tmp = {};
                     tmp.i = data[0];
                     tmp.x = data[1];
@@ -161,7 +161,7 @@ export class ChartsPage extends React.Component {
 
                 this.setState({
                     layout: layout,
-
+                    readonly: type !== "user",
                 });
                 console.log("layoutlayoutjson", json);
             }
@@ -172,12 +172,12 @@ export class ChartsPage extends React.Component {
     }
 
     updateLyaouts(layout) {
-        retryFetch(format(API_CONFIG.updateLayout,$("#dashboard").attr("dashboardid")), {
+        retryFetch(format(API_CONFIG.updateLayout, $("#dashboard").attr("dashboardid")), {
             method: "POST",
             retries: 3,
             retryDelay: 10000,
             params: {
-                api_key:API_CONFIG.apiKey
+                api_key: API_CONFIG.apiKey
             },
             body: 'charts=' + encodeURIComponent(JSON.stringify(layout))
         }).then(function (response) {
@@ -320,6 +320,8 @@ export class ChartsPage extends React.Component {
     }
 
     onLayoutChange(layout) {
+        if(this.state.readonly)
+            return;
         let datas = [];
         for (let data of layout) {
             let tmp = [];
@@ -347,6 +349,33 @@ export class ChartsPage extends React.Component {
             item: null,
         });
     }
+
+    onChangeScope(value) {
+        const { tags } = this.props;
+
+        this.props.setScopeParams({
+            value: tags.data[value],
+            default: tags.data[0]
+        });
+
+        this.setState({
+            scope: value
+        });
+
+        console.log(value);
+    }
+
+    componentWillReceiveProps(nextProps) {
+        if (nextProps.tags != this.props.tags) {
+            this.props.setScopeParams({
+                value: nextProps.tags.data[this.state.scope],
+                default: nextProps.tags.data[0]
+            });
+        }
+
+    }
+
+
 
 
 
@@ -410,11 +439,15 @@ export class ChartsPage extends React.Component {
         return (
             <div style={{}}>
 
+             <div className="page-header" >
+            <h1>sfsfsffsfs</h1>
+          </div>
+
                 <Row key={"4"} type="flex" justify="space-between" style={{ marginLeft: 10 }}>
                     <Col span={8}>
                         <Form inline >
                             <FormItem>
-                                <Select multiple style={{ width: 400 }}>
+                                <Select value={tags.data[this.state.scope]} onChange={this.onChangeScope.bind(this)} style={{ width: 400 }}>
                                     {options}
                                 </Select>
                             </FormItem>
@@ -462,8 +495,8 @@ export class ChartsPage extends React.Component {
                 </Row>
                 <ReactGridLayout layout={this.state.layout} style={{ width: '100%' }} className="layout"
                     onDragStart={this.onDragStart.bind(this)}
-                    
-                    
+
+
                     isDraggable={!this.state.readonly}
                     isResizable={!this.state.readonly}
 
@@ -513,6 +546,7 @@ function mapDispatchToProps(dispatch) {
         fetchAllMetrics: (params) => dispatch(fetchAllMetrics(params)),
         setChartRange: (params) => dispatch(setChartRange(params)),
         setDraging: (params) => dispatch(setDraging(params)),
+        setScopeParams: (params) => dispatch(setScopeParams(params)),
     };
 }
 
