@@ -113,9 +113,9 @@ export function toQueryString(object) {
 function cFetch(url, options) {
 
   let mergeUrl = API_CONFIG.baseUri + url;
-  /* if(url.substr(0,4) == "http") {
+  if(url.substr(0,4) == "http") {
      mergeUrl = url;
-   }*/
+   }
   const defaultOptions = {
     method: 'GET'
   };

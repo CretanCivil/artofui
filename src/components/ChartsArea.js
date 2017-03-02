@@ -97,13 +97,13 @@ class ChartsArea extends ChartsBase {
             method: "POST",
             retries: 3,
             retryDelay: 10000,
-            /*params: {
-                q: q,
+            params: {
+                /*q: q,
                 begin: startDate,
                 end: endDate,
-                interval: interval,
-
-            }*/
+                interval: interval,*/
+                api_key: API_CONFIG.apiKey,
+            },
             ContentType: "application/json",
             body: JSON.stringify({ queries: queries }),
         }).then(function(response) {

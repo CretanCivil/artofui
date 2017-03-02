@@ -72,6 +72,14 @@ labelKey:ci
 
 // Run Browsersync and use middleware for Hot Module Replacement
 browserSync({
+  port: 8080,
+  //更改默认端口weinre
+ui: {
+    port: 8081,
+    weinre: {
+        port: 9090
+    }
+},
   server: {
     baseDir: 'src',
 

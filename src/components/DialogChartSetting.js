@@ -214,6 +214,7 @@ class DialogChartSetting extends React.Component {
                     value
                     x
                     y
+        <RadioButton value="events">事件流</RadioButton>
         
         <RadioButton value="icon">图标</RadioButton>
         
@@ -250,7 +251,7 @@ class DialogChartSetting extends React.Component {
                 domProps={{ style: { height: 160, width: 928 }, }} />
 
             <RadioGroup onChange={this.changeChartType.bind(this)} defaultValue={this.state.chartType} size="large">
-                <RadioButton value="events">事件流</RadioButton>
+                
                 <RadioButton value="heatmap">热力图</RadioButton>
                 
                 <RadioButton value="pie">饼图</RadioButton>

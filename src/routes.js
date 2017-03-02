@@ -12,6 +12,6 @@ export default (
     <IndexRoute component={ChartsPage}/>
     <Route path="charts" component={ChartsPage}/>
     <Route path="users" component={ConnectedUsersPage}/>
-    <Route path="*" component={HomePage}/>
+    <Route path="*" component={ChartsPage}/>
   </Route>
 );

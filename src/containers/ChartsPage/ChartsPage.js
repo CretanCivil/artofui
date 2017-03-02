@@ -17,17 +17,18 @@ import { setDraging } from './../../actions/app';
 let WidthProvider = require('react-grid-layout').WidthProvider;
 let ReactGridLayout = require('react-grid-layout');
 ReactGridLayout = WidthProvider(ReactGridLayout);
-import { Button, Row, Col, Select, Form, Icon, Spin } from 'antd';
+import { Button, Row, Col, Select, Form, Icon, Spin, Dropdown, Menu, notification } from 'antd';
 let DateRangerPicker = require('react-bootstrap-daterangepicker');
 let moment = require('moment');
 import { retryFetch } from '../../utils/cFetch'
 import { API_CONFIG } from '../../config/api';
-import '../../../node_modules/react-grid-layout/css/styles.css';
-import '../../../node_modules/react-resizable/css/styles.css';
+//import '../../../node_modules/react-grid-layout/css/styles.css';
+import './rgl-styles.css';
+//import '../../../node_modules/react-resizable/css/styles.css';
 
 //import ReactHighcharts from 'react-highcharts';
 //import highchartsTreemap from 'highcharts-treemap';
-import 'rc-cascader/assets/index.css';
+//import 'rc-cascader/assets/index.css';
 import Highcharts from 'highcharts';
 import PubSub from 'vanilla-pubsub';
 import Draggable from 'react-draggable';
@@ -99,6 +100,7 @@ export class ChartsPage extends React.Component {
             },
             layout: [],
             scope: 0,
+            dashboardShow: null,
         };
 
         this.props.setChartRange({
@@ -128,7 +130,7 @@ export class ChartsPage extends React.Component {
 
 
     doFetchData() {
-        retryFetch(format(API_CONFIG.show, $("#dashboard").attr("dashboardid")), {
+        retryFetch(format(API_CONFIG.show, G_WEB_PARAMS.dashId), {
             method: "GET",
             retries: 3,
             retryDelay: 10000,
@@ -136,6 +138,7 @@ export class ChartsPage extends React.Component {
                 api_key: API_CONFIG.apiKey
             }
         }).then(function (response) {
+            console.log(response);
             return response.json();
         }).then((json) => {
             let layout = [];
@@ -161,7 +164,8 @@ export class ChartsPage extends React.Component {
 
                 this.setState({
                     layout: layout,
-                    readonly: type !== "user",
+                    readonly: false,//type !== "user",
+                    dashboardShow: json.result,
                 });
                 console.log("layoutlayoutjson", json);
             }
@@ -172,7 +176,7 @@ export class ChartsPage extends React.Component {
     }
 
     updateLyaouts(layout) {
-        retryFetch(format(API_CONFIG.updateLayout, $("#dashboard").attr("dashboardid")), {
+        retryFetch(format(API_CONFIG.updateLayout, G_WEB_PARAMS.dashId), {
             method: "POST",
             retries: 3,
             retryDelay: 10000,
@@ -320,7 +324,7 @@ export class ChartsPage extends React.Component {
     }
 
     onLayoutChange(layout) {
-        if(this.state.readonly)
+        if (this.state.readonly)
             return;
         let datas = [];
         for (let data of layout) {
@@ -376,10 +380,19 @@ export class ChartsPage extends React.Component {
     }
 
 
-
+    menuClick(item) {
+        // message.info('Click on menu item.');
+        console.log('click', item);
+        notification.open({
+            message: '还要等等',
+            description: '刚怀孕，再等等.',
+        });
+    }
 
 
     render() {
+
+        console.log(G_WEB_PARAMS);
         const { dashboard: { data, isFetching } } = this.props;
         const { tags } = this.props;
 
@@ -436,14 +449,55 @@ export class ChartsPage extends React.Component {
             timePicker24Hour: React.PropTypes.bool,
             timePickerSeconds: React.PropTypes.bool,
              */
+
+        const menu = (
+            <Menu onClick={this.menuClick.bind(this)}>
+                <Menu.Item key="edit">编辑参数</Menu.Item>
+                <Menu.Item key="copy">创建副本</Menu.Item>
+                <Menu.Item key="editName">修改名称</Menu.Item>
+                <Menu.Item key="delete">删除仪表盘</Menu.Item>
+            </Menu>
+        );
         return (
             <div style={{}}>
 
-             <div className="page-header" >
-            <h1>sfsfsffsfs</h1>
-          </div>
+                <div className="page-header" >
+                    <Row type="flex" justify="space-between" >
+                        <Col>
+                            <h1>{this.state.dashboardShow ? this.state.dashboardShow.name : ""} <small> {this.state.dashboardShow ? 'By ' + this.state.dashboardShow.owner.name : ""} </small></h1>
+                        </Col>
+                        <Col span={7} style={{ marginLeft: '4%' }}>
+                            <Row type="flex" justify="end">
+                                <Col style={{ textAlign: 'right' }} >
+                                    <DateRangerPicker startDate={this.state.startDate}
+                                        endDate={this.state.endDate} ranges={this.state.ranges}
+                                        opens="left"
+                                        timePicker={true}
+                                        dateLimit={{ days: 30 }}
+                                        maxDate={moment()}
+                                        locale={{
+                                            customRangeLabel: '自定义区间',
+                                            applyLabel: '应用',
+                                            cancelLabel: '取消',
+                                        }}
+                                        onApply={this.handleDateRangeChanged.bind(this)}>
+                                        <Button type="primary" size="large" style={{ paddingRight: 10 }}><Icon type="calendar" />{this.state.chosenLabel}<Icon type="arrow-down" /></Button >
+                                    </DateRangerPicker>
+                                </Col>
+                                <Col style={{ marginLeft: 4 }}>
+                                    {this.state.readonly ? null : <Dropdown overlay={menu} trigger={['click']}>
+                                        <Button icon="setting" size="large" />
+                                    </Dropdown>}
 
-                <Row key={"4"} type="flex" justify="space-between" style={{ marginLeft: 10 }}>
+
+                                </Col>
+                            </Row>
+                        </Col>
+                    </Row>
+
+                </div>
+
+                <Row key={"4"} style={{ marginLeft: '10px', marginRight: '10px', marginBottom: '10px' }}>
                     <Col span={8}>
                         <Form inline >
                             <FormItem>
@@ -454,44 +508,25 @@ export class ChartsPage extends React.Component {
                         </Form>
                     </Col>
 
-                    <Col span={7} style={{ marginLeft: '4%' }}>
-                        <Row type="flex" justify="end">
-                            <Col style={{ textAlign: 'right' }} >
-                                <DateRangerPicker startDate={this.state.startDate}
-                                    endDate={this.state.endDate} ranges={this.state.ranges}
-                                    opens="left"
-                                    timePicker={true}
-                                    dateLimit={{ days: 30 }}
-                                    maxDate={moment()}
-                                    locale={{
-                                        customRangeLabel: '自定义区间',
-                                        applyLabel: '应用',
-                                        cancelLabel: '取消',
-                                    }}
-                                    onApply={this.handleDateRangeChanged.bind(this)}>
-                                    <Button type="primary" size="large" style={{ paddingRight: 10 }}><Icon type="calendar" />{this.state.chosenLabel}<Icon type="arrow-down" /></Button >
-                                </DateRangerPicker>
-                            </Col>
-                            <Col style={{ marginLeft: 4 }}>
-                                {this.state.readonly ? null : <Button icon="setting" className="ant-search-btn" onClick={() => this.showDialog(true,
-                                    [{ metric: "system.load.1", aggregator: "avg", type: "line", rate: false, by: null, tags: null, id: 0 }],
-                                    'timeseries',
-                                    {
-                                        dashboard_id: $("#dashboard").attr("dashboardid"),
-                                        id: 0,
-                                        meta: { modelType: "normal" },
-                                        metrics:
-                                        [{
-                                            metric: "system.load.1", aggregator: "avg", type: "line",
-                                            rate: false, by: null, tags: null, id: 0
-                                        }],
-                                        name: "新建图表",
-                                        type: "timeseries"
-                                    })} />}
+                    <Col span={8} offset={8} style={{ textAlign: 'right' }}>
 
-                            </Col>
-                        </Row>
+                        {this.state.readonly ? null : <Button type="primary" size="large" style={{ paddingRight: 10 }} onClick={() => this.showDialog(true,
+                            [{ metric: "system.load.1", aggregator: "avg", type: "line", rate: false, by: null, tags: null, id: 0 }],
+                            'timeseries',
+                            {
+                                dashboard_id: G_WEB_PARAMS.dashId,
+                                id: 0,
+                                meta: { modelType: "normal" },
+                                metrics:
+                                [{
+                                    metric: "system.load.1", aggregator: "avg", type: "line",
+                                    rate: false, by: null, tags: null, id: 0
+                                }],
+                                name: "新建图表",
+                                type: "timeseries"
+                            })} >添加监控图表</Button >}
                     </Col>
+
                 </Row>
                 <ReactGridLayout layout={this.state.layout} style={{ width: '100%' }} className="layout"
                     onDragStart={this.onDragStart.bind(this)}

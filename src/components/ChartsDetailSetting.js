@@ -191,6 +191,7 @@ class ChartsDetailSetting extends React.Component {
                         marginRight: 15,
                         backgroundColor: '#d9534f',
                         borderColor: '#d9534f',
+                        display:'none',
                     }} onClick={() => this.showDialog(true)} />
                 </Col>
             </Row>

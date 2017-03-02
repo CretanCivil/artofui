@@ -42,7 +42,7 @@ class App extends Component {
     return (
       <div className="ant-layout-main" >
         <div className="ant-layout-container">
-          <div className="ant-layout-content">
+          <div className="ant-layout-content" style={{padding:'15px',}}>
             <div>
               {this.props.children}
             </div>
@@ -56,11 +56,12 @@ class App extends Component {
     const { isAuthenticated } = this.props;
     return (
       <div>
-        {isAuthenticated ? this.renderAuthenticatedPage() : <Login />}
+        {this.renderAuthenticatedPage()}
       </div>
     );
   }
 }
+//  {isAuthenticated ?  <Login /> : this.renderAuthenticatedPage()}
 
 function mapStateToProps(state) {
   const { routing, auth: { isAuthenticated, }, user, dashboard } = state;
