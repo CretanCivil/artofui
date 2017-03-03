@@ -6,12 +6,16 @@ import HomePage from './containers/HomePage/HomePage';
 import ConnectedUsersPage from './containers/UsersPage/UsersPage';
 //import NotFoundPage from './components/NotFoundPage/NotFoundPage';
 import ChartsPage from './containers/ChartsPage/ChartsPage';
+import MetricExplorePage from './containers/MetricExplore';
+
+
 
 export default (
   <Route path="/" component={App}>
     <IndexRoute component={ChartsPage}/>
     <Route path="charts" component={ChartsPage}/>
     <Route path="users" component={ConnectedUsersPage}/>
-    <Route path="*" component={ChartsPage}/>
+    <Route path="/dashboards/:dashboardId" component={ChartsPage}/>
+    <Route path="/metrics/explore" component={MetricExplorePage}/>
   </Route>
 );

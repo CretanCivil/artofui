@@ -88,15 +88,16 @@ class ChartsTable extends ChartsBase {
             method: "POST",
             retries: 3,
             retryDelay: 10000,
-            /*params: {
-                q: q,
+            params: {
+                /*q: q,
                 begin: startDate,
                 end: endDate,
-                interval: interval,
-
-            }*/
-            ContentType: "application/json",
-            body: JSON.stringify({ queries: queries }),
+                interval: interval,*/
+                api_key: API_CONFIG.apiKey,
+            },
+            //ContentType: "application/json",
+            //body: JSON.stringify({ queries: queries }),
+            body: encodeURIComponent(JSON.stringify({ queries: queries }))
         }).then(function (response) {
             return response.json();
         }).then((json) => {

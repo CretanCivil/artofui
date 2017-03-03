@@ -54,14 +54,15 @@ class App extends Component {
 
   render() {
     const { isAuthenticated } = this.props;
+    console.log(isAuthenticated);
     return (
       <div>
-        {this.renderAuthenticatedPage()}
+        {isAuthenticated ?  <Login /> : this.renderAuthenticatedPage()}
       </div>
     );
   }
 }
-//  {isAuthenticated ?  <Login /> : this.renderAuthenticatedPage()}
+//  {this.renderAuthenticatedPage()} 
 
 function mapStateToProps(state) {
   const { routing, auth: { isAuthenticated, }, user, dashboard } = state;

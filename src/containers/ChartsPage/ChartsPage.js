@@ -62,7 +62,6 @@ export class ChartsPage extends React.Component {
 
     constructor(props) {
         super(props);
-        this.handleTableChange = this.handleTableChange.bind(this);
         this.onSelectChange = this.onSelectChange.bind(this);
         this.state = {
             readonly: true,
@@ -99,7 +98,7 @@ export class ChartsPage extends React.Component {
                 chart: null,
             },
             layout: [],
-            scope: 0,
+            scope: null,
             dashboardShow: null,
         };
 
@@ -130,7 +129,7 @@ export class ChartsPage extends React.Component {
 
 
     doFetchData() {
-        retryFetch(format(API_CONFIG.show, G_WEB_PARAMS.dashId), {
+        retryFetch(format(API_CONFIG.show, this.props.params.dashboardId), {
             method: "GET",
             retries: 3,
             retryDelay: 10000,
@@ -164,19 +163,19 @@ export class ChartsPage extends React.Component {
 
                 this.setState({
                     layout: layout,
-                    readonly: false,//type !== "user",
+                    readonly: type !== "user",
                     dashboardShow: json.result,
                 });
                 console.log("layoutlayoutjson", json);
             }
-            this.props.fetchDashboard();
+            this.props.fetchDashboard({api_key:API_CONFIG.apiKey,dashboardId:this.props.params.dashboardId  });
             this.props.fetchTags();
             this.props.fetchAllMetrics();
         });
     }
 
     updateLyaouts(layout) {
-        retryFetch(format(API_CONFIG.updateLayout, G_WEB_PARAMS.dashId), {
+        retryFetch(format(API_CONFIG.updateLayout, this.props.params.dashboardId), {
             method: "POST",
             retries: 3,
             retryDelay: 10000,
@@ -239,7 +238,7 @@ export class ChartsPage extends React.Component {
             value,
         });
     }
-
+/*
     handleTableChange(pagination, filters = {}, sorter = {}) {
         const pageParams = { page: pagination.current, per_page: pagination.pageSize };
         const filtersField = {};
@@ -277,7 +276,7 @@ export class ChartsPage extends React.Component {
         const params = Object.assign({}, pageParams, filtersField, sortParams);
         this.props.fetchDashboard(params);
     }
-
+*/
     onSelectChange(selectedRowKeys) {
         this.setState({ selectedRowKeys });
     }
@@ -357,13 +356,16 @@ export class ChartsPage extends React.Component {
     onChangeScope(value) {
         const { tags } = this.props;
 
+        let defScope = tags.data[0];
+        if (this.props.location.query.scope)
+            defScope = this.props.location.query.scope;
         this.props.setScopeParams({
             value: tags.data[value],
-            default: tags.data[0]
+            default: defScope
         });
 
         this.setState({
-            scope: value
+            scope: tags.data[value]
         });
 
         console.log(value);
@@ -371,9 +373,13 @@ export class ChartsPage extends React.Component {
 
     componentWillReceiveProps(nextProps) {
         if (nextProps.tags != this.props.tags) {
+            let defScope = nextProps.tags.data[0];
+
+            if (this.props.location.query.scope)
+                defScope = this.props.location.query.scope;
             this.props.setScopeParams({
-                value: nextProps.tags.data[this.state.scope],
-                default: nextProps.tags.data[0]
+                value: this.state.scope,
+                default: defScope
             });
         }
 
@@ -389,10 +395,26 @@ export class ChartsPage extends React.Component {
         });
     }
 
+    searchScope(input, option) {
+        return option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0;
+    }
 
     render() {
+        //scope=host%3Awan-177
+        //console.log(this.props.params);
+        //console.log(this.props.location.query);
 
-        console.log(G_WEB_PARAMS);
+
+        if (!this.state.scope) {
+            if (this.props.location.query.scope)
+                this.state.scope = this.props.location.query.scope;
+            else {
+                if (this.props.tags.data.length > 0) {
+                    this.state.scope = this.props.tags.data[0];
+                }
+            }
+        }
+
         const { dashboard: { data, isFetching } } = this.props;
         const { tags } = this.props;
 
@@ -450,14 +472,17 @@ export class ChartsPage extends React.Component {
             timePickerSeconds: React.PropTypes.bool,
              */
 
-        const menu = (
-            <Menu onClick={this.menuClick.bind(this)}>
+        const menu = this.state.readonly ? <Menu onClick={this.menuClick.bind(this)}>
+            <Menu.Item key="copy">创建副本</Menu.Item>
+        </Menu> : <Menu onClick={this.menuClick.bind(this)}>
+
                 <Menu.Item key="edit">编辑参数</Menu.Item>
                 <Menu.Item key="copy">创建副本</Menu.Item>
                 <Menu.Item key="editName">修改名称</Menu.Item>
                 <Menu.Item key="delete">删除仪表盘</Menu.Item>
             </Menu>
-        );
+
+
         return (
             <div style={{}}>
 
@@ -485,9 +510,9 @@ export class ChartsPage extends React.Component {
                                     </DateRangerPicker>
                                 </Col>
                                 <Col style={{ marginLeft: 4 }}>
-                                    {this.state.readonly ? null : <Dropdown overlay={menu} trigger={['click']}>
+                                    <Dropdown overlay={menu} trigger={['click']}>
                                         <Button icon="setting" size="large" />
-                                    </Dropdown>}
+                                    </Dropdown>
 
 
                                 </Col>
@@ -501,7 +526,13 @@ export class ChartsPage extends React.Component {
                     <Col span={8}>
                         <Form inline >
                             <FormItem>
-                                <Select value={tags.data[this.state.scope]} onChange={this.onChangeScope.bind(this)} style={{ width: 400 }}>
+                                <Select value={this.state.scope} onChange={this.onChangeScope.bind(this)} style={{ width: 400 }}
+                                    showSearch
+
+                                    optionFilterProp="children"
+                                    filterOption={this.searchScope.bind(this)}
+
+                                    >
                                     {options}
                                 </Select>
                             </FormItem>
@@ -514,7 +545,7 @@ export class ChartsPage extends React.Component {
                             [{ metric: "system.load.1", aggregator: "avg", type: "line", rate: false, by: null, tags: null, id: 0 }],
                             'timeseries',
                             {
-                                dashboard_id: G_WEB_PARAMS.dashId,
+                                dashboard_id: this.props.params.dashboardId,
                                 id: 0,
                                 meta: { modelType: "normal" },
                                 metrics:

@@ -91,15 +91,16 @@ class ChartsHeatMap extends ChartsBase {
             method: "POST",
             retries: 3,
             retryDelay: 10000,
-            /*params: {
-                q: q,
+            params: {
+                /*q: q,
                 begin: startDate,
                 end: endDate,
-                interval: interval,
-
-            }*/
-            ContentType: "application/json",
-            body: JSON.stringify({ queries: queries }),
+                interval: interval,*/
+                api_key: API_CONFIG.apiKey,
+            },
+            //ContentType: "application/json",
+            //body: JSON.stringify({ queries: queries }),
+            body: encodeURIComponent(JSON.stringify({ queries: queries }))
         }).then(function (response) {
             return response.json();
         }).then((json) => {
@@ -114,7 +115,7 @@ class ChartsHeatMap extends ChartsBase {
                     lastTime: endDate,
                 }
             });
-            console.log("json", json);
+            //console.log("json", json);
         });
 
 
@@ -207,7 +208,7 @@ class ChartsHeatMap extends ChartsBase {
                 fontFamily: "Courir new"
             },
             formatter: function () {
-                console.log(this);
+                //console.log(this);
                 let endTime = moment(parseInt(chart.range.endDate));
 
                 let strTime = "";
@@ -219,9 +220,9 @@ class ChartsHeatMap extends ChartsBase {
                     let xMax = parseInt(chart.range.startDate) / 3600000;
 
                     let time = endTime.subtract(xMax - this.point.x, "hours");
-                    console.log(time.format("YYYY-MM-DD HH:mm:ss"));
+                    //console.log(time.format("YYYY-MM-DD HH:mm:ss"));
                     time = time.subtract(60 - this.point.y, "minutes");
-                    console.log(time.format("YYYY-MM-DD HH:mm:ss"));
+                    //console.log(time.format("YYYY-MM-DD HH:mm:ss"));
                     strTime = time.format("YYYY-MM-DD HH:mm:ss");
                 } else {
                     //y 轴 0~24 小时
@@ -363,7 +364,7 @@ class ChartsHeatMap extends ChartsBase {
             },
         };
 
-        console.log(series);
+        //console.log(series);
 
         let domProps = Object.assign({}, this.props.domProps, {
         });

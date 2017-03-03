@@ -8,6 +8,6 @@ import $ from 'jquery';
 export const fetchDashboard = (params = { page: 1, per_page: 10,api_key:API_CONFIG.apiKey }) => {
   return {
     type: DASHBOARD,
-    payload: cFetch(format(API_CONFIG.dashboard,G_WEB_PARAMS.dashId), { method: "GET", params: params })
+    payload: cFetch(format(API_CONFIG.dashboard,params.dashboardId), { method: "GET", params: params })
   };
 };

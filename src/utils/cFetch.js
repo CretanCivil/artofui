@@ -113,9 +113,9 @@ export function toQueryString(object) {
 function cFetch(url, options) {
 
   let mergeUrl = API_CONFIG.baseUri + url;
-  if(url.substr(0,4) == "http") {
-     mergeUrl = url;
-   }
+  if (url.substr(0, 4) == "http") {
+    mergeUrl = url;
+  }
   const defaultOptions = {
     method: 'GET'
   };
@@ -136,7 +136,7 @@ opts.headers = {
 };
 
 if (options.ContentType) {
-  opts.headers = Object.assign({}, defaultOptions, {'Content-type' : options.ContentType});
+  opts.headers = Object.assign({}, defaultOptions, { 'Content-type': options.ContentType });
 }
 
 return fetch(mergeUrl, opts)
@@ -148,8 +148,8 @@ return fetch(mergeUrl, opts)
 
 export function retryFetch(url, options) {
   let mergeUrl = API_CONFIG.baseUri + url;
-  if(url.substr(0,4) == "http") {
-      mergeUrl = url;
+  if (url.substr(0, 4) == "http") {
+    mergeUrl = url;
   }
   const defaultOptions = {
     method: 'GET'
@@ -174,7 +174,7 @@ opts.headers = {
 
 if (options.ContentType) {
 
-  opts.headers = Object.assign({}, defaultOptions, {'Content-type' : options.ContentType});
+  opts.headers = Object.assign({}, defaultOptions, { 'Content-type': options.ContentType });
 
 }
 

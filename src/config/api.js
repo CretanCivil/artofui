@@ -4,7 +4,7 @@ if(process.env.NODE_ENV == "test"){
   host = "http://localhost:4000";
 }else{
   host = location.origin;
-  host = "http://api.apmsys.com:8000";
+  //host = "http://api.apmsys.com:8000";
 }
 
 let userHost = "http://user.apmsys.com:8000";

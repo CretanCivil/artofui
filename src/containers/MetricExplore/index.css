@@ -1,0 +1,19 @@
+.metric-no-data {
+    font-size: 40px;
+    font-weight: 300;
+    text-align: left;
+    margin-left: 10px;
+}
+
+.metric-no-data img {
+    font-size: 40px;
+    font-weight: 300;
+    text-align: center;
+}
+
+.metric-no-data .metric-explorer-tip {
+    font-size: 14px;
+    margin-bottom: 22px;
+    margin-left: 55px;
+    line-height: 25px;
+}
