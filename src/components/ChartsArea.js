@@ -73,7 +73,7 @@ class ChartsArea extends ChartsBase {
             let tags = null;
 
             if (metricInfo.tags) {
-                tags = metricInfo.tags.map(function(item) {
+                tags = metricInfo.tags.map(function (item) {
                     return item.replace(":", "=")
                 });
             }
@@ -107,7 +107,7 @@ class ChartsArea extends ChartsBase {
             //ContentType: "application/json",
             //body: JSON.stringify({ queries: queries }),
             body: encodeURIComponent(JSON.stringify({ queries: queries }))
-        }).then(function(response) {
+        }).then(function (response) {
             return response.json();
         }).then((json) => {
             if (!this.mounted) {
@@ -168,6 +168,14 @@ class ChartsArea extends ChartsBase {
             //this.doFetchData(this.props.startDate, this.props.endDate);
             // this.refs.chart.getChart().showLoading();
         }
+
+        if (this.refs.chart) {
+            let ref = ReactDOM.findDOMNode(this.refs.chart);
+            let box = ref.getBoundingClientRect();
+            this.setState({
+                box: box,
+            });
+        }
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -181,8 +189,9 @@ class ChartsArea extends ChartsBase {
     }
 
     showCrossLine(props) {
-        let ref = ReactDOM.findDOMNode(this.refs.chart);
-        let box = ref.getBoundingClientRect();
+        // let ref = ReactDOM.findDOMNode(this.refs.chart);
+        // let box = ref.getBoundingClientRect();
+        let box = this.state.box;
         let x = props.chart.crossLine.pos * (box.width - 20);
         x += 10;
         x = x <= 10 ? 10 : x;
@@ -228,8 +237,9 @@ class ChartsArea extends ChartsBase {
         //console.log(event); 
         let x = event.pageX;//clientX;
         //this.refs.mychart
-        let ref = ReactDOM.findDOMNode(this.refs.chart);
-        let box = ref.getBoundingClientRect();
+        // let ref = ReactDOM.findDOMNode(this.refs.chart);
+        // let box = ref.getBoundingClientRect();
+        let box = this.state.box;
         const body = document.body;
         //  console.log(box);
         x = x - (box.left + body.scrollLeft - body.clientLeft);

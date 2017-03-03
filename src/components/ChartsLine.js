@@ -21,7 +21,7 @@ class ChartsLine extends ChartsBase {
     };
 
     constructor(props) {
-        
+
         super(props);
         this.state = Object.assign(this.state, {
             config: {
@@ -64,7 +64,7 @@ class ChartsLine extends ChartsBase {
             this.doFetchData(nextProps, true);
         }
 
-        
+
 
         if (nextProps.chart.crossLine.pos != this.props.chart.crossLine.pos) {
             this.showCrossLine(nextProps);
@@ -77,7 +77,7 @@ class ChartsLine extends ChartsBase {
 
     getInterval(startDate) {
         return startDate / 60000;
-    } 
+    }
 
     componentDidUpdate() {
         if (this.state.network.isFetching) {
@@ -88,14 +88,14 @@ class ChartsLine extends ChartsBase {
             //this.doFetchData(this.props.startDate, this.props.endDate);
             // this.refs.chart.getChart().showLoading();
         }
-        if(this.refs.chart) {
-let ref = ReactDOM.findDOMNode(this.refs.chart);
-        let box = ref.getBoundingClientRect();
-        this.setState({
-            box: box,
-        });
+        if (this.refs.chart) {
+            let ref = ReactDOM.findDOMNode(this.refs.chart);
+            let box = ref.getBoundingClientRect();
+            this.setState({
+                box: box,
+            });
         }
-        
+
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -122,12 +122,12 @@ let ref = ReactDOM.findDOMNode(this.refs.chart);
 
 
     showCrossLine(props) {
-       // return;
+        // return;
         if (!this.refs.chart || this.state.network.isFetching || this.state.network.data.length == 0)
             return;
-       // let ref = ReactDOM.findDOMNode(this.refs.chart);
-      //  let box = ref.getBoundingClientRect();
-      let box = this.state.box;
+        // let ref = ReactDOM.findDOMNode(this.refs.chart);
+        // let box = ref.getBoundingClientRect();
+        let box = this.state.box;
         let x = props.chart.crossLine.pos * (box.width - 20);
         x += 10;
         x = x <= 10 ? 10 : x;
@@ -170,13 +170,13 @@ let ref = ReactDOM.findDOMNode(this.refs.chart);
     }
 
     handleMouseMove(event) { /** 处理鼠标的移动事件，移动鼠标的同时移动挡板 */
-        
+
         let x = event.pageX;//clientX;
         //this.refs.mychart
         //let ref = ReactDOM.findDOMNode(this.refs.chart);
-        
-       // let box = ref.getBoundingClientRect();
-       let box = this.state.box;
+
+        // let box = ref.getBoundingClientRect();
+        let box = this.state.box;
         const body = document.body;
 
 
@@ -276,13 +276,13 @@ let ref = ReactDOM.findDOMNode(this.refs.chart);
         eventMouseMove = this.handleMouseMove.bind(this);
         eventSelection = this.handleChartSelection.bind(this);
 
- 
+
         data = data[0].series;
         for (let key in data) {
             let serie = {};
             serie.data = [];
             // console.log(this.props.metrics, key, this.props.metrics[key]);
-           // console.log("dddddd",data[key],this.props.metrics[data[key].queryId]);
+            // console.log("dddddd",data[key],this.props.metrics[data[key].queryId]);
             serie.type = this.props.metrics[data[key].queryId].type;//let metric = this.props.metrics[0];
             serie.tags = this.buildSerieName(data[key].tags);
             serie.name = data[key].displayName;// + ' - ' + this.buildSerieName(data[key].tags);
@@ -454,8 +454,8 @@ let ref = ReactDOM.findDOMNode(this.refs.chart);
 
                                 //   console.log(points);
                                 selectPoints(points);
-                                 
-                                
+
+
                             }
                         }
                     },
@@ -494,7 +494,7 @@ let ref = ReactDOM.findDOMNode(this.refs.chart);
 
     render() {
 
-       // console.log("ChartsLine render");
+        // console.log("ChartsLine render");
 
         let childContent = null;
         if (!this.props.metrics || this.state.network.isFetching || this.state.network.error) {
@@ -540,7 +540,7 @@ ChartsLine.childContextTypes = {
 */
 // Which part of the Redux global state does our component want to receive as props?
 function mapStateToProps(state) {
-    const { chart,params } = state;
+    const { chart, params } = state;
     return {
         chart,
         params,
