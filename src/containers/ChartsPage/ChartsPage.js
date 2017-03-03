@@ -400,6 +400,8 @@ export class ChartsPage extends React.Component {
     }
 
     render() {
+
+       // console.log("ChartsPage render");
         //scope=host%3Awan-177
         //console.log(this.props.params);
         //console.log(this.props.location.query);

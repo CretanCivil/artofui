@@ -88,6 +88,14 @@ class ChartsLine extends ChartsBase {
             //this.doFetchData(this.props.startDate, this.props.endDate);
             // this.refs.chart.getChart().showLoading();
         }
+        if(this.refs.chart) {
+let ref = ReactDOM.findDOMNode(this.refs.chart);
+        let box = ref.getBoundingClientRect();
+        this.setState({
+            box: box,
+        });
+        }
+        
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -114,10 +122,12 @@ class ChartsLine extends ChartsBase {
 
 
     showCrossLine(props) {
+       // return;
         if (!this.refs.chart || this.state.network.isFetching || this.state.network.data.length == 0)
             return;
-        let ref = ReactDOM.findDOMNode(this.refs.chart);
-        let box = ref.getBoundingClientRect();
+       // let ref = ReactDOM.findDOMNode(this.refs.chart);
+      //  let box = ref.getBoundingClientRect();
+      let box = this.state.box;
         let x = props.chart.crossLine.pos * (box.width - 20);
         x += 10;
         x = x <= 10 ? 10 : x;
@@ -160,12 +170,16 @@ class ChartsLine extends ChartsBase {
     }
 
     handleMouseMove(event) { /** 处理鼠标的移动事件，移动鼠标的同时移动挡板 */
-        //console.log(event); 
+        
         let x = event.pageX;//clientX;
         //this.refs.mychart
-        let ref = ReactDOM.findDOMNode(this.refs.chart);
-        let box = ref.getBoundingClientRect();
+        //let ref = ReactDOM.findDOMNode(this.refs.chart);
+        
+       // let box = ref.getBoundingClientRect();
+       let box = this.state.box;
         const body = document.body;
+
+
         //  console.log(box);
         x = x - (box.left + body.scrollLeft - body.clientLeft);
         //x += 10;
@@ -231,6 +245,7 @@ class ChartsLine extends ChartsBase {
             },
             // pointFormat: '{series.name}<br/><b>{series.aggregator}:{point.y:.2f}</b> <br/>',
             formatter: function () {
+                //return "ddd";
                 var s = this.series.name + '<br/>';
                 let endTime = moment(parseInt(this.point.x));
                 let beginTime = moment(parseInt(this.point.x)).subtract(internal, "minutes");
@@ -478,6 +493,8 @@ class ChartsLine extends ChartsBase {
     }
 
     render() {
+
+       // console.log("ChartsLine render");
 
         let childContent = null;
         if (!this.props.metrics || this.state.network.isFetching || this.state.network.error) {
