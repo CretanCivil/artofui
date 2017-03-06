@@ -70,7 +70,8 @@ class ChartsTable extends ChartsBase {
                 q += "{" + tags + "}";
             }
             if (!metricInfo.tags) {
-                q += "{*}";
+                //q += "{*}";
+                q += "{}";
             }
             if (metricInfo.by) {
 

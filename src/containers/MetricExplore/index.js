@@ -68,6 +68,7 @@ class MetricExplorePage extends React.Component {
             metrics: [],
             tagKeys: new Set(),
             tagKey: null,
+            maxNum: 10,
 
             readonly: true,
             selectedRowKeys: [],
@@ -204,6 +205,15 @@ class MetricExplorePage extends React.Component {
         });
     }
 
+    //maxNum
+
+    menuClick(item) {
+
+        this.setState({
+            maxNum: item.key,
+        });
+
+    }
 
     render() {
         //scope=host%3Awan-177
@@ -233,21 +243,23 @@ class MetricExplorePage extends React.Component {
 
 
         const menu = (
-            <Menu>
-                <Menu.Item>
+            <Menu onClick={this.menuClick.bind(this)}>
+                <Menu.Item key="10">
                     10
                 </Menu.Item>
-                <Menu.Item>
+                <Menu.Item key="20">
                     20
                 </Menu.Item>
-                <Menu.Item>
+                <Menu.Item key="30">
                     30
                 </Menu.Item>
             </Menu>
         );
 
         let charts = [];
+        let numChats = 0;
         for (let metric of this.state.metrics) {
+            
             let metrics = [];
             if (this.state.tagKey && this.MapAllMetrics.get(metric).has(this.state.tagKey)) {
                 // console.log("sssss", this.MapAllMetrics,this.MapAllMetrics.get(metric).get(this.state.tagKey));
@@ -289,8 +301,14 @@ class MetricExplorePage extends React.Component {
             let card = <Col key={this.state.metrics.indexOf(metric)} sm={12} style={{ height: '320px', textAlign: 'left', marginBottom: '10px', }}><ChartsCard chart={chart}
 
                 readonly={true}></ChartsCard></Col>;
-
             charts.push(card);
+
+            numChats++;
+            if(numChats >= this.state.maxNum) {
+                break;
+            }
+
+            
         }
 
 
@@ -337,7 +355,7 @@ class MetricExplorePage extends React.Component {
                                     defaultValue={this.state.metrics ? this.state.metrics : []}
                                     value={this.state.metrics ? this.state.metrics : []}
                                     showSearch
-                                    >
+                                >
                                     {optionMetrics}
                                 </Select>
                             </FormItem>
@@ -347,7 +365,7 @@ class MetricExplorePage extends React.Component {
                                     onChange={(val) => this.changeTagKey(val)}
                                     defaultValue={this.state.tagKey}
                                     value={this.state.tagKey}
-                                    >
+                                >
                                     {optionKeys}
                                 </Select>
                             </FormItem>
@@ -356,18 +374,18 @@ class MetricExplorePage extends React.Component {
                                 <Input placeholder="请输入前缀..." />
                             </FormItem>
 
-                            <div className="ant-form-item-label"><div style={{float: 'left'}}>选择图表数量最大值</div><Dropdown overlay={menu} >
-                                <div href="#" style={{float: 'left',padding: '0 5px'}}>
-                                    10 <Icon type="down" />
+                            <div className="ant-form-item-label"><div style={{ float: 'left' }}>选择图表数量最大值</div><Dropdown overlay={menu} >
+                                <div href="#" style={{ float: 'left', padding: '0 5px' }}>
+                                    {this.state.maxNum} <Icon type="down" />
                                 </div>
-                                
+
                             </Dropdown></div>
 
                             <FormItem label="保存当前选择" >
                                 <Row type="flex" justify="start">
-                                    <Col span={4} >{this.state.metrics.length == 0 ? <Button disabled>新建仪表盘</Button> : <Button>新建仪表盘</Button>}</Col>
-                                    <Col span={4} style={{ marginLeft: '20px' }}>{this.state.metrics.length == 0 ? <Button disabled>已有仪表盘</Button> : <Button>已有仪表盘</Button>}</Col>
-                                    <Col span={4} style={{ marginLeft: '20px' }}>{this.state.metrics.length == 0 ? <Button disabled>保存为仪表盘</Button> : <Button>保存为仪表盘</Button>}</Col>
+                                    <Col   >{this.state.metrics.length == 0 ? <Button disabled>新建仪表盘</Button> : <Button>新建仪表盘</Button>}</Col>
+                                    <Col  style={{ marginLeft: '5px' }}>{this.state.metrics.length == 0 ? <Button disabled>已有仪表盘</Button> : <Button>已有仪表盘</Button>}</Col>
+                                    <Col   style={{ marginLeft: '5px' }}>{this.state.metrics.length == 0 ? <Button disabled>保存为仪表盘</Button> : <Button>保存为仪表盘</Button>}</Col>
                                 </Row>
 
 

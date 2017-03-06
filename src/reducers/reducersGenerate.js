@@ -1,4 +1,6 @@
 import _ from 'lodash';
+import 'babel-polyfill';
+
 
 export default function reducersGenerate(actionType, initialState, optionsHandler){
   if(!_.isArray(actionType)){

@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "antd": "2.6.1",
+    "babel-polyfill": "6.23.0",
     "dateformat": "1.0.12",
     "es6-promise": "3.2.1",
     "fetch-retry": "1.0.3",

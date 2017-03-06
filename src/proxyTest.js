@@ -16,7 +16,7 @@ proxyDD.listen(10001);
 
 var proxy70 = httpProxy.createProxyServer({
   target: {
-    host: 'localhost',
+    host: 'api.apmsys.com',
     port: 8000
     //host: '172.29.228.234',
     //port: 8080
