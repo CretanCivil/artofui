@@ -1,3 +1,24 @@
+.app-side {
+  position: absolute;
+  top:0;
+  bottom: 0;
+  left: 0;
+  width: 200px;
+  background: #404040;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.app-main {
+  position: absolute;
+  top:0;
+  bottom: 0;
+  left: 200px;
+  right: 0;
+  padding: 20px;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
 
 .dropdown-menu {
     position: absolute;
@@ -50,7 +71,7 @@
 }
 
 .hello{
-  color: 'red';
+  color: red;
 }
 .ant-layout-aside {
   position: relative;
@@ -180,7 +201,7 @@
 .chart .ant-card-body {
   padding: 0;
   height:100%;
-  padding-bottom:48px; 
+  padding-bottom:48px;
 }
 
 .chart .ant-card-head {
@@ -213,7 +234,7 @@ body{
     color: #fff;
     position: fixed;
     bottom: 0;
-    left: 0px;
+    left: 200px;
     right: 0;
     height: 120px;
     padding: 0 30px 20px;

@@ -10,6 +10,8 @@ import './diyselect.css';
 import './App.scss';
 import { Menu, Breadcrumb, Icon, } from 'antd';
 
+import AppSide from '../../components/AppSide/AppSide';
+
 //import ReactHighcharts from 'react-highcharts';
 //import highchartsTreemap from 'highcharts-treemap';
 
@@ -40,13 +42,13 @@ class App extends Component {
 
   renderAuthenticatedPage() {
     return (
-      <div className="ant-layout-main" >
-        <div className="ant-layout-container">
-          <div className="ant-layout-content" style={{padding:'15px',}}>
-            <div>
-              {this.props.children}
-            </div>
-          </div>
+      <div>
+        <div className="app-side">
+          <AppSide />
+        </div>
+
+        <div className="app-main" >
+          {this.props.children}
         </div>
       </div>
     );
@@ -62,7 +64,7 @@ class App extends Component {
     );
   }
 }
-//  {this.renderAuthenticatedPage()} 
+//  {this.renderAuthenticatedPage()}
 
 function mapStateToProps(state) {
   const { routing, auth: { isAuthenticated, }, user, dashboard } = state;
