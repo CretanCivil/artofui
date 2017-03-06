@@ -17,3 +17,12 @@
     margin-left: 55px;
     line-height: 25px;
 }
+
+.metric-layout{
+    padding-left: 10px;
+}
+
+.metric-layout .ant-card{
+    margin-left: 10px;
+    margin-bottom: 10px;
+}

@@ -27,7 +27,7 @@ class ChartsColumn extends ChartsBase {
         if (nextProps.chart.range != this.props.chart.range
             || this.props.metrics != nextProps.metrics
             || this.props.cardChart != nextProps.cardChart) {
-            this.doFetchData(nextProps,true);
+            this.doFetchData(nextProps, true);
         }
 
 
@@ -42,8 +42,8 @@ class ChartsColumn extends ChartsBase {
     }
 
 
-    
-    doFetchDataInner(startDate,endDate,chart) {
+
+    doFetchDataInner(startDate, endDate, chart) {
         let metrics = chart.metrics;
 
         this.setState({
@@ -72,12 +72,12 @@ class ChartsColumn extends ChartsBase {
                 start: endDate - startDate,
                 end: endDate,
                 interval: interval,
-                q:chart.meta.events_query,
+                q: chart.meta.events_query,
             }
         }).then(function (response) {
             return response.json();
         }).then((json) => {
-            if(!this.mounted) {
+            if (!this.mounted) {
                 return;
             }
             this.setState({
@@ -90,7 +90,7 @@ class ChartsColumn extends ChartsBase {
             });
             console.log("json", json);
         }).catch((error) => {
-            if(!this.mounted) {
+            if (!this.mounted) {
                 return;
             }
             this.setState({
@@ -135,6 +135,14 @@ class ChartsColumn extends ChartsBase {
             //this.doFetchData(this.props.startDate, this.props.endDate);
             // this.refs.chart.getChart().showLoading();
         }
+
+        if (this.refs.chart) {
+            let ref = ReactDOM.findDOMNode(this.refs.chart);
+            let box = ref.getBoundingClientRect();
+            this.setState({
+                box: box,
+            });
+        }
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -150,10 +158,9 @@ class ChartsColumn extends ChartsBase {
     showCrossLine(props) {
         if (!this.refs.chart || this.state.network.isFetching || this.state.network.data.length == 0)
             return;
-        let ref = ReactDOM.findDOMNode(this.refs.chart);
-        if(!ref)
-            return;
-        let box = ref.getBoundingClientRect();
+        // let ref = ReactDOM.findDOMNode(this.refs.chart);
+        // let box = ref.getBoundingClientRect();
+        let box = this.state.box;
         let x = props.chart.crossLine.pos * (box.width - 20);
         x += 10;
         x = x <= 10 ? 10 : x;
@@ -200,8 +207,9 @@ class ChartsColumn extends ChartsBase {
         //console.log(event); 
         let x = event.pageX;//clientX;
         //this.refs.mychart
-        let ref = ReactDOM.findDOMNode(this.refs.chart);
-        let box = ref.getBoundingClientRect();
+        // let ref = ReactDOM.findDOMNode(this.refs.chart);
+        // let box = ref.getBoundingClientRect();
+        let box = this.state.box;
         const body = document.body;
         //  console.log(box);
         x = x - (box.left + body.scrollLeft - body.clientLeft);
@@ -317,7 +325,7 @@ class ChartsColumn extends ChartsBase {
                     tips += '<b><span color=' + this.points[0].color + '>alert:</span>' + this.points[0].y + '</b><br/>';
                 }
 
-                if(!this.points[1]) {
+                if (!this.points[1]) {
                     console.log(this);
                 }
 
@@ -326,7 +334,7 @@ class ChartsColumn extends ChartsBase {
                 }
 
                 if (this.points[2].y > 0) {
-                   // console.log(this);
+                    // console.log(this);
                     tips += '<b>info:' + this.points[2].y + '</b><br/>';
                 }
 

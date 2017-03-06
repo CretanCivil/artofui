@@ -155,7 +155,7 @@ class MetricExplorePage extends React.Component {
         console.log(keys);
 
         let tagKey = keys.has(this.state.tagKey) ? this.state.tagKey : null;
-        
+
 
         this.setState({
             metrics: val,
@@ -210,7 +210,7 @@ class MetricExplorePage extends React.Component {
         //console.log(this.props.params);
         //console.log(this.props.location.query);
 
-        console.log(this.props.allMetrics);
+        // console.log(this.props.allMetrics);
 
         let optionMetrics = [];
 
@@ -235,16 +235,63 @@ class MetricExplorePage extends React.Component {
         const menu = (
             <Menu>
                 <Menu.Item>
-                    <a target="_blank" rel="noopener noreferrer" href="http://www.alipay.com/">10</a>
+                    10
                 </Menu.Item>
                 <Menu.Item>
-                    <a target="_blank" rel="noopener noreferrer" href="http://www.taobao.com/">20</a>
+                    20
                 </Menu.Item>
                 <Menu.Item>
-                    <a target="_blank" rel="noopener noreferrer" href="http://www.tmall.com/">30</a>
+                    30
                 </Menu.Item>
             </Menu>
         );
+
+        let charts = [];
+        for (let metric of this.state.metrics) {
+            let metrics = [];
+            if (this.state.tagKey && this.MapAllMetrics.get(metric).has(this.state.tagKey)) {
+                // console.log("sssss", this.MapAllMetrics,this.MapAllMetrics.get(metric).get(this.state.tagKey));
+
+                for (let tval of this.MapAllMetrics.get(metric).get(this.state.tagKey)) {
+
+
+                    metrics.push({
+                        metric: metric,
+                        aggregator: "avg",
+                        type: "line",
+                        rate: false,
+                        by: null,
+                        tags: [this.state.tagKey + ":" + tval],
+                        id: 0
+                    });
+                }
+            } else {
+                metrics.push({
+                    metric: metric,
+                    aggregator: "avg",
+                    type: "line",
+                    rate: false,
+                    by: null,
+                    tags: null,
+                    id: 0
+                });
+            }
+
+
+            let chart = {
+                dashboard_id: 0,
+                id: 0,
+                meta: { modelType: "normal" },
+                metrics: metrics,
+                name: metric,
+                type: "timeseries"
+            };
+            let card = <Col key={this.state.metrics.indexOf(metric)} sm={12} style={{ height: '320px', textAlign: 'left', marginBottom: '10px', }}><ChartsCard chart={chart}
+
+                readonly={true}></ChartsCard></Col>;
+
+            charts.push(card);
+        }
 
 
 
@@ -297,10 +344,10 @@ class MetricExplorePage extends React.Component {
 
                             <FormItem label="按标签key分组" hasFeedback>
                                 <Select style={{ width: '100%' }} placeholder="请选择标签key"
-                                onChange={(val) => this.changeTagKey(val)}
-                        defaultValue={this.state.tagKey}
-                        value={this.state.tagKey}
-                        >
+                                    onChange={(val) => this.changeTagKey(val)}
+                                    defaultValue={this.state.tagKey}
+                                    value={this.state.tagKey}
+                                    >
                                     {optionKeys}
                                 </Select>
                             </FormItem>
@@ -309,13 +356,12 @@ class MetricExplorePage extends React.Component {
                                 <Input placeholder="请输入前缀..." />
                             </FormItem>
 
-                            <FormItem label="选择图表数量最大值" >
-                                <Dropdown overlay={menu} >
-                                    <a className="ant-dropdown-link" href="#">
-                                        10 <Icon type="down" />
-                                    </a>
-                                </Dropdown>
-                            </FormItem>
+                            <div className="ant-form-item-label"><div style={{float: 'left'}}>选择图表数量最大值</div><Dropdown overlay={menu} >
+                                <div href="#" style={{float: 'left',padding: '0 5px'}}>
+                                    10 <Icon type="down" />
+                                </div>
+                                
+                            </Dropdown></div>
 
                             <FormItem label="保存当前选择" >
                                 <Row type="flex" justify="start">
@@ -334,8 +380,13 @@ class MetricExplorePage extends React.Component {
                     </Col>
 
                     <Col lg={16} style={{ textAlign: 'right' }}>
+                        {this.state.metrics.length == 0 ? <NoPreviewForMetricsExplorer /> : <div className="metric-layout" >
+                            <Row >
+                                {charts}
+                            </Row>
 
-                        <NoPreviewForMetricsExplorer />
+                        </div>}
+
                     </Col>
 
                 </Row>
