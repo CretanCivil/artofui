@@ -35,7 +35,7 @@ const kongProxy = proxy('/p1', {
   ws: true
 });
 
-const javaProxy = proxy('/apmsys', {
+const javaProxy = proxy('/apmsys/v2/batch_query', {
   target: 'http://user.apmsys.com:8000',
   changeOrigin: true,
   ws: true
