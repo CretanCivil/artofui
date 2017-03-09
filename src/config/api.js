@@ -17,11 +17,18 @@ export const API_CONFIG = {
   userHost: userHost,
   baseUri: baseUri,
   auth: '/pages/v2/login',
+
+  dashboard: {
+    delete: '/p1/dashboards/{}/delete.json',
+    update: '/p1/dashboards/{}/update.json',
+    clone: '/p1/dashboards/{}/clone.json',
+    charts: '/p1/dashboards/{}/charts.json',
+  },
   
-  dashboard: '/p1/dashboards/{}/charts.json',
+  //dashboard: '/p1/dashboards/{}/charts.json',
   show: '/p1/dashboards/{}/show.json',
   all_metrics: '/p1/metrics.json',
-  updateLayout: '/p1/dashboards/{}/update.json',
+  //updateLayout: '/p1/dashboards/{}/update.json',
   normal_model: '/p1/metric_types/normal_mode_list',
   metric: userHost+'/apmsys/v2/batch_query',
   

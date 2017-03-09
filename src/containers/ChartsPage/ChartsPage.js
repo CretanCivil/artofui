@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
-
+import { Link } from 'react-router';
 //import CustomTable from './../../components/CustomTable';
 //import StringFilterDropdown from './../../components/StringFilterDropdown';
 //import DateTimeFilterDropdown from './../../components/DateTimeFilterDropdown';
@@ -17,7 +17,7 @@ import { setDraging } from './../../actions/app';
 let WidthProvider = require('react-grid-layout').WidthProvider;
 let ReactGridLayout = require('react-grid-layout');
 ReactGridLayout = WidthProvider(ReactGridLayout);
-import { Button, Row, Col, Select, Form, Icon, Spin, Dropdown, Menu, notification } from 'antd';
+import { Button, Row, Col, Select, Form, Icon, Spin, Dropdown, Menu, notification, Modal, Input } from 'antd';
 let DateRangerPicker = require('react-bootstrap-daterangepicker');
 let moment = require('moment');
 import { retryFetch } from '../../utils/cFetch'
@@ -100,6 +100,10 @@ export class ChartsPage extends React.Component {
             layout: [],
             scope: null,
             dashboardShow: null,
+            modalName: {
+                flag: -1,//null 1 clone 2 rename
+                name: null,
+            },
         };
 
         this.props.setChartRange({
@@ -168,14 +172,14 @@ export class ChartsPage extends React.Component {
                 });
                 console.log("layoutlayoutjson", json);
             }
-            this.props.fetchDashboard({api_key:API_CONFIG.apiKey,dashboardId:this.props.params.dashboardId  });
+            this.props.fetchDashboard({ api_key: API_CONFIG.apiKey, dashboardId: this.props.params.dashboardId });
             this.props.fetchTags();
             this.props.fetchAllMetrics();
         });
     }
 
     updateLyaouts(layout) {
-        retryFetch(format(API_CONFIG.updateLayout, this.props.params.dashboardId), {
+        retryFetch(format(API_CONFIG.dashboard.update, this.props.params.dashboardId), {
             method: "POST",
             retries: 3,
             retryDelay: 10000,
@@ -214,6 +218,63 @@ export class ChartsPage extends React.Component {
         });
     }
 
+
+    updateName(name) {
+        retryFetch(format(API_CONFIG.dashboard.update, this.props.params.dashboardId), {
+            method: "POST",
+            retries: 3,
+            retryDelay: 10000,
+            params: {
+                api_key: API_CONFIG.apiKey
+            },
+            body: 'dashboardName=' + encodeURIComponent(name)
+        }).then(function (response) {
+            return response.json();
+        }).then((json) => {
+            let dash = Object.assign({},this.state.dashboardShow);
+            dash.name = this.state.modalName.name;
+            this.setState({
+                dashboardShow: dash,
+            });
+            this.setModalNameFlag(-1);
+
+        });
+    }
+
+    deleteDash() {
+        retryFetch(format(API_CONFIG.dashboard.delete, this.props.params.dashboardId), {
+            method: "POST",
+            retries: 3,
+            retryDelay: 10000,
+            params: {
+                api_key: API_CONFIG.apiKey
+            },
+            body: ''
+        }).then(function (response) {
+            return response.json();
+        }).then((json) => {
+
+            window.location.href = '/apmsys/dashboardList'
+        });
+    }
+
+    cloneDash(name) {
+        retryFetch(format(API_CONFIG.dashboard.clone, this.props.params.dashboardId), {
+            method: "POST",
+            retries: 3,
+            retryDelay: 10000,
+            params: {
+                api_key: API_CONFIG.apiKey
+            },
+            body: 'dashboardName=' + encodeURIComponent(name) + '&dashboardDesc=%E4%BB%AA%E8%A1%A8%E7%9B%98%E6%8F%8F%E8%BF%B0'
+        }).then(function (response) {
+            return response.json();
+        }).then((json) => {
+            
+            window.location.href = '/apmsys/dashboards/'+json.result.id
+        });
+    }
+
     //https://cloud.oneapm.com/v1/dashboards/11997/update.json
     /*
     charts:[["1335363",1,0,3,2],["1335324",4,0,4,2],["1334614",8,0,4,2],["1340727",0,2,4,2],["1335422",4,2,4,2],["1337562",8,2,4,2],["1334605",0,4,4,2],["1353676",4,4,4,2],["1335345",8,4,4,2],["1333992",3,6,5,3],["1335327",8,6,4,2],["1344412",8,8,4,2],["1340726",0,9,4,2],["1353280",0,11,4,2]]
@@ -238,45 +299,47 @@ export class ChartsPage extends React.Component {
             value,
         });
     }
-/*
-    handleTableChange(pagination, filters = {}, sorter = {}) {
-        const pageParams = { page: pagination.current, per_page: pagination.pageSize };
-        const filtersField = {};
-        if (Object.keys(filters).length !== 0) {
-            // enum filters
-            [{
-                key: "roles", filterParams: "roles_in"
-            }].map(item => {
-                if (filters[item.key]) {
-                    filtersField[`q[${item.filterParams}]`] = filters[item.key];
-                }
-            });
 
-            // date range filter
-            ['created_at'].map(item => {
-                if (filters[item]) {
-                    filtersField[`q[${item}_gteq]`] = filters[item][0];
-                    filtersField[`q[${item}_lteq]`] = filters[item][1];
-                }
-            });
 
-            // string filter
-            ['name'].map(item => {
-                if (filters[item]) {
-                    filtersField[`q[${item}_cont]`] = filters[item];
-                }
-            });
+    /*
+        handleTableChange(pagination, filters = {}, sorter = {}) {
+            const pageParams = { page: pagination.current, per_page: pagination.pageSize };
+            const filtersField = {};
+            if (Object.keys(filters).length !== 0) {
+                // enum filters
+                [{
+                    key: "roles", filterParams: "roles_in"
+                }].map(item => {
+                    if (filters[item.key]) {
+                        filtersField[`q[${item.filterParams}]`] = filters[item.key];
+                    }
+                });
+    
+                // date range filter
+                ['created_at'].map(item => {
+                    if (filters[item]) {
+                        filtersField[`q[${item}_gteq]`] = filters[item][0];
+                        filtersField[`q[${item}_lteq]`] = filters[item][1];
+                    }
+                });
+    
+                // string filter
+                ['name'].map(item => {
+                    if (filters[item]) {
+                        filtersField[`q[${item}_cont]`] = filters[item];
+                    }
+                });
+            }
+            const sortParams = {};
+            if (Object.keys(sorter).length !== 0) {
+                const sortMethod = sorter.order === "descend" ? "desc" : "asc";
+                sortParams['sorts'] = `${sorter.columnKey} ${sortMethod}`;
+            }
+    
+            const params = Object.assign({}, pageParams, filtersField, sortParams);
+            this.props.fetchDashboard(params);
         }
-        const sortParams = {};
-        if (Object.keys(sorter).length !== 0) {
-            const sortMethod = sorter.order === "descend" ? "desc" : "asc";
-            sortParams['sorts'] = `${sorter.columnKey} ${sortMethod}`;
-        }
-
-        const params = Object.assign({}, pageParams, filtersField, sortParams);
-        this.props.fetchDashboard(params);
-    }
-*/
+    */
     onSelectChange(selectedRowKeys) {
         this.setState({ selectedRowKeys });
     }
@@ -385,9 +448,39 @@ export class ChartsPage extends React.Component {
 
     }
 
+    toDeleteDash() {
+        const confirm = Modal.confirm;
+
+        confirm({
+            title: '确认永久删除仪表盘 ' + this.state.dashboardShow.name,
+            content: ` 删除后无法找回`,
+            onOk: this.deleteDash.bind(this),
+            onCancel() { },
+        });
+    }
+
+    setModalNameFlag(flag) {
+        this.setState({
+            modalName: {
+                flag: flag,
+            }
+        });
+    }
+
 
     menuClick(item) {
         // message.info('Click on menu item.');
+        switch (item.key) {
+            case 'delete':
+                this.toDeleteDash();
+                return;
+            case 'editName':
+                this.setModalNameFlag(2);
+                return;
+            case 'copy':
+                this.setModalNameFlag(1);
+                return;
+        }
         console.log('click', item);
         notification.open({
             message: '还要等等',
@@ -399,9 +492,29 @@ export class ChartsPage extends React.Component {
         return option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0;
     }
 
+    onChangeTitle(e) {
+        let flag = this.state.modalName.flag;
+        this.setState({
+            modalName: {
+                flag: flag,
+                name: e.target.value,
+            },
+        });
+    }
+
+    doModalNameSubmit() {
+        switch(this.state.modalName.flag) {
+            case 1:
+                return this.cloneDash(this.state.modalName.name);
+            case 2:
+                return this.updateName(this.state.modalName.name);    
+        }
+        
+    }
+
     render() {
 
-       // console.log("ChartsPage render");
+        // console.log("ChartsPage render");
         //scope=host%3Awan-177
         //console.log(this.props.params);
         //console.log(this.props.location.query);
@@ -435,7 +548,7 @@ export class ChartsPage extends React.Component {
                 expand={this.showChartDialog.bind(this)}
                 setting={this.showDialog.bind(this)}
                 readonly={this.state.readonly}
-                /></div>;
+            /></div>;
             charts.push(col);
         }
 
@@ -474,17 +587,20 @@ export class ChartsPage extends React.Component {
             timePickerSeconds: React.PropTypes.bool,
              */
 
+        /*
+        <Menu.Item key="edit">编辑参数</Menu.Item>
+         */
         const menu = this.state.readonly ? <Menu onClick={this.menuClick.bind(this)}>
             <Menu.Item key="copy">创建副本</Menu.Item>
         </Menu> : <Menu onClick={this.menuClick.bind(this)}>
 
-                <Menu.Item key="edit">编辑参数</Menu.Item>
+
                 <Menu.Item key="copy">创建副本</Menu.Item>
                 <Menu.Item key="editName">修改名称</Menu.Item>
                 <Menu.Item key="delete">删除仪表盘</Menu.Item>
             </Menu>
 
-
+        //console.log(this.state.dashboardShow)
         return (
             <div style={{}}>
 
@@ -493,7 +609,7 @@ export class ChartsPage extends React.Component {
                         <Col>
                             <h1>{this.state.dashboardShow ? this.state.dashboardShow.name : ""} <small> {this.state.dashboardShow ? 'By ' + this.state.dashboardShow.owner.name : ""} </small></h1>
                         </Col>
-                        <Col span={7} style={{ marginLeft: '4%' }}>
+                        {this.state.dashboardShow ? <Col span={7} style={{ marginLeft: '4%' }}>
                             <Row type="flex" justify="end">
                                 <Col style={{ textAlign: 'right' }} >
                                     <DateRangerPicker startDate={this.state.startDate}
@@ -519,13 +635,13 @@ export class ChartsPage extends React.Component {
 
                                 </Col>
                             </Row>
-                        </Col>
+                        </Col> : null}
                     </Row>
 
                 </div>
 
                 <Row key={"4"} style={{ marginLeft: '10px', marginRight: '10px', marginBottom: '10px' }}>
-                    <Col span={8}>
+                    {this.state.dashboardShow ? <Col span={8}>
                         <Form inline >
                             <FormItem>
                                 <Select value={this.state.scope} onChange={this.onChangeScope.bind(this)} style={{ width: 400 }}
@@ -534,12 +650,12 @@ export class ChartsPage extends React.Component {
                                     optionFilterProp="children"
                                     filterOption={this.searchScope.bind(this)}
 
-                                    >
+                                >
                                     {options}
                                 </Select>
                             </FormItem>
                         </Form>
-                    </Col>
+                    </Col> : null}
 
                     <Col span={8} offset={8} style={{ textAlign: 'right' }}>
 
@@ -588,7 +704,19 @@ export class ChartsPage extends React.Component {
 
                 <InspectorToggle />
 
-
+                {this.state.modalName.flag > 0 ? <Modal
+                    title={this.state.modalName.flag == 2 ? "重命名仪表盘" : "创建仪表盘副本"}
+                    wrapClassName="vertical-center-modal"
+                    visible={true}
+                    onOk={() => this.doModalNameSubmit()}
+                    onCancel={() => this.setModalNameFlag(-1)}
+                >
+                    <Form onSubmit={this.handleSubmit}>
+                        <FormItem label="请输入仪表盘名称" >
+                            <Input placeholder={this.state.dashboardShow.name} onChange={this.onChangeTitle.bind(this)} defaultValue={this.state.modalName.name} />
+                        </FormItem>
+                    </Form>
+                </Modal> : null}
 
             </div>
         );
