@@ -1,90 +1,132 @@
-.aside {
+$baseColor: rgba(225,235,245,.6);
+$hoverColor: rgba(255, 255, 255, .065);
+
+.app-side {
   padding-top: 56px;
   padding-bottom: 10px;
   min-height: 100%;
   background-color: #101823;
-  color: rgba(225,235,245,.87);
-}
 
-.aside dt {
-  padding: 0 16px;
-  line-height: 32px;
-  opacity: .4;
-}
+  .ant-menu {
+    color: $baseColor;
+    background: inherit;
+    border-right: none;
 
-.aside dd {
-  padding: 2px 8px;
-  line-height: 2;
-  font-size: 14px;
-}
+    //图标
+    i {
+      position: relative;
+      display: inline-block;
+      width: 28px;
+      margin-right: 18px;
+      color: #fff !important;
+      text-align: center;
+    }
+    //针对ionicons调整
+    i[class*=ion-], i[class*=" ion-"] {
+      font-size: 18px;
+      vertical-align: top;
+    }
 
-.aside dd>a {
-  position: relative;
-  display: inline-block;
-  width: 100%;
-  padding: 0 12px;
-  color: inherit;
-  border-radius: 500px;
-  text-decoration: none;
-}
+    //重置
+    a, a:active, a:visited, .ant-menu-item:hover, .ant-menu-item-active, .ant-menu-submenu-active, .ant-menu-submenu-title:hover {
+      color: inherit;
+      text-decoration: none;
+      -webkit-transition: none;
+      transition: none;
+    }
 
-.aside dd>a:hover {
-  background-color: rgba(255, 255, 255, .065);
-}
+    //文本
+    b {
+      position: relative;
+      font-weight: normal;
+    }
 
-.aside dd>a:before {
-  content: '';
-  position: absolute;
-  left: 1rem;
-  width: 2rem;
-  height: 100%;
-  border: 14px solid;
-  border-color: inherit;
-  border-radius: 500px;
-  -webkit-transition: width .4s ease 0s;
-  transition: width .4s ease 0s;
-}
+    //分组标题
+    .ant-menu-item-group-title {
+      color: $baseColor;
+      opacity: .6;
+    }
 
-.aside dd>a.active:before {
-  width: 100%;
-  left: 0;
-}
+    //默认
+    .ant-menu-item,
+    .ant-menu-submenu {
+      margin: 5px 10px;
+    }
 
-.aside a>i {
-  position: absolute;
-  z-index: 0;
-  width: 28px;
-  height: 28px;
-  padding-left: 7px;
-}
+    .ant-menu-item,
+    .ant-menu-submenu .ant-menu-submenu-title {
+      height: 28px;
+      padding-left: 10px !important;
+      line-height: 28px;
+      font-size: 14px;
+      border-right-width: 0;
+      border-radius: 500px;
+    }
 
-.aside a>span {
-  position: relative;
-  margin-left: 44px;
-  opacity: 0.65;
-}
+    //移上，选中
+    .ant-menu-item-active,
+    .ant-menu-submenu-active .ant-menu-submenu-title,
+    .ant-menu-item-selected,
+    .ant-menu-submenu-open .ant-menu-submenu-title {
+      color: #fff !important;
+      background-color: $hoverColor;
+    }
 
-.aside a.active>span, .aside a:hover>span {
-  opacity: 1;
+    //特效
+    .ant-menu-item>a,
+    .ant-menu-submenu>div {
+      border-color: inherit;
+      //color: $baseColor;
+    }
+
+    .ant-menu-item>a:before,
+    .ant-menu-submenu>div:before {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 0;
+      left: 10px;
+      border: 14px solid;
+      border-color: inherit;
+      border-radius: 500px;
+      -webkit-transition: all .4s ease 0s;
+      transition: all .4s ease 0s;
+    }
+
+    .ant-menu-item-selected>a:before,
+    .ant-menu-submenu-open>div:before {
+      width: 100%;
+      left: 0;
+    }
+  }
+
+  //例外
+  .ant-menu-sub {
+    .ant-menu-item {
+      background: inherit;
+    }
+    .ant-menu-item>a:before {
+      content: none;
+    }
+  }
 }
 
 .b-success {
-  border-color: #22b66e;
+  border-color: #22b66e !important;
 }
 
 .b-event {
-  border-color: #2196f3;
+  border-color: #2196f3 !important;
 }
 
 .b-danger {
-  border-color: #ef193c;
+  border-color: #ef193c !important;
 }
 
 .b-warning {
-  border-color: #f3c111;
+  border-color: #f3c111 !important;
 }
 
 .b-default {
-  border-color: rgba(120,130,140,.13);
+  border-color: rgba(120,130,140,.13) !important;
 }
-

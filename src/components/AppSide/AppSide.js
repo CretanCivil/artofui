@@ -1,38 +1,79 @@
-import React from 'react';
+import React, {Component, PropTypes} from 'react';
 import { Link } from 'react-router';
-import { Icon } from 'antd';
+import { Menu, Icon } from 'antd';
 import './AppSide.scss';
 
-const AppSide = () => {
-  return (
-    <dl className="aside">
-      <dt>主要</dt>
-      <dd><a className="b-success active"><i><Icon type="appstore" /></i><span>平台列表</span></a></dd>
-      <dd><a href="/apmsys/dashboardList" className="b-event"><i><Icon type="pie-chart" /></i><span>仪表盘</span></a></dd>
-      <dd><a href="/apmsys/eventflowList" className="b-event"><i><Icon type="line-chart" /></i><span>事件流</span></a></dd>
-      <dd><a className="b-danger"><i><Icon type="notification" /></i><span>报警/预警</span></a></dd>
-      <dd><a className="b-warning"><i><Icon type="pushpin-o" /></i><span>指标</span></a></dd>
-      <dt>用户中心</dt>
-      <dd><a className="b-default"><i><Icon type="question" /></i><span>帮助</span></a></dd>
-      <dd><a className="b-default"><i><Icon type="setting" /></i><span>设置</span></a></dd>
-    </dl>
-  );
-};
+const SubMenu = Menu.SubMenu;
+const MenuItemGroup = Menu.ItemGroup;
 
-/*const AppSide = () => {
-  return (
-    <dl className="aside">
-      <dt>主要</dt>
-      <dd><Link to="/" className="b-success" activeClassName="active"><i><Icon type="appstore" /></i><span>平台列表</span></Link></dd>
-      <dd><Link to="/1" className="b-event" activeClassName="active"><i><Icon type="pie-chart" /></i><span>仪表盘</span></Link></dd>
-      <dd><Link to="/2" className="b-event" activeClassName="active"><i><Icon type="line-chart" /></i><span>事件流</span></Link></dd>
-      <dd><Link to="/3" className="b-danger" activeClassName="active"><i><Icon type="notification" /></i><span>报警/预警</span></Link></dd>
-      <dd><Link to="/4" className="b-warning" activeClassName="active"><i><Icon type="pushpin-o" /></i><span>指标</span></Link></dd>
-      <dt>用户中心</dt>
-      <dd><Link to="/5" className="b-default" activeClassName="active"><i><Icon type="question" /></i><span>帮助</span></Link></dd>
-      <dd><Link to="/6" className="b-default" activeClassName="active"><i><Icon type="setting" /></i><span>设置</span></Link></dd>
-    </dl>
-  );
-};*/
+class AppSide extends Component {
+  state = {
+    current: '1',
+    openKeys: [],
+  }
+
+  handleClick = (e) => {
+    //console.log('Clicked: ', e);
+    let tempState = {current: e.key};
+    if(e.keyPath.length == 1) {
+      tempState.openKeys = [];
+    }
+    this.setState(tempState);
+  }
+
+  onOpenChange = (openKeys) => {this.setState({current: null});
+    const state = this.state;
+    const latestOpenKey = openKeys.find(key => !(state.openKeys.indexOf(key) > -1));
+    const latestCloseKey = state.openKeys.find(key => !(openKeys.indexOf(key) > -1));
+
+    let nextOpenKeys = [];
+    if (latestOpenKey) {
+      nextOpenKeys = this.getAncestorKeys(latestOpenKey).concat(latestOpenKey);
+    }
+    if (latestCloseKey) {
+      nextOpenKeys = this.getAncestorKeys(latestCloseKey);
+    }
+    this.setState({ openKeys: nextOpenKeys });
+  }
+
+  getAncestorKeys = (key) => {
+    const map = {
+      sub3: ['sub2'],
+    };
+    return map[key] || [];
+  }
+
+  render() {
+    //暂时使用a跳转，之后要用Link
+    return (
+      <Menu mode="inline"
+            openKeys={this.state.openKeys}
+            selectedKeys={[this.state.current]}
+            onOpenChange={this.onOpenChange}
+            onClick={this.handleClick}
+      >
+        <MenuItemGroup title="主要">
+          <Menu.Item key="1" className="b-success"><a href="/apmsys"><i className="ion-android-apps"></i><b>平台列表</b></a></Menu.Item>
+          <SubMenu key="2" className="b-event" title={<span><i className="ion-speedometer"></i><b>仪表盘</b></span>}>
+            <Menu.Item key="21"><a href="/apmsys/dashboardList"><b>自定义仪表盘</b></a></Menu.Item>
+            <Menu.Item key="22"><a href="/apmsys/platformList"><b>平台仪表盘</b></a></Menu.Item>
+            <Menu.Item key="23"><a href="/apmsys/collectDashBoardList"><b>已收藏的仪表盘</b></a></Menu.Item>
+          </SubMenu>
+          <Menu.Item key="3" className="b-event"><a href="/apmsys/eventflowList"><i className="ion-ios-timer"></i><b>事件流</b></a></Menu.Item>
+          <Menu.Item key="4" className="b-danger"><a href="/apmsys/alarmList"><i className="ion-ios-bell"></i><b>报警/预警</b></a></Menu.Item>
+          <SubMenu key="5" className="b-warning" title={<span><i className="ion-arrow-graph-up-right"></i><b>指标</b></span>}>
+            <Menu.Item key="51"><a href="/apmsys/userMetric"><b>用户指标</b></a></Menu.Item>
+            <Menu.Item key="52"><a href="/apmsys/metrics/explore"><b>浏览</b></a></Menu.Item>
+          </SubMenu>
+        </MenuItemGroup>
+        <MenuItemGroup title="用户中心">
+          <Menu.Item key="6" className="b-default"><a href="#"><i className="ion-information"></i><b>帮助</b></a></Menu.Item>
+          <Menu.Item key="7" className="b-default"><a href="#"><i className="ion-ios-gear"></i><b>设置</b></a></Menu.Item>
+        </MenuItemGroup>
+      </Menu>
+    );
+  }
+}
+
 
 export default AppSide;
