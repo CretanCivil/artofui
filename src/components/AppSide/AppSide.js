@@ -8,7 +8,7 @@ const MenuItemGroup = Menu.ItemGroup;
 
 class AppSide extends Component {
   state = {
-    current: '1',
+    current: '',
     openKeys: [],
   }
 
