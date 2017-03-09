@@ -209,7 +209,7 @@ export class ChartsPage extends React.Component {
                     layout: layout,
 
                 });
-                console.log("json", json);
+                //console.log("json", json);
             }
         });
     }
