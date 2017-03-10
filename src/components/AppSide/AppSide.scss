@@ -55,6 +55,7 @@ $hoverColor: rgba(255, 255, 255, .065);
 
     .ant-menu-item,
     .ant-menu-submenu .ant-menu-submenu-title {
+      left: 0;
       height: 28px;
       padding-left: 10px !important;
       line-height: 28px;
@@ -72,11 +73,10 @@ $hoverColor: rgba(255, 255, 255, .065);
       background-color: $hoverColor;
     }
 
-    //特效
+    //一级菜单特效
     .ant-menu-item>a,
     .ant-menu-submenu>div {
       border-color: inherit;
-      //color: $baseColor;
     }
 
     .ant-menu-item>a:before,
@@ -100,9 +100,10 @@ $hoverColor: rgba(255, 255, 255, .065);
     }
   }
 
-  //例外
+  //二级菜单
   .ant-menu-sub {
     .ant-menu-item {
+      left: 20px;
       background: inherit;
     }
     .ant-menu-item>a:before {
