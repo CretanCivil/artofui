@@ -47,7 +47,7 @@ class AppSide extends Component {
     //暂时使用a跳转，之后要用Link
     return (
       <div>
-        <a href="/apmsys" className="app-side-title"><img src={require('./logo.png')} alt="logo" width="32" height="32" /><span>PAAS INSIGHT</span></a>
+        <a href="/apmsys" className="app-side-title"><img src="/apmsys/images/logo1.png" alt="logo" width="32" height="32" /><span>PAAS INSIGHT</span></a>
         <Menu mode="inline"
               openKeys={this.state.openKeys}
               selectedKeys={[this.state.current]}
