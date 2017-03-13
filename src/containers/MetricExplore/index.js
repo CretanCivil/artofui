@@ -69,6 +69,8 @@ class MetricExplorePage extends React.Component {
             tagKeys: new Set(),
             tagKey: null,
             maxNum: 10,
+            chartPrefix: null,
+            saveFlag: 0,
 
             readonly: true,
             selectedRowKeys: [],
@@ -196,6 +198,8 @@ class MetricExplorePage extends React.Component {
             metrics: [],
             tagKeys: new Set(),
             tagKey: null,
+            chartPrefix: null,
+            saveFlag: 0,
         });
     }
 
@@ -213,6 +217,20 @@ class MetricExplorePage extends React.Component {
             maxNum: item.key,
         });
 
+    }
+
+    onChangeChartPrefix(e) {
+        this.setState({
+            chartPrefix: e.target.value,
+        });
+    }
+
+    toSaveFlag(flag) {
+        console.log(flag);
+
+        this.setState({
+            saveFlag: flag,
+        })
     }
 
     render() {
@@ -259,7 +277,7 @@ class MetricExplorePage extends React.Component {
         let charts = [];
         let numChats = 0;
         for (let metric of this.state.metrics) {
-            
+
             let metrics = [];
             if (this.state.tagKey && this.MapAllMetrics.get(metric).has(this.state.tagKey)) {
                 // console.log("sssss", this.MapAllMetrics,this.MapAllMetrics.get(metric).get(this.state.tagKey));
@@ -304,12 +322,73 @@ class MetricExplorePage extends React.Component {
             charts.push(card);
 
             numChats++;
-            if(numChats >= this.state.maxNum) {
+            if (numChats >= this.state.maxNum) {
                 break;
             }
 
-            
+
         }
+
+        let extForm = null;
+
+        switch (this.state.saveFlag) {
+            case 1:
+                extForm = <FormItem  >
+                    <Row type="flex" justify="start">
+                        <Col span={16}>
+                            <Input placeholder="请输入仪表盘名称" onChange={this.onChangeChartPrefix.bind(this)} value={this.state.chartPrefix} />
+                        </Col>
+                        <Col>
+                            <Button onClick={this.reset.bind(this)} type="flat">保存</Button>
+                        </Col>
+                    </Row>
+                </FormItem>;
+                break;
+            case 2:
+                extForm = <FormItem label="添加指标到仪表盘:" >
+                    <Select multiple style={{ width: '100%' }} placeholder="请选择指标"
+                        onChange={(val) => this.changeMetric(val)}
+                        defaultValue={this.state.metrics ? this.state.metrics : []}
+                        value={this.state.metrics ? this.state.metrics : []}
+                        showSearch
+                        getPopupContainer={() => $(".app-main")[0]}
+                    >
+                        {optionMetrics}
+                    </Select>
+                </FormItem>;
+                break;
+
+            case 3:
+                extForm = <FormItem  >
+                    <Row type="flex" justify="start">
+                        <Col span={16}>
+                            <Input placeholder="请输入模板名称" onChange={this.onChangeChartPrefix.bind(this)} value={this.state.chartPrefix} />
+                        </Col>
+                        <Col>
+                            <Button onClick={this.reset.bind(this)} type="flat">保存</Button>
+                        </Col>
+                    </Row>
+                </FormItem>;
+                break;
+
+            case 4:
+                extForm = <FormItem  >
+                    <Row type="flex" justify="start">
+                        <Col span={16}>
+                            <Input placeholder="请输入模板名称" onChange={this.onChangeChartPrefix.bind(this)} value={this.state.chartPrefix} />
+                        </Col>
+                        <Col>
+                            <Button onClick={this.reset.bind(this)} type="flat">保存</Button>
+                        </Col>
+                    </Row>
+                </FormItem>;
+                break;
+        }
+
+
+
+
+
 
 
 
@@ -350,11 +429,12 @@ class MetricExplorePage extends React.Component {
                     <Col lg={8} >
                         <Card>
                             <FormItem label="指标" hasFeedback>
-                                <Select multiple style={{ width: '100%' }} placeholder="请选择指标"
+                                <Select id="selectMetric" multiple style={{ width: '100%' }} placeholder="请选择指标"
                                     onChange={(val) => this.changeMetric(val)}
                                     defaultValue={this.state.metrics ? this.state.metrics : []}
                                     value={this.state.metrics ? this.state.metrics : []}
                                     showSearch
+                                    getPopupContainer={() => $(".app-main")[0]}
                                 >
                                     {optionMetrics}
                                 </Select>
@@ -365,13 +445,14 @@ class MetricExplorePage extends React.Component {
                                     onChange={(val) => this.changeTagKey(val)}
                                     defaultValue={this.state.tagKey}
                                     value={this.state.tagKey}
+                                    getPopupContainer={() => $(".app-main")[0]}
                                 >
                                     {optionKeys}
                                 </Select>
                             </FormItem>
 
                             <FormItem label="保存设置" hasFeedback>
-                                <Input placeholder="请输入前缀..." />
+                                <Input placeholder="请输入前缀..." onChange={this.onChangeChartPrefix.bind(this)} value={this.state.chartPrefix} />
                             </FormItem>
 
                             <div className="ant-form-item-label"><div style={{ float: 'left' }}>选择图表数量最大值</div><Dropdown overlay={menu} >
@@ -383,9 +464,9 @@ class MetricExplorePage extends React.Component {
 
                             <FormItem label="保存当前选择" >
                                 <Row type="flex" justify="start">
-                                    <Col   >{this.state.metrics.length == 0 ? <Button disabled>新建仪表盘</Button> : <Button>新建仪表盘</Button>}</Col>
-                                    <Col  style={{ marginLeft: '5px' }}>{this.state.metrics.length == 0 ? <Button disabled>已有仪表盘</Button> : <Button>已有仪表盘</Button>}</Col>
-                                    <Col   style={{ marginLeft: '5px' }}>{this.state.metrics.length == 0 ? <Button disabled>保存为仪表盘</Button> : <Button>保存为仪表盘</Button>}</Col>
+                                    <Col   >{this.state.metrics.length == 0 ? <Button disabled>新建仪表盘</Button> : <Button onClick={this.toSaveFlag.bind(this,1)} >新建仪表盘</Button>}</Col>
+                                    <Col style={{ marginLeft: '5px' }}>{this.state.metrics.length == 0 ? <Button disabled>已有仪表盘</Button> : <Button onClick={this.toSaveFlag.bind(this,2)}>已有仪表盘</Button>}</Col>
+                                    <Col style={{ marginLeft: '5px' }}>{this.state.metrics.length == 0 ? <Button disabled>保存为仪表盘</Button> : <Button onClick={this.toSaveFlag.bind(this,3)}>保存为仪表盘</Button>}</Col>
                                 </Row>
 
 
@@ -394,6 +475,9 @@ class MetricExplorePage extends React.Component {
                             <FormItem >
                                 <Button onClick={this.reset.bind(this)} type="primary">重置</Button>
                             </FormItem>
+
+                            {extForm}
+
                         </Card>
                     </Col>
 

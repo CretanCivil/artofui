@@ -503,6 +503,10 @@ export class ChartsPage extends React.Component {
     }
 
     doModalNameSubmit() {
+        if(!this.state.modalName.name) {
+            return;
+        }
+
         switch(this.state.modalName.flag) {
             case 1:
                 return this.cloneDash(this.state.modalName.name);
