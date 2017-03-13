@@ -1,11 +1,36 @@
 $baseColor: rgba(225,235,245,.6);
 $hoverColor: rgba(255, 255, 255, .065);
 
+@mixin resetLink {
+  color: inherit;
+  text-decoration: none;
+  -webkit-transition: none;
+  transition: none;
+}
+
 .app-side {
-  padding-top: 56px;
   padding-bottom: 10px;
   min-height: 100%;
   background-color: #101823;
+
+  a, a:active, a:visited, a:hover {
+    @include resetLink;
+  }
+
+  //标题
+  a.app-side-title {
+    margin: 0;
+    padding: 0 16px;
+    color: rgba(225,235,245,.87);
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 56px;
+
+    span {
+      margin-left: 4px;
+      vertical-align: middle;
+    }
+  }
 
   .ant-menu {
     color: $baseColor;
@@ -28,11 +53,8 @@ $hoverColor: rgba(255, 255, 255, .065);
     }
 
     //重置
-    a, a:active, a:visited, .ant-menu-item:hover, .ant-menu-item-active, .ant-menu-submenu-active, .ant-menu-submenu-title:hover {
-      color: inherit;
-      text-decoration: none;
-      -webkit-transition: none;
-      transition: none;
+    .ant-menu-item:hover, .ant-menu-item-active, .ant-menu-submenu-active, .ant-menu-submenu-title:hover {
+      @include resetLink;
     }
 
     //文本
@@ -51,13 +73,13 @@ $hoverColor: rgba(255, 255, 255, .065);
     .ant-menu-item,
     .ant-menu-submenu {
       margin: 5px 10px;
+      padding: 0 !important;
     }
 
     .ant-menu-item,
     .ant-menu-submenu .ant-menu-submenu-title {
       left: 0;
       height: 28px;
-      padding-left: 10px !important;
       line-height: 28px;
       font-size: 14px;
       border-right-width: 0;
@@ -76,6 +98,7 @@ $hoverColor: rgba(255, 255, 255, .065);
     //一级菜单特效
     .ant-menu-item>a,
     .ant-menu-submenu>div {
+      padding: 0 8px !important;
       border-color: inherit;
     }
 
@@ -85,7 +108,7 @@ $hoverColor: rgba(255, 255, 255, .065);
       position: absolute;
       width: 0;
       height: 0;
-      left: 10px;
+      left: 8px;
       border: 14px solid;
       border-color: inherit;
       border-radius: 500px;
