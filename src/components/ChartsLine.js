@@ -179,7 +179,7 @@ class ChartsLine extends ChartsBase {
                 endDate: end,
                 chosenFlag: true,
             });
-        }, 1000);
+        }, 30);
         return;
 
         console.log(e);

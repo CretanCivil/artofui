@@ -242,7 +242,7 @@ class ChartsArea extends ChartsBase {
                 endDate: end,
                 chosenFlag: true,
             });
-        }, 1000);
+        }, 30);
         return;
 
         let chart = this.refs.chart.getChart();
