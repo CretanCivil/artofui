@@ -14,9 +14,7 @@ import DialogChartView from './../../components/DialogChartView';
 import DialogChartSetting from './../../components/DialogChartSetting';
 import { setChartRange, setScopeParams } from './../../actions/chart';
 import { setDraging } from './../../actions/app';
-let WidthProvider = require('react-grid-layout').WidthProvider;
-let ReactGridLayout = require('react-grid-layout');
-ReactGridLayout = WidthProvider(ReactGridLayout);
+
 import { Button, Row, Col, Select, Form, Icon, Spin, Dropdown, Menu, notification, Card, Input, Tooltip } from 'antd';
 let DateRangerPicker = require('react-bootstrap-daterangepicker');
 let moment = require('moment');
@@ -74,6 +72,7 @@ class MetricExplorePage extends React.Component {
 
             readonly: true,
             selectedRowKeys: [],
+            agg: "avg",
 
             ranges: {
                 '最近60分钟': [moment().subtract(1, 'hours').startOf('minute'), moment().startOf('minute')],
@@ -89,25 +88,7 @@ class MetricExplorePage extends React.Component {
             endDate: moment().startOf('minute'),
             chosenLabel: '最近12小时',
             chosenFlag: false,//是否为自定义时间，自定义时间列表不更新
-            inputValue: '',
-            value: [],
-            show: false,
-            indexBox: [],
-            metricName: "",
-            expandChart: {
-                chart: null,
-                show: false,
-                type: null,
-            },
-            settingChart: {
-                metric: null,
-                show: false,
-                type: null,
-                chart: null,
-            },
-            layout: [],
-            scope: null,
-            dashboardShow: null,
+
         };
 
         this.props.setChartRange({
@@ -123,6 +104,7 @@ class MetricExplorePage extends React.Component {
 
 
     handleDateRangeChanged(event, picker) {
+
         //  picker.chosenLabel
         this.setState({
             startDate: picker.startDate,
@@ -140,13 +122,120 @@ class MetricExplorePage extends React.Component {
         });
     }
 
+    saveTemplate() {
+        //https://cloud.oneapm.com/v1//metric_templates/add.json
+        /*
+        {
+            "templateName": "sfsfdsfsf",
+            "selectedMetrics": [
+                "postgresql.bgwriter.buffers_alloc",
+                "datadog.dogstatsd.serialization_status"
+            ],
+            "aggregator": "avg",
+            "tagKey": [
+                ""
+            ],
+            "chartNamePrefix": "dfsdfsf",
+            "colDisplayOption": "mixInChart",
+            "matchYAxis": false,
+            "maxChartNum": 10,
+            "selectedTags": []
+        }
+        
+         */
+    }
+
+    updateTemplate() {
+        //https://cloud.oneapm.com/v1//metric_templates/update.json
+        /**
+         {
+            "templateName": "ssssffff",
+            "selectedMetrics": [
+                "postgresql.bgwriter.buffers_alloc",
+                "ntp.offset"
+            ],
+            "aggregator": "avg",
+            "tagKey": [
+                ""
+            ],
+            "chartNamePrefix": "dddd",
+            "colDisplayOption": "mixInChart",
+            "matchYAxis": 0,
+            "maxChartNum": 10,
+            "selectedTags": [],
+            "templateId": 137
+        } 
+    */
+    }
+
+    saveDashboard() {
+        //https://cloud.oneapm.com/v1/dashboards/addMore.json
+        /**
+         {
+            "dashboard": {
+                "dashboard_name": "gfdgdg"
+            },
+            "charts": [
+                {
+                    "dashboard_chart_name": " postgresql.bgwriter.buffers_alloc",
+                    "dashboard_chart_type": "timeseries",
+                    "metrics": [
+                        {
+                            "aggregator": "avg",
+                            "type": "line",
+                            "metric": "postgresql.bgwriter.buffers_alloc"
+                        }
+                    ]
+                },
+                {
+                    "dashboard_chart_name": " ntp.offset",
+                    "dashboard_chart_type": "timeseries",
+                    "metrics": [
+                        {
+                            "aggregator": "avg",
+                            "type": "line",
+                            "metric": "ntp.offset"
+                        }
+                    ]
+                }
+            ]
+        }
+         */
+    }
+
+    addToDashboard() {
+        //https://cloud.oneapm.com/v1/dashboards/6629/charts/batchAdd.json
+        /*
+        [
+            {
+                "dashboard_chart_name": " postgresql.bgwriter.buffers_alloc",
+                "dashboard_chart_type": "timeseries",
+                "metrics": [
+                    {
+                        "aggregator": "avg",
+                        "type": "line",
+                        "metric": "postgresql.bgwriter.buffers_alloc"
+                    }
+                ]
+            },
+            {
+                "dashboard_chart_name": " ntp.offset",
+                "dashboard_chart_type": "timeseries",
+                "metrics": [
+                    {
+                        "aggregator": "avg",
+                        "type": "line",
+                        "metric": "ntp.offset"
+                    }
+                ]
+            }
+        ]
+ */
+    }
+
 
     changeMetric(val) {
-
-
-
-
-        console.log(val);
+       
         let keys = new Set();
         for (let metric of val) {
             for (let key of this.MapAllMetrics.get(metric).keys()) {
@@ -155,7 +244,6 @@ class MetricExplorePage extends React.Component {
             // console.log(this.MapAllMetrics.get(metric));
 
         }
-        console.log(keys);
 
         let tagKey = keys.has(this.state.tagKey) ? this.state.tagKey : null;
 
@@ -200,12 +288,31 @@ class MetricExplorePage extends React.Component {
             tagKey: null,
             chartPrefix: null,
             saveFlag: 0,
+            agg: "avg",
         });
+
+
+        //console.log(moment().subtract(7, 'hours').format('YYYY-MM-DD HH:mm:ss'));
+        //console.log(this.state.startDate.format('YYYY-MM-DD HH:mm:ss') + " - " + this.state.endDate.format('YYYY-MM-DD HH:mm:ss'));
+
+        this.props.setChartRange({
+            startDate: this.state.endDate.diff(this.state.startDate),
+            endDate: this.state.endDate.format('x'),
+            chosenFlag: this.state.chosenLabel == '自定义区间',
+        });
+
+
     }
 
     changeTagKey(val) {
         this.setState({
             tagKey: val,
+        });
+    }
+
+    changeAgg(val) {
+        this.setState({
+            agg: val,
         });
     }
 
@@ -233,6 +340,10 @@ class MetricExplorePage extends React.Component {
         })
     }
 
+    doSave() {
+
+    }
+
     render() {
         //scope=host%3Awan-177
         //console.log(this.props.params);
@@ -255,10 +366,6 @@ class MetricExplorePage extends React.Component {
             let option = <Select.Option key={key} value={key}>{key}</Select.Option>
             optionKeys.push(option);
         }
-
-
-
-
 
         const menu = (
             <Menu onClick={this.menuClick.bind(this)}>
@@ -287,7 +394,7 @@ class MetricExplorePage extends React.Component {
 
                     metrics.push({
                         metric: metric,
-                        aggregator: "avg",
+                        aggregator: this.state.agg,
                         type: "line",
                         rate: false,
                         by: null,
@@ -316,9 +423,14 @@ class MetricExplorePage extends React.Component {
                 name: metric,
                 type: "timeseries"
             };
-            let card = <Col key={this.state.metrics.indexOf(metric)} sm={12} style={{ height: '320px', textAlign: 'left', marginBottom: '10px', }}><ChartsCard chart={chart}
-
-                readonly={true}></ChartsCard></Col>;
+            let card = <Col key={this.state.metrics.indexOf(metric)}
+                sm={12}
+                style={{ height: '320px', textAlign: 'left', marginBottom: '10px', }}>
+                <ChartsCard
+                    chart={chart}
+                    readonly={true}>
+                </ChartsCard>
+            </Col>;
             charts.push(card);
 
             numChats++;
@@ -339,22 +451,32 @@ class MetricExplorePage extends React.Component {
                             <Input placeholder="请输入仪表盘名称" onChange={this.onChangeChartPrefix.bind(this)} value={this.state.chartPrefix} />
                         </Col>
                         <Col>
-                            <Button onClick={this.reset.bind(this)} type="flat">保存</Button>
+                            <Button onClick={this.doSave.bind(this)} type="flat">保存</Button>
                         </Col>
                     </Row>
                 </FormItem>;
                 break;
             case 2:
                 extForm = <FormItem label="添加指标到仪表盘:" >
-                    <Select multiple style={{ width: '100%' }} placeholder="请选择指标"
-                        onChange={(val) => this.changeMetric(val)}
-                        defaultValue={this.state.metrics ? this.state.metrics : []}
-                        value={this.state.metrics ? this.state.metrics : []}
-                        showSearch
-                        getPopupContainer={() => $(".app-main")[0]}
-                    >
-                        {optionMetrics}
-                    </Select>
+
+
+                    <Row type="flex" justify="start">
+                        <Col span={16}>
+                            <Select style={{ width: '100%' }} placeholder="请选择指标"
+                                onChange={(val) => this.changeMetric(val)}
+                                defaultValue={this.state.metrics ? this.state.metrics : []}
+                                value={this.state.metrics ? this.state.metrics : []}
+                                showSearch
+                                getPopupContainer={() => $(".app-main")[0]}
+                            >
+                                {optionMetrics}
+                            </Select>
+                        </Col>
+                        <Col>
+                            <Button onClick={this.doSave.bind(this)} type="flat">保存</Button>
+                        </Col>
+                    </Row>
+
                 </FormItem>;
                 break;
 
@@ -365,7 +487,7 @@ class MetricExplorePage extends React.Component {
                             <Input placeholder="请输入模板名称" onChange={this.onChangeChartPrefix.bind(this)} value={this.state.chartPrefix} />
                         </Col>
                         <Col>
-                            <Button onClick={this.reset.bind(this)} type="flat">保存</Button>
+                            <Button onClick={this.doSave.bind(this)} type="flat">保存</Button>
                         </Col>
                     </Row>
                 </FormItem>;
@@ -378,7 +500,7 @@ class MetricExplorePage extends React.Component {
                             <Input placeholder="请输入模板名称" onChange={this.onChangeChartPrefix.bind(this)} value={this.state.chartPrefix} />
                         </Col>
                         <Col>
-                            <Button onClick={this.reset.bind(this)} type="flat">保存</Button>
+                            <Button onClick={this.doSave.bind(this)} type="flat">保存</Button>
                         </Col>
                     </Row>
                 </FormItem>;
@@ -451,6 +573,22 @@ class MetricExplorePage extends React.Component {
                                 </Select>
                             </FormItem>
 
+
+                            <FormItem label="聚合方式" hasFeedback>
+                                <Select style={{ width: '100%' }} placeholder="请选择聚合方式"
+                                    onChange={(val) => this.changeAgg(val)}
+                                    defaultValue={this.state.agg}
+                                    value={this.state.agg}
+                                    getPopupContainer={() => $(".app-main")[0]}
+                                >
+                                    <Select.Option key="avg" value="avg">平均值</Select.Option>
+                                    <Select.Option key="min" value="min">最小值</Select.Option>
+                                    <Select.Option key="max" value="max">最大值</Select.Option>
+                                    <Select.Option key="sum" value="sum">求和</Select.Option>
+                                </Select>
+                            </FormItem>
+
+
                             <FormItem label="保存设置" hasFeedback>
                                 <Input placeholder="请输入前缀..." onChange={this.onChangeChartPrefix.bind(this)} value={this.state.chartPrefix} />
                             </FormItem>
@@ -464,9 +602,9 @@ class MetricExplorePage extends React.Component {
 
                             <FormItem label="保存当前选择" >
                                 <Row type="flex" justify="start">
-                                    <Col   >{this.state.metrics.length == 0 ? <Button disabled>新建仪表盘</Button> : <Button onClick={this.toSaveFlag.bind(this,1)} >新建仪表盘</Button>}</Col>
-                                    <Col style={{ marginLeft: '5px' }}>{this.state.metrics.length == 0 ? <Button disabled>已有仪表盘</Button> : <Button onClick={this.toSaveFlag.bind(this,2)}>已有仪表盘</Button>}</Col>
-                                    <Col style={{ marginLeft: '5px' }}>{this.state.metrics.length == 0 ? <Button disabled>保存为仪表盘</Button> : <Button onClick={this.toSaveFlag.bind(this,3)}>保存为仪表盘</Button>}</Col>
+                                    <Col   >{this.state.metrics.length == 0 ? <Button disabled>新建仪表盘</Button> : <Button onClick={this.toSaveFlag.bind(this, 1)} >新建仪表盘</Button>}</Col>
+                                    <Col style={{ marginLeft: '5px' }}>{this.state.metrics.length == 0 ? <Button disabled>已有仪表盘</Button> : <Button onClick={this.toSaveFlag.bind(this, 2)}>已有仪表盘</Button>}</Col>
+                                    <Col style={{ marginLeft: '5px' }}>{this.state.metrics.length == 0 ? <Button disabled>保存为仪表盘</Button> : <Button onClick={this.toSaveFlag.bind(this, 3)}>保存为仪表盘</Button>}</Col>
                                 </Row>
 
 

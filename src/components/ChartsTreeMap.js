@@ -7,7 +7,7 @@ import { Button, Row, Col, Select, Form, Icon, Card, Modal, Dropdown, Menu, Spin
 import { retryFetch } from './../utils/cFetch'
 import { API_CONFIG } from './../config/api';
 import cookie from 'js-cookie';
-import { setChartSelection, setChartCrossLine } from './../actions/chart';
+import { setChartSelection } from './../actions/chart';
 import ReactDOM from 'react-dom';
 import moment from 'moment';
 import ChartsBase from './ChartsBase';
@@ -308,8 +308,7 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) {
     // bindActionCreators(ActionCreators, dispatch)
     return {
-        setChartSelection: (params) => dispatch(setChartSelection(params)),
-        setChartCrossLine: (params) => dispatch(setChartCrossLine(params))
+        setChartSelection: (params) => dispatch(setChartSelection(params))
     };
 }
 

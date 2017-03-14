@@ -12,6 +12,7 @@ import { selectPoints } from './../actions/points';
 import ReactDOM from 'react-dom';
 import ChartsBase from './ChartsBase';
 import moment from 'moment';
+import { setChartRange } from './../actions/chart';
 
 // React.Component
 class ChartsLine extends ChartsBase {
@@ -76,7 +77,7 @@ class ChartsLine extends ChartsBase {
     }
 
     getInterval(startDate) {
-        return startDate / 60000;
+        return parseInt(startDate / 60000);
     }
 
     componentDidUpdate() {
@@ -149,6 +150,7 @@ class ChartsLine extends ChartsBase {
     }
 
     chartSelection(props) {
+
         let chart = this.refs.chart.getChart();
         let xaxis = chart.get("xaxis");
         console.log("show", props.chart.selection);
@@ -161,6 +163,26 @@ class ChartsLine extends ChartsBase {
     }
 
     handleChartSelection(e) {
+        /*
+        这个定时器有点恶心，但是不这样不行。因为要延时执行，否则highchart里面的代码没有执行完成，就执行setChartRange会销毁chart对象，
+        导致highchart报错。
+         */
+       
+        if (e.resetSelection)
+            return;
+
+        let end = parseInt(e.xAxis[0].max / 1000) * 1000;
+        let begin = parseInt(e.xAxis[0].min / 1000) * 1000;
+        setTimeout(() => {
+            this.props.setChartRange({
+                startDate: end - begin,
+                endDate: end,
+                chosenFlag: true,
+            });
+        }, 1000);
+        return;
+
+        console.log(e);
         let chart = this.refs.chart.getChart();
         let xaxis = chart.get("xaxis");
 
@@ -494,7 +516,7 @@ class ChartsLine extends ChartsBase {
 
     render() {
 
-        // console.log("ChartsLine render");
+        
 
         let childContent = null;
         if (!this.props.metrics || this.state.network.isFetching || this.state.network.error) {
@@ -555,6 +577,7 @@ function mapDispatchToProps(dispatch) {
         setChartSelection: (params) => dispatch(setChartSelection(params)),
         setChartCrossLine: (params) => dispatch(setChartCrossLine(params)),
         selectPoints: (params) => dispatch(selectPoints(params)),
+        setChartRange: (params) => dispatch(setChartRange(params)),
     };
 }
 
