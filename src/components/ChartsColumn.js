@@ -199,12 +199,15 @@ class ChartsColumn extends ChartsBase {
         这个定时器有点恶心，但是不这样不行。因为要延时执行，否则highchart里面的代码没有执行完成，就执行setChartRange会销毁chart对象，
         导致highchart报错。
          */
-       
+
         if (e.resetSelection)
             return;
 
         let end = parseInt(e.xAxis[0].max / 1000) * 1000;
         let begin = parseInt(e.xAxis[0].min / 1000) * 1000;
+        if (end - begin < 600 * 1000) {
+            end = begin + 600 * 1000;
+        }
         setTimeout(() => {
             this.props.setChartRange({
                 startDate: end - begin,
