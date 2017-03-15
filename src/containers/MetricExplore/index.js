@@ -196,8 +196,8 @@ class MetricExplorePage extends React.Component {
         body.maxChartNum = this.state.maxNum;
 
         body.matchYAxis = false;
-        body.colDisplayOption = "mixInChart";
-        body.selectedTags = [];
+        body.colDisplayOption = this.state.graphFlag;
+        body.selectedTags = Array.from(this.state.tagValsSelected);
 
 
         for (let metric of this.state.metrics) {
@@ -257,8 +257,8 @@ class MetricExplorePage extends React.Component {
         body.templateId = this.state.templateId;
 
         body.matchYAxis = false;
-        body.colDisplayOption = "mixInChart";
-        body.selectedTags = [];
+        body.colDisplayOption = this.state.graphFlag;
+        body.selectedTags = Array.from(this.state.tagValsSelected);
 
 
         for (let metric of this.state.metrics) {
@@ -321,41 +321,8 @@ class MetricExplorePage extends React.Component {
 
         let body = {};
         body.dashboard = { dashboard_name: this.state.dashboardName };
-        body.charts = [];
-        let numChats = 0;
-        for (let metric of this.state.metrics) {
-
-            let metrics = [];
-            let tags = [];
-            for (let tval of this.state.tagValsSelected) {
-                tags.push(this.state.tagKey + ":" + tval);
-            }
-
-            metrics.push({
-                metric: metric,
-                aggregator: this.state.agg,
-                type: "line",
-                rate: false,
-                by: this.state.tagKey,
-                tags: tags,
-                id: 0
-            });
-
-
-            let chart = {
-                dashboard_chart_name: (this.state.chartPrefix ? this.state.chartPrefix : "") + ' ' + metric,
-                dashboard_chart_type: "timeseries",
-                metrics: metrics,
-            };
-
-            body.charts.push(chart);
-
-            numChats++;
-            if (numChats >= this.state.maxNum) {
-                break;
-            }
-        }
-
+        body.charts = this.buildCardCharts();
+       
 
         let url = API_CONFIG.dashboard.addMore;
 
@@ -421,41 +388,7 @@ class MetricExplorePage extends React.Component {
 
         let body = {};
         body.dashboard = { dashboard_name: this.state.dashboardName };
-        body.charts = [];
-        let numChats = 0;
-        for (let metric of this.state.metrics) {
-
-            let metrics = [];
-            let tags = [];
-
-            for (let tval of this.state.tagValsSelected) {
-                tags.push(this.state.tagKey + ":" + tval);
-            }
-
-            metrics.push({
-                metric: metric,
-                aggregator: this.state.agg,
-                type: "line",
-                rate: false,
-                by: this.state.tagKey,
-                tags: tags,
-                id: 0
-            });
-
-
-            let chart = {
-                dashboard_chart_name: (this.state.chartPrefix ? this.state.chartPrefix : "") + ' ' + metric,
-                dashboard_chart_type: "timeseries",
-                metrics: metrics,
-            };
-
-            body.charts.push(chart);
-
-            numChats++;
-            if (numChats >= this.state.maxNum) {
-                break;
-            }
-        }
+        body.charts = this.buildCardCharts();
 
         let url = format(API_CONFIG.dashboard.batchAdd, this.state.dashboardId);
 
@@ -734,19 +667,45 @@ class MetricExplorePage extends React.Component {
 
     onRowClick(record, index) {
 
-        console.log(this.state.templateNetwork.data[record.key], index);
+        if (this.MapAllMetrics.size == 0)
+            return;
+        //console.log(this.state.templateNetwork.data[record.key], index);
         let temp = this.state.templateNetwork.data[record.key];
+        let val = temp.tag_key[0];
+        let tags = new Set();
+        let tagValsSelected = new Set();
+        for (let metric of temp.selected_metrics) {
+            if (val && this.MapAllMetrics.get(metric) && this.MapAllMetrics.get(metric).has(val)) {
+                for (let tval of this.MapAllMetrics.get(metric).get(val)) {
+                    tags.add(tval);
+                    tagValsSelected.add(tval);
+                }
+            }
+        }
+
+        let keys = new Set();
+        for (let metric of temp.selected_metrics) {
+            for (let key of this.MapAllMetrics.get(metric).keys()) {
+                keys.add(key);
+            }
+            // console.log(this.MapAllMetrics.get(metric));
+        }
+
+
         this.setState({
             templateId: temp.template_id,
             metrics: temp.selected_metrics,
+            tagKeys: keys,
             tagKey: temp.tag_key[0],
+            tagVals: tags,
             dashboardName: temp.template_name,
             maxNum: temp.max_chart_num,
             aggregator: temp.aggregator,
             chartPrefix: temp.chart_name_prefix,
+            graphFlag: temp.col_display_option,
+            tagValsSelected: new Set(temp.selected_tags),
         });
-        if (this.MapAllMetrics.keys().length > 0)
-            this.changeMetric(temp.selected_metrics);
+
     }
 
     onChangeTagv(val, e) {
@@ -766,6 +725,126 @@ class MetricExplorePage extends React.Component {
             tagValsSelected: tags,
         });
 
+    }
+
+    buildCardCharts() {
+        let charts = [];
+        let numChats = 0;
+        switch (parseInt(this.state.graphFlag)) {
+            case 1:
+                for (let metric of this.state.metrics) {
+
+                    let metrics = [];
+                    let tags = [];
+
+                    for (let tval of this.state.tagValsSelected) {
+                        tags.push(this.state.tagKey + ":" + tval);
+                    }
+
+                    metrics.push({
+                        metric: metric,
+                        aggregator: this.state.agg,
+                        type: "line",
+                        rate: false,
+                        by: this.state.tagKey,
+                        tags: tags,
+                        id: 0
+                    });
+
+
+                    let chart = {
+                        dashboard_chart_name: (this.state.chartPrefix ? this.state.chartPrefix : "") + ' ' + metric,
+                        dashboard_chart_type: "timeseries",
+                        metrics: metrics,
+                    };
+
+                    charts.push(chart);
+
+                    numChats++;
+                    if (numChats >= this.state.maxNum) {
+                        break;
+                    }
+                }
+                break;
+            case 2:
+                for (let tval of this.state.tagValsSelected) {
+                    let metrics = [];
+                    for (let metric of this.state.metrics) {
+
+
+                        let tags = [];
+
+
+                        tags.push(this.state.tagKey + ":" + tval);
+
+
+                        metrics.push({
+                            metric: metric,
+                            aggregator: this.state.agg,
+                            type: "line",
+                            rate: false,
+                            by: this.state.tagKey,
+                            tags: tags,
+                            id: 0
+                        });
+                    }
+
+                    let chart = {
+                        dashboard_chart_name: (this.state.chartPrefix ? this.state.chartPrefix : "") + ' ' + this.state.tagKey +":"+tval,
+                        dashboard_chart_type: "timeseries",
+                        metrics: metrics,
+                    };
+
+                    charts.push(chart);
+
+                    numChats++;
+                    if (numChats >= this.state.maxNum) {
+                        break;
+                    }
+                }
+                break;
+            case 3:
+                for (let metric of this.state.metrics) {
+                    for (let tval of this.state.tagValsSelected) {
+                        let metrics = [];
+                        let tags = [];
+
+
+                        tags.push(this.state.tagKey + ":" + tval);
+
+
+                        metrics.push({
+                            metric: metric,
+                            aggregator: this.state.agg,
+                            type: "line",
+                            rate: false,
+                            by: this.state.tagKey,
+                            tags: tags,
+                            id: 0
+                        });
+
+
+                        let chart = {
+                            dashboard_chart_name: (this.state.chartPrefix ? this.state.chartPrefix : "") + ' ' + metric,
+                            dashboard_chart_type: "timeseries",
+                            metrics: metrics,
+                        };
+
+                        charts.push(chart);
+
+                        numChats++;
+                        if (numChats >= this.state.maxNum) {
+                            break;
+                        }
+                    }
+                    if (numChats >= this.state.maxNum) {
+                        break;
+                    }
+                }
+                break;
+        }
+
+        return charts;
     }
 
     buildCharts() {
@@ -868,7 +947,7 @@ class MetricExplorePage extends React.Component {
 
 
                     for (let tval of this.state.tagValsSelected) {
-                        
+
                         let metrics = [];
                         let tags = [];
                         tags.push(this.state.tagKey + ":" + tval);
