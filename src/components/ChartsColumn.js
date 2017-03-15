@@ -206,7 +206,7 @@ class ChartsColumn extends ChartsBase {
         let end = parseInt(e.xAxis[0].max / 1000) * 1000;
         let begin = parseInt(e.xAxis[0].min / 1000) * 1000;
         if (end - begin < 600 * 1000) {
-            end = begin + 600 * 1000;
+            begin =  end - 600 * 1000;
         }
         setTimeout(() => {
             this.props.setChartRange({

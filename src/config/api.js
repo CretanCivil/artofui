@@ -23,6 +23,16 @@ export const API_CONFIG = {
     update: '/p1/dashboards/{}/update.json',
     clone: '/p1/dashboards/{}/clone.json',
     charts: '/p1/dashboards/{}/charts.json',
+    addMore: '/p1/dashboards/addMore.json',
+    batchAdd: '/p1/dashboards/{}/charts/batchAdd.json',
+    list: '/p1/dashboards.json',
+  },
+
+  template: {
+    update: '/p1/metric_templates/update.json',
+    add: '/p1/metric_templates/add.json',
+    list: '/p1/metric_templates/list.json',
+    delete: '/p1/metric_templates/{}/delete.json',
   },
   
   //dashboard: '/p1/dashboards/{}/charts.json',

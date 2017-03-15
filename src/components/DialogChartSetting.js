@@ -36,7 +36,7 @@ class DialogChartSetting extends React.Component {
             metrics: Array.from(this.props.metrics),
             chartType: this.props.type == "timeseries" ? "line" : this.props.type,
             name: this.props.chart.name,
-            eventsQuery: this.props.chart.meta.events_query,
+            eventsQuery: this.props.chart.meta ? this.props.chart.meta.events_query : null,
         });
         this.initHasby(this.props.type);
     }
@@ -221,11 +221,14 @@ class DialogChartSetting extends React.Component {
          */
         let panelNormal = null;
 
-        console.log(this.state.chart.meta.modelType);
+        //console.log(this.state.chart.meta.modelType);
         if (this.state.chartType == "events") {
             panelNormal = this.genBucket();
         } else {
-            panelNormal = this.state.chart.meta.modelType === 'normal' ? this.genMetricPanelNormal() : this.genProModel();
+            if(this.state.chart.meta)
+                panelNormal = this.state.chart.meta.modelType === 'normal' ? this.genMetricPanelNormal() : this.genProModel();
+            else
+                panelNormal = this.genMetricPanelNormal();    
         }
 
         return < Modal
@@ -268,7 +271,9 @@ class DialogChartSetting extends React.Component {
 
             <Row style={{ padding: 10, paddingLeft: 0 }}>选择和编辑指标</Row>
 
-            {this.state.chartType == "events" ? null : <RadioGroup onChange={this.changeModelType.bind(this)} defaultValue={this.state.chart.meta.modelType} size="large">
+            {this.state.chartType == "events" ? null : <RadioGroup onChange={this.changeModelType.bind(this)} 
+            defaultValue={this.state.chart.meta ? this.state.chart.meta.modelType : "normal"} 
+            size="large">
                 <RadioButton value="normal">普通模式</RadioButton>
                 <RadioButton value="pro">专家模式</RadioButton>
             </RadioGroup>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
-
+import format from 'string-format';
 //import CustomTable from './../../components/CustomTable';
 //import StringFilterDropdown from './../../components/StringFilterDropdown';
 //import DateTimeFilterDropdown from './../../components/DateTimeFilterDropdown';
@@ -15,7 +15,7 @@ import DialogChartSetting from './../../components/DialogChartSetting';
 import { setChartRange, setScopeParams } from './../../actions/chart';
 import { setDraging } from './../../actions/app';
 
-import { Button, Row, Col, Select, Form, Icon, Spin, Dropdown, Menu, notification, Card, Input, Tooltip } from 'antd';
+import { Button, Row, Col, Select, Form, Icon, Spin, Dropdown, Menu, notification, Card, Input, Tooltip, Table, Checkbox } from 'antd';
 let DateRangerPicker = require('react-bootstrap-daterangepicker');
 let moment = require('moment');
 import { retryFetch } from '../../utils/cFetch'
@@ -32,10 +32,8 @@ import Highcharts from 'highcharts';
 import PubSub from 'vanilla-pubsub';
 import Draggable from 'react-draggable';
 import InspectorToggle from './../../components/InspectorToggle';
-
 import NoPreviewForMetricsExplorer from './nodata';
 //highchartsTreemap(ReactHighcharts.Highcharts);
-import format from 'string-format';
 import $ from 'jquery';
 
 //const InputGroup = Input.Group;
@@ -66,9 +64,14 @@ class MetricExplorePage extends React.Component {
             metrics: [],
             tagKeys: new Set(),
             tagKey: null,
+            tagVals: new Set(),
+            tagValsSelected: new Set(),
             maxNum: 10,
             chartPrefix: null,
             saveFlag: 0,
+            dashboardName: null,
+            templateId: null,
+            dashboardId: null,
 
             readonly: true,
             selectedRowKeys: [],
@@ -89,6 +92,16 @@ class MetricExplorePage extends React.Component {
             chosenLabel: '最近12小时',
             chosenFlag: false,//是否为自定义时间，自定义时间列表不更新
 
+            network: {
+                isFetching: false,
+                data: [],
+                error: null,
+            },
+            templateNetwork: {
+                isFetching: false,
+                data: [],
+                error: null,
+            },
         };
 
         this.props.setChartRange({
@@ -100,7 +113,9 @@ class MetricExplorePage extends React.Component {
 
     componentDidMount() {
         this.props.fetchAllMetrics();
+        this.doFetchTemplates();
     }
+
 
 
     handleDateRangeChanged(event, picker) {
@@ -119,6 +134,34 @@ class MetricExplorePage extends React.Component {
             startDate: picker.endDate.diff(picker.startDate),
             endDate: picker.endDate.format('x'),
             chosenFlag: picker.chosenLabel == '自定义区间',
+        });
+    }
+
+    deleteTemplate(templateId, e) {
+        console.log(templateId);
+        //e.preventDefault();
+        e.stopPropagation();
+        let network = Object.assign({}, this.state.templateNetwork);
+        let datas = network.data;
+        let temp = datas[templateId];
+
+        let url = format(API_CONFIG.template.delete, temp.template_id);
+
+        retryFetch(url, {
+            method: "POST",
+            retries: 3,
+            retryDelay: 10000,
+            params: {
+                api_key: API_CONFIG.apiKey
+            },
+            body: '',
+        }).then(function (response) {
+            return response.json();
+        }).then((json) => {
+            datas.splice(templateId, 1);
+            this.setState({
+                templateNetwork: network,
+            });
         });
     }
 
@@ -143,6 +186,42 @@ class MetricExplorePage extends React.Component {
         }
         
          */
+        let body = {};
+        body.templateName = this.state.dashboardName;
+        body.selectedMetrics = [];
+        body.tagKey = [this.state.tagKey == null ? "" : this.state.tagKey];
+        body.chartNamePrefix = this.state.chartPrefix;
+        body.aggregator = this.state.agg;
+        body.maxChartNum = this.state.maxNum;
+
+        body.matchYAxis = false;
+        body.colDisplayOption = "mixInChart";
+        body.selectedTags = [];
+
+
+        for (let metric of this.state.metrics) {
+            body.selectedMetrics.push(metric);
+        }
+
+        console.log(body.aggregator, JSON.stringify(body));
+
+        let url = API_CONFIG.template.add;
+
+        retryFetch(url, {
+            method: "POST",
+            retries: 3,
+            retryDelay: 10000,
+            params: {
+                api_key: API_CONFIG.apiKey
+            },
+            ContentType: "application/json",
+            body: JSON.stringify(body),
+        }).then(function (response) {
+            return response.json();
+        }).then((json) => {
+            this.doFetchTemplates();
+            this.reset();
+        });
     }
 
     updateTemplate() {
@@ -166,6 +245,43 @@ class MetricExplorePage extends React.Component {
             "templateId": 137
         } 
     */
+
+        let body = {};
+        body.templateName = this.state.dashboardName;
+        body.selectedMetrics = [];
+        body.tagKey = [this.state.tagKey == null ? "" : this.state.tagKey];
+        body.chartNamePrefix = this.state.chartPrefix;
+        body.aggregator = this.state.agg;
+        body.maxChartNum = this.state.maxNum;
+        body.templateId = this.state.templateId;
+
+        body.matchYAxis = false;
+        body.colDisplayOption = "mixInChart";
+        body.selectedTags = [];
+
+
+        for (let metric of this.state.metrics) {
+            body.selectedMetrics.push(metric);
+        }
+
+        let url = API_CONFIG.template.update;
+
+        retryFetch(url, {
+            method: "POST",
+            retries: 3,
+            retryDelay: 10000,
+            params: {
+                api_key: API_CONFIG.apiKey
+            },
+            ContentType: "application/json",
+            body: JSON.stringify(body),
+        }).then(function (response) {
+            return response.json();
+        }).then((json) => {
+            this.doFetchTemplates();
+            this.reset();
+        });
+
     }
 
     saveDashboard() {
@@ -201,11 +317,81 @@ class MetricExplorePage extends React.Component {
             ]
         }
          */
+
+        let body = {};
+        body.dashboard = { dashboard_name: this.state.dashboardName };
+        body.charts = [];
+        let numChats = 0;
+        for (let metric of this.state.metrics) {
+
+            let metrics = [];
+            let tags = [];
+            for (let tval of this.state.tagValsSelected) {
+                tags.push(this.state.tagKey + ":" + tval);
+            }
+
+            metrics.push({
+                metric: metric,
+                aggregator: this.state.agg,
+                type: "line",
+                rate: false,
+                by: this.state.tagKey,
+                tags: tags,
+                id: 0
+            });
+
+
+            let chart = {
+                dashboard_chart_name: (this.state.chartPrefix ? this.state.chartPrefix : "") + ' ' + metric,
+                dashboard_chart_type: "timeseries",
+                metrics: metrics,
+            };
+
+            body.charts.push(chart);
+
+            numChats++;
+            if (numChats >= this.state.maxNum) {
+                break;
+            }
+        }
+
+
+        let url = API_CONFIG.dashboard.addMore;
+
+        retryFetch(url, {
+            method: "POST",
+            retries: 3,
+            retryDelay: 10000,
+            params: {
+                api_key: API_CONFIG.apiKey
+            },
+            ContentType: "application/json",
+            body: JSON.stringify(body),
+        }).then(function (response) {
+
+            return response.json();
+        }).then((json) => {
+            this.setState({
+                saveFlag: 0,
+            })
+            notification.success({
+                message: '保存成功',
+                description: '在【仪表盘】的【自定义仪表盘】可以查看.',
+                btn: (
+                    <Button type="primary" size="small" onClick={this.gotoDashboard.bind(this, json.result.id)}>查看</Button>
+                ),
+            });
+        });
+    }
+
+    gotoDashboard(id) {
+        window.location.href = '/apmsys/dashboards/' + id;
     }
 
     addToDashboard() {
         //https://cloud.oneapm.com/v1/dashboards/6629/charts/batchAdd.json
         /*
+        `/p1/dashboards/${this.props.chart.dashboard_id}/charts/${this.props.chart.id}/delete.json`
         [
             {
                 "dashboard_chart_name": " postgresql.bgwriter.buffers_alloc",
@@ -231,11 +417,150 @@ class MetricExplorePage extends React.Component {
             }
         ]
  */
+
+        let body = {};
+        body.dashboard = { dashboard_name: this.state.dashboardName };
+        body.charts = [];
+        let numChats = 0;
+        for (let metric of this.state.metrics) {
+
+            let metrics = [];
+            let tags = [];
+    
+            for (let tval of this.state.tagValsSelected) {
+                tags.push(this.state.tagKey + ":" + tval);
+            }
+
+            metrics.push({
+                metric: metric,
+                aggregator: this.state.agg,
+                type: "line",
+                rate: false,
+                by: this.state.tagKey,
+                tags: tags,
+                id: 0
+            });
+
+
+            let chart = {
+                dashboard_chart_name: (this.state.chartPrefix ? this.state.chartPrefix : "") + ' ' + metric,
+                dashboard_chart_type: "timeseries",
+                metrics: metrics,
+            };
+
+            body.charts.push(chart);
+
+            numChats++;
+            if (numChats >= this.state.maxNum) {
+                break;
+            }
+        }
+
+        let url = format(API_CONFIG.dashboard.batchAdd, this.state.dashboardId);
+
+        retryFetch(url, {
+            method: "POST",
+            retries: 3,
+            retryDelay: 10000,
+            params: {
+                api_key: API_CONFIG.apiKey
+            },
+            ContentType: "application/json",
+            body: JSON.stringify(body.charts),
+        }).then(function (response) {
+            return response.json();
+        }).then((json) => {
+            this.setState({
+                saveFlag: 0,
+            })
+            notification.success({
+                message: '保存成功',
+                description: '在【仪表盘】的【自定义仪表盘】可以查看.',
+                btn: (
+                    <Button type="primary" size="small" onClick={this.gotoDashboard.bind(this, this.state.dashboardId)}>查看</Button>
+                ),
+            });
+        });
     }
 
+    doFetchDatashBoard() {
+        this.setState({
+            network: {
+                isFetching: true,
+                data: [],
+                error: null,
+            }
+        });
+
+        //console.log(API_CONFIG.userHost + API_CONFIG.metric);
+        //API_CONFIG.userHost +
+        retryFetch(API_CONFIG.dashboard.list, {
+            method: "GET",
+            retries: 3,
+            retryDelay: 10000,
+            params: {
+                /* q: q,
+                begin: startDate,
+                end: endDate,
+                interval: interval,*/
+                api_key: API_CONFIG.apiKey,
+                type: 'user',
+            },
+        }).then(function (response) {
+            return response.json();
+        }).then((json) => {
+
+
+            this.setState({
+                network: {
+                    isFetching: false,
+                    data: json.result,
+                    error: null,
+                },
+            });
+        });
+    }
+
+    doFetchTemplates() {
+        this.setState({
+            templateNetwork: {
+                isFetching: true,
+                data: [],
+                error: null,
+            }
+        });
+
+        //console.log(API_CONFIG.userHost + API_CONFIG.metric);
+        //API_CONFIG.userHost +
+        retryFetch(API_CONFIG.template.list, {
+            method: "GET",
+            retries: 3,
+            retryDelay: 10000,
+            params: {
+                /* q: q,
+                begin: startDate,
+                end: endDate,
+                interval: interval,*/
+                api_key: API_CONFIG.apiKey,
+                type: 'user',
+            },
+        }).then(function (response) {
+            return response.json();
+        }).then((json) => {
+
+
+            this.setState({
+                templateNetwork: {
+                    isFetching: false,
+                    data: json.result,
+                    error: null,
+                },
+            });
+        });
+    }
 
     changeMetric(val) {
-       
+
         let keys = new Set();
         for (let metric of val) {
             for (let key of this.MapAllMetrics.get(metric).keys()) {
@@ -256,23 +581,32 @@ class MetricExplorePage extends React.Component {
     }
 
     initAllMetricMap(allMetrics) {
+
         for (let metric of allMetrics.data) {
             let mapTag = new Map();
-            for (let tag of metric.tags) {
-                let arr = tag.split(':');
-                if (arr.length > 0) {
-                    let vals = mapTag.get(arr[0]);
-                    if (!vals) {
-                        vals = [];
-                        mapTag.set(arr[0], vals);
+            try {
+                for (let tag of metric.tags) {
+                    let arr = tag.split(':');
+                    if (arr.length > 0) {
+                        let vals = mapTag.get(arr[0]);
+                        if (!vals) {
+                            vals = [];
+                            mapTag.set(arr[0], vals);
+                        }
+
+
+                        vals.push(arr[1]);
                     }
-
-
-                    vals.push(arr[1]);
                 }
+            } catch (e) {
+                console.log(metric);
             }
+
             this.MapAllMetrics.set(metric.metric, mapTag);
         }
+
+
+        this.changeMetric(this.state.metrics);
     }
 
     componentWillReceiveProps(nextProps) {
@@ -286,9 +620,12 @@ class MetricExplorePage extends React.Component {
             metrics: [],
             tagKeys: new Set(),
             tagKey: null,
+            tagVals: new Set(),
+            tagValsSelected: new Set(),
             chartPrefix: null,
             saveFlag: 0,
             agg: "avg",
+            templateId: null,
         });
 
 
@@ -305,8 +642,23 @@ class MetricExplorePage extends React.Component {
     }
 
     changeTagKey(val) {
+        let tags = new Set();
+        let tagValsSelected = new Set();
+        for (let metric of this.state.metrics) {
+            if (val && this.MapAllMetrics.get(metric) && this.MapAllMetrics.get(metric).has(val)) {
+                for (let tval of this.MapAllMetrics.get(metric).get(val)) {
+                    tags.add(tval);
+                    tagValsSelected.add(tval);
+                }
+            }
+        }
+
+
+
         this.setState({
             tagKey: val,
+            tagVals: tags,
+            tagValsSelected: tagValsSelected,
         });
     }
 
@@ -332,8 +684,17 @@ class MetricExplorePage extends React.Component {
         });
     }
 
+    onChangeDashboardName(e) {
+        this.setState({
+            dashboardName: e.target.value,
+        });
+    }
+
     toSaveFlag(flag) {
         console.log(flag);
+        if (flag == 2) {
+            this.doFetchDatashBoard();
+        }
 
         this.setState({
             saveFlag: flag,
@@ -341,6 +702,62 @@ class MetricExplorePage extends React.Component {
     }
 
     doSave() {
+        switch (this.state.saveFlag) {
+            case 1:
+                if (!this.state.dashboardName) return;
+                return this.saveDashboard();
+            case 2:
+                if (!this.state.dashboardId) return;
+                return this.addToDashboard();
+            case 3:
+                if (!this.state.dashboardName) return;
+                return this.saveTemplate();
+            case 4:
+                if (!this.state.dashboardName) return;
+                return this.updateTemplate();
+        }
+
+    }
+
+    changeDashboard(val) {
+        this.setState({
+            dashboardId: val,
+        });
+    }
+
+    onRowClick(record, index) {
+
+        console.log(this.state.templateNetwork.data[record.key], index);
+        let temp = this.state.templateNetwork.data[record.key];
+        this.setState({
+            templateId: temp.template_id,
+            metrics: temp.selected_metrics,
+            tagKey: temp.tag_key[0],
+            dashboardName: temp.template_name,
+            maxNum: temp.max_chart_num,
+            aggregator: temp.aggregator,
+            chartPrefix: temp.chart_name_prefix,
+        });
+        if (this.MapAllMetrics.keys().length > 0)
+            this.changeMetric(temp.selected_metrics);
+    }
+
+    onChangeTagv(val, e) {
+        let tags = this.state.tagValsSelected;
+        console.log(tags, val, e.target.checked);
+
+        if (e.target.checked) {
+            tags.add(val);
+        } else {
+            tags.delete(val);
+            console.log(tags);
+        }
+
+
+
+        this.setState({
+            tagValsSelected: tags,
+        });
 
     }
 
@@ -367,6 +784,13 @@ class MetricExplorePage extends React.Component {
             optionKeys.push(option);
         }
 
+        let optionDashboards = [];
+
+        for (let dash of this.state.network.data) {
+            let option = <Select.Option key={dash.id} value={dash.id}>{dash.name}</Select.Option>
+            optionDashboards.push(option);
+        }
+
         const menu = (
             <Menu onClick={this.menuClick.bind(this)}>
                 <Menu.Item key="10">
@@ -386,34 +810,23 @@ class MetricExplorePage extends React.Component {
         for (let metric of this.state.metrics) {
 
             let metrics = [];
-            if (this.state.tagKey && this.MapAllMetrics.get(metric).has(this.state.tagKey)) {
-                // console.log("sssss", this.MapAllMetrics,this.MapAllMetrics.get(metric).get(this.state.tagKey));
+            let tags = [];
 
-                for (let tval of this.MapAllMetrics.get(metric).get(this.state.tagKey)) {
-
-
-                    metrics.push({
-                        metric: metric,
-                        aggregator: this.state.agg,
-                        type: "line",
-                        rate: false,
-                        by: null,
-                        tags: [this.state.tagKey + ":" + tval],
-                        id: 0
-                    });
-                }
-            } else {
-                metrics.push({
-                    metric: metric,
-                    aggregator: "avg",
-                    type: "line",
-                    rate: false,
-                    by: null,
-                    tags: null,
-                    id: 0
-                });
+            for (let tval of this.state.tagValsSelected) {
+                tags.push(this.state.tagKey + ":" + tval);
             }
 
+
+
+            metrics.push({
+                metric: metric,
+                aggregator: this.state.agg,
+                type: "line",
+                rate: false,
+                by: this.state.tagKey,
+                tags: tags,
+                id: 0
+            });
 
             let chart = {
                 dashboard_id: 0,
@@ -437,9 +850,63 @@ class MetricExplorePage extends React.Component {
             if (numChats >= this.state.maxNum) {
                 break;
             }
-
-
         }
+
+        const columns = [{
+            title: '名称',
+            dataIndex: 'name',
+            key: 'name',
+            width: 'auto',
+
+        }, {
+            title: '创建人',
+            dataIndex: 'user',
+            key: 'user',
+            width: 150,
+        }, {
+            title: '创建日期',
+            dataIndex: 'createTime',
+            key: 'createTime',
+            width: 200,
+        }, {
+            title: '指标',
+            dataIndex: 'metric',
+            key: 'metric',
+            width: 200,
+        }, {
+            title: '操作',
+            key: 'action',
+            width: 200,
+            render: (text, record) => (
+                <span>
+                    <a onClick={this.deleteTemplate.bind(this, record.key)}>删除</a>
+                </span>
+            ),
+        }];
+
+        const data = [];
+        for (let i = 0; i < this.state.templateNetwork.data.length; i++) {
+            let temp = this.state.templateNetwork.data[i];
+            data.push({
+                key: i,
+                name: temp.template_name,
+                user: temp.owner_name,
+                createTime: moment(temp.created_at).format('YYYY-MM-DD HH:mm'),
+                metric: temp.selected_metrics.toString(),
+            });
+        }
+
+        const expandedRowRender = record => <p>{record.description}</p>;
+
+        if (this.state.metrics.length == 0)
+            charts = <Card><Table {...{
+                bordered: false,
+                loading: false,
+                pagination: false,
+                size: 'default',
+
+                scroll: undefined,
+            }} columns={columns} dataSource={data} onRowClick={this.onRowClick.bind(this)} /></Card>;
 
         let extForm = null;
 
@@ -448,7 +915,7 @@ class MetricExplorePage extends React.Component {
                 extForm = <FormItem  >
                     <Row type="flex" justify="start">
                         <Col span={16}>
-                            <Input placeholder="请输入仪表盘名称" onChange={this.onChangeChartPrefix.bind(this)} value={this.state.chartPrefix} />
+                            <Input placeholder="请输入仪表盘名称" onChange={this.onChangeDashboardName.bind(this)} value={this.state.dashboardName} />
                         </Col>
                         <Col>
                             <Button onClick={this.doSave.bind(this)} type="flat">保存</Button>
@@ -463,13 +930,13 @@ class MetricExplorePage extends React.Component {
                     <Row type="flex" justify="start">
                         <Col span={16}>
                             <Select style={{ width: '100%' }} placeholder="请选择指标"
-                                onChange={(val) => this.changeMetric(val)}
-                                defaultValue={this.state.metrics ? this.state.metrics : []}
-                                value={this.state.metrics ? this.state.metrics : []}
+                                onChange={(val) => this.changeDashboard(val)}
+                                defaultValue={this.state.dashboardId}
+                                value={this.state.dashboardId}
                                 showSearch
                                 getPopupContainer={() => $(".app-main")[0]}
                             >
-                                {optionMetrics}
+                                {optionDashboards}
                             </Select>
                         </Col>
                         <Col>
@@ -484,7 +951,7 @@ class MetricExplorePage extends React.Component {
                 extForm = <FormItem  >
                     <Row type="flex" justify="start">
                         <Col span={16}>
-                            <Input placeholder="请输入模板名称" onChange={this.onChangeChartPrefix.bind(this)} value={this.state.chartPrefix} />
+                            <Input placeholder="请输入模板名称" onChange={this.onChangeDashboardName.bind(this)} value={this.state.dashboardName} />
                         </Col>
                         <Col>
                             <Button onClick={this.doSave.bind(this)} type="flat">保存</Button>
@@ -497,7 +964,7 @@ class MetricExplorePage extends React.Component {
                 extForm = <FormItem  >
                     <Row type="flex" justify="start">
                         <Col span={16}>
-                            <Input placeholder="请输入模板名称" onChange={this.onChangeChartPrefix.bind(this)} value={this.state.chartPrefix} />
+                            <Input placeholder="请输入模板名称" onChange={this.onChangeDashboardName.bind(this)} value={this.state.dashboardName} />
                         </Col>
                         <Col>
                             <Button onClick={this.doSave.bind(this)} type="flat">保存</Button>
@@ -508,9 +975,15 @@ class MetricExplorePage extends React.Component {
         }
 
 
+        let compTagvs = [];
 
-
-
+        for (let val of this.state.tagVals) {
+            let label = this.state.tagKey + ":" + val;
+            let checked = this.state.tagValsSelected.has(val) ? true : false;
+            console.log(checked);
+            let comp = <div key={val}><Checkbox onChange={this.onChangeTagv.bind(this, val)} checked={checked} style={{ fontWeight: 100 }}>{label}</Checkbox><br /></div>
+            compTagvs.push(comp)
+        }
 
 
 
@@ -562,7 +1035,7 @@ class MetricExplorePage extends React.Component {
                                 </Select>
                             </FormItem>
 
-                            <FormItem label="按标签key分组" hasFeedback>
+                            <FormItem style={{ marginBottom: '0px' }} label="按标签key分组" hasFeedback>
                                 <Select style={{ width: '100%' }} placeholder="请选择标签key"
                                     onChange={(val) => this.changeTagKey(val)}
                                     defaultValue={this.state.tagKey}
@@ -571,7 +1044,11 @@ class MetricExplorePage extends React.Component {
                                 >
                                     {optionKeys}
                                 </Select>
+
+
+
                             </FormItem>
+                            {compTagvs}
 
 
                             <FormItem label="聚合方式" hasFeedback>
@@ -604,7 +1081,8 @@ class MetricExplorePage extends React.Component {
                                 <Row type="flex" justify="start">
                                     <Col   >{this.state.metrics.length == 0 ? <Button disabled>新建仪表盘</Button> : <Button onClick={this.toSaveFlag.bind(this, 1)} >新建仪表盘</Button>}</Col>
                                     <Col style={{ marginLeft: '5px' }}>{this.state.metrics.length == 0 ? <Button disabled>已有仪表盘</Button> : <Button onClick={this.toSaveFlag.bind(this, 2)}>已有仪表盘</Button>}</Col>
-                                    <Col style={{ marginLeft: '5px' }}>{this.state.metrics.length == 0 ? <Button disabled>保存为仪表盘</Button> : <Button onClick={this.toSaveFlag.bind(this, 3)}>保存为仪表盘</Button>}</Col>
+                                    <Col style={{ marginLeft: '5px' }}>{this.state.metrics.length == 0 ? <Button disabled>保存为模板</Button> : <Button onClick={this.toSaveFlag.bind(this, 3)}>保存为模板</Button>}</Col>
+                                    {this.state.templateId > 0 ? <Col style={{ marginLeft: '5px' }}>{this.state.metrics.length == 0 ? <Button disabled>更新模板</Button> : <Button onClick={this.toSaveFlag.bind(this, 4)}>更新模板</Button>}</Col> : null}
                                 </Row>
 
 
@@ -620,7 +1098,7 @@ class MetricExplorePage extends React.Component {
                     </Col>
 
                     <Col lg={16} style={{ textAlign: 'right' }}>
-                        {this.state.metrics.length == 0 ? <NoPreviewForMetricsExplorer /> : <div className="metric-layout" >
+                        {this.state.templateNetwork.data.length == 0 && this.state.metrics.length == 0 ? <NoPreviewForMetricsExplorer /> : <div className="metric-layout" >
                             <Row >
                                 {charts}
                             </Row>

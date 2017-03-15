@@ -140,7 +140,12 @@ export default class ChartsBase extends React.Component {
                 q += "{" + tags + "}";
             }
             if (!metricInfo.tags) {//*
-                q += "{}";
+                
+                if(metricInfo.query && metricInfo.query.indexOf("{scope}") >= 0 && props.params.scope.value) {
+                    q += "{"+props.params.scope.value.replace(":", "=")+"}";
+                } else {
+                    q += "{}";
+                }
             }
             if (metricInfo.by) {
 

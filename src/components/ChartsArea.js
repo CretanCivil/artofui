@@ -82,7 +82,11 @@ class ChartsArea extends ChartsBase {
             }
             if (!metricInfo.tags) {
                 //q += "{*}";
-                q += "{}";
+                if(metricInfo.query && metricInfo.query.indexOf("{scope}") >= 0 && props.params.scope.value) {
+                    q += "{"+props.params.scope.value.replace(":", "=")+"}";
+                } else {
+                    q += "{}";
+                }
             }
             /* if (metricInfo.by) {
  
@@ -237,7 +241,7 @@ class ChartsArea extends ChartsBase {
         let end = parseInt(e.xAxis[0].max / 1000) * 1000;
         let begin = parseInt(e.xAxis[0].min / 1000) * 1000;
         if (end - begin < 600 * 1000) {
-            end = begin + 600 * 1000;
+            begin =  end - 600 * 1000;
         }
         setTimeout(() => {
             this.props.setChartRange({

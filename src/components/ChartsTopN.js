@@ -86,7 +86,11 @@ class ChartsTopN extends ChartsBase {
             }
             if (!metricInfo.tags) {
                 //q += "{*}";
-                q += "{}";
+                if(metricInfo.query && metricInfo.query.indexOf("{scope}") >= 0 && props.params.scope.value) {
+                    q += "{"+props.params.scope.value.replace(":", "=")+"}";
+                } else {
+                    q += "{}";
+                }
             }
             if (metricInfo.by) {
 
