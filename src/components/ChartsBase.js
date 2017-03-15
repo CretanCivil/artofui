@@ -112,10 +112,10 @@ export default class ChartsBase extends React.Component {
             let mustInterupt = false;
             if (metricInfo.tags) {
                 tags = metricInfo.tags.map(function (item) {
-                    if (props.params[metricInfo.tags]) {
-                        if (props.params[metricInfo.tags].value) {
-                            //console.log(props.params[metricInfo.tags]);
-                            return props.params[metricInfo.tags].value.replace(":", "=");
+                    if (props.params[item]) {
+                        if (props.params[item].value) {
+                            //console.log(props.params[item]);
+                            return props.params[item].value.replace(":", "=");
                         } else {
                             mustInterupt = true;
                             return "";
@@ -140,20 +140,43 @@ export default class ChartsBase extends React.Component {
                 q += "{" + tags + "}";
             }
             if (!metricInfo.tags) {//*
-                
-                if(metricInfo.query && metricInfo.query.indexOf("{scope}") >= 0 && props.params.scope.value) {
-                    q += "{"+props.params.scope.value.replace(":", "=")+"}";
+                let qtags = [];
+                if (metricInfo.query) {
+                    let regex = /^(\w+):(?:(\w+-\w+(?:-(?:\w+))?):)?(?:(rate.*):)?([\w./-]+)(?:\{([^}]+)?\})?(?:(by))?(?:\{([^}]+)?\})?/;
+                    let m = regex.exec(metricInfo.query);
+                    if (m !== null && m.length > 5) {
+
+                        qtags = m[5].split(",");
+                        //console.log(qtags);
+                    }
+                }
+                tags = qtags.map(function (item) {
+                    //console.log("===", item);
+                    if (props.params[item]) {
+                        if (props.params[item].value) {
+                            //console.log(props.params[item]);
+                            return props.params[item].value.replace(":", "=");
+                        } else {
+                            return "";
+                        }
+                    }
+                    return item.replace(":", "=")
+                });
+                if (tags) {
+                    q += "{" + tags + "}";
                 } else {
                     q += "{}";
                 }
             }
-            if (metricInfo.by) {
 
+            if (metricInfo.by) {
                 q += "by{" + metricInfo.by + "}";
             }
 
             metric.q = q;
+            //console.log(metric.q);
         }
+        
         //console.log(API_CONFIG.userHost + API_CONFIG.metric);
         //API_CONFIG.userHost +
         retryFetch(API_CONFIG.metric, {

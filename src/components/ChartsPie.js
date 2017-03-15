@@ -74,8 +74,30 @@ class ChartsPie extends ChartsBase {
             }
             if (!metricInfo.tags) {
                //q += "{*}";
-                if(metricInfo.query && metricInfo.query.indexOf("{scope}") >= 0 && props.params.scope.value) {
-                    q += "{"+props.params.scope.value.replace(":", "=")+"}";
+                let qtags = [];
+                if (metricInfo.query) {
+                    let regex = /^(\w+):(?:(\w+-\w+(?:-(?:\w+))?):)?(?:(rate.*):)?([\w./-]+)(?:\{([^}]+)?\})?(?:(by))?(?:\{([^}]+)?\})?/;
+                    let m = regex.exec(metricInfo.query);
+                    if (m !== null && m.length > 5) {
+
+                        qtags = m[5].split(",");
+                        //console.log(qtags);
+                    }
+                }
+                tags = qtags.map(function (item) {
+                    //console.log("===", item);
+                    if (props.params[item]) {
+                        if (props.params[item].value) {
+                            //console.log(props.params[item]);
+                            return props.params[item].value.replace(":", "=");
+                        } else {
+                            return "";
+                        }
+                    }
+                    return item.replace(":", "=")
+                });
+                if (tags) {
+                    q += "{" + tags + "}";
                 } else {
                     q += "{}";
                 }

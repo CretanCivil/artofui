@@ -81,13 +81,35 @@ class ChartsHeatMap extends ChartsBase {
             }
             if (!metricInfo.tags) {
                 //q += "{*}";
-                if(metricInfo.query && metricInfo.query.indexOf("{scope}") >= 0 && props.params.scope.value) {
-                    q += "{"+props.params.scope.value.replace(":", "=")+"}";
+                let qtags = [];
+                if (metricInfo.query) {
+                    let regex = /^(\w+):(?:(\w+-\w+(?:-(?:\w+))?):)?(?:(rate.*):)?([\w./-]+)(?:\{([^}]+)?\})?(?:(by))?(?:\{([^}]+)?\})?/;
+                    let m = regex.exec(metricInfo.query);
+                    if (m !== null && m.length > 5) {
+
+                        qtags = m[5].split(",");
+                        //console.log(qtags);
+                    }
+                }
+                tags = qtags.map(function (item) {
+                    //console.log("===", item);
+                    if (props.params[item]) {
+                        if (props.params[item].value) {
+                            //console.log(props.params[item]);
+                            return props.params[item].value.replace(":", "=");
+                        } else {
+                            return "";
+                        }
+                    }
+                    return item.replace(":", "=")
+                });
+                if (tags) {
+                    q += "{" + tags + "}";
                 } else {
                     q += "{}";
                 }
             }
- 
+
 
             metric.q = q;
         }
@@ -263,7 +285,7 @@ class ChartsHeatMap extends ChartsBase {
                     if (pointlist[keyTime] == null)
                         continue;
                     let tmp = [];
-                    
+
 
                     //this.props.chart.range.startDate, this.props.chart.range.endDate
                     if (this.props.chart.range.startDate <= 3600000 * 24) {
@@ -283,7 +305,7 @@ class ChartsHeatMap extends ChartsBase {
                         //console.log(time.format("YYYY-MM-DD"));
                         // tmp.push('2013-12-11');
 
-                        
+
 
 
 
@@ -341,7 +363,7 @@ class ChartsHeatMap extends ChartsBase {
             title: {
                 text: null
             },
-            colorAxis:{minColor:"rgba(255,255,255,0.9)",maxColor:'#008acd',tickPixelInterval:1/0},
+            colorAxis: { minColor: "rgba(255,255,255,0.9)", maxColor: '#008acd', tickPixelInterval: 1 / 0 },
             plotOptions: {
                 heatmap: {
                     marker: {

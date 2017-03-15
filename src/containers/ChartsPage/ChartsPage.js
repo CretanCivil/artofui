@@ -431,7 +431,7 @@ export class ChartsPage extends React.Component {
             scope: tags.data[value]
         });
 
-        console.log(value);
+        //console.log(value);
     }
 
     componentWillReceiveProps(nextProps) {

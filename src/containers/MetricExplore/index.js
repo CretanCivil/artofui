@@ -862,12 +862,12 @@ class MetricExplorePage extends React.Component {
             title: '创建人',
             dataIndex: 'user',
             key: 'user',
-            width: 150,
+            width: 100,
         }, {
             title: '创建日期',
             dataIndex: 'createTime',
             key: 'createTime',
-            width: 200,
+            width: 100,
         }, {
             title: '指标',
             dataIndex: 'metric',
@@ -876,7 +876,7 @@ class MetricExplorePage extends React.Component {
         }, {
             title: '操作',
             key: 'action',
-            width: 200,
+            width: 50,
             render: (text, record) => (
                 <span>
                     <a onClick={this.deleteTemplate.bind(this, record.key)}>删除</a>
