@@ -76,6 +76,7 @@ class MetricExplorePage extends React.Component {
             readonly: true,
             selectedRowKeys: [],
             agg: "avg",
+            graphFlag: "1",
 
             ranges: {
                 '最近60分钟': [moment().subtract(1, 'hours').startOf('minute'), moment().startOf('minute')],
@@ -138,7 +139,7 @@ class MetricExplorePage extends React.Component {
     }
 
     deleteTemplate(templateId, e) {
-        console.log(templateId);
+        //console.log(templateId);
         //e.preventDefault();
         e.stopPropagation();
         let network = Object.assign({}, this.state.templateNetwork);
@@ -426,7 +427,7 @@ class MetricExplorePage extends React.Component {
 
             let metrics = [];
             let tags = [];
-    
+
             for (let tval of this.state.tagValsSelected) {
                 tags.push(this.state.tagKey + ":" + tval);
             }
@@ -725,6 +726,12 @@ class MetricExplorePage extends React.Component {
         });
     }
 
+    changeGraphFlag(val) {
+        this.setState({
+            graphFlag: val,
+        });
+    }
+
     onRowClick(record, index) {
 
         console.log(this.state.templateNetwork.data[record.key], index);
@@ -744,7 +751,7 @@ class MetricExplorePage extends React.Component {
 
     onChangeTagv(val, e) {
         let tags = this.state.tagValsSelected;
-        console.log(tags, val, e.target.checked);
+        //console.log(tags, val, e.target.checked);
 
         if (e.target.checked) {
             tags.add(val);
@@ -759,6 +766,154 @@ class MetricExplorePage extends React.Component {
             tagValsSelected: tags,
         });
 
+    }
+
+    buildCharts() {
+        let charts = [];
+        let numChats = 0;
+        switch (parseInt(this.state.graphFlag)) {
+            case 1:
+                for (let metric of this.state.metrics) {
+
+                    let metrics = [];
+                    let tags = [];
+
+                    for (let tval of this.state.tagValsSelected) {
+                        tags.push(this.state.tagKey + ":" + tval);
+                    }
+
+                    metrics.push({
+                        metric: metric,
+                        aggregator: this.state.agg,
+                        type: "line",
+                        rate: false,
+                        by: this.state.tagKey,
+                        tags: tags,
+                        id: 0
+                    });
+
+                    let chart = {
+                        dashboard_id: 0,
+                        id: 0,
+                        meta: { modelType: "normal" },
+                        metrics: metrics,
+                        name: metric,
+                        type: "timeseries"
+                    };
+                    let card = <Col key={this.state.metrics.indexOf(metric)}
+                        sm={12}
+                        style={{ height: '320px', textAlign: 'left', marginBottom: '10px', }}>
+                        <ChartsCard
+                            chart={chart}
+                            readonly={true}>
+                        </ChartsCard>
+                    </Col>;
+                    charts.push(card);
+
+                    numChats++;
+                    if (numChats >= this.state.maxNum) {
+                        break;
+                    }
+                }
+                break;
+            case 2:
+                for (let tval of this.state.tagValsSelected) {
+                    let metrics = [];
+                    for (let metric of this.state.metrics) {
+
+
+                        let tags = [];
+
+
+                        tags.push(this.state.tagKey + ":" + tval);
+
+
+                        metrics.push({
+                            metric: metric,
+                            aggregator: this.state.agg,
+                            type: "line",
+                            rate: false,
+                            by: this.state.tagKey,
+                            tags: tags,
+                            id: 0
+                        });
+                    }
+                    let chart = {
+                        dashboard_id: 0,
+                        id: 0,
+                        meta: { modelType: "normal" },
+                        metrics: metrics,
+                        name: this.state.tagKey + ":" + tval,
+                        type: "timeseries"
+                    };
+                    let card = <Col key={this.state.tagKey + ":" + tval}
+                        sm={12}
+                        style={{ height: '320px', textAlign: 'left', marginBottom: '10px', }}>
+                        <ChartsCard
+                            chart={chart}
+                            readonly={true}>
+                        </ChartsCard>
+                    </Col>;
+                    charts.push(card);
+
+                    numChats++;
+                    if (numChats >= this.state.maxNum) {
+                        break;
+                    }
+                }
+                break;
+            case 3:
+                for (let metric of this.state.metrics) {
+
+
+
+                    for (let tval of this.state.tagValsSelected) {
+                        
+                        let metrics = [];
+                        let tags = [];
+                        tags.push(this.state.tagKey + ":" + tval);
+                        metrics.push({
+                            metric: metric,
+                            aggregator: this.state.agg,
+                            type: "line",
+                            rate: false,
+                            by: this.state.tagKey,
+                            tags: tags,
+                            id: 0
+                        });
+
+                        let chart = {
+                            dashboard_id: 0,
+                            id: 0,
+                            meta: { modelType: "normal" },
+                            metrics: metrics,
+                            name: metric,
+                            type: "timeseries"
+                        };
+                        let card = <Col key={metric + tval}
+                            sm={12}
+                            style={{ height: '320px', textAlign: 'left', marginBottom: '10px', }}>
+                            <ChartsCard
+                                chart={chart}
+                                readonly={true}>
+                            </ChartsCard>
+                        </Col>;
+                        charts.push(card);
+
+                        numChats++;
+                        if (numChats >= this.state.maxNum) {
+                            break;
+                        }
+                    }
+
+                    if (numChats >= this.state.maxNum) {
+                        break;
+                    }
+                }
+                break;
+        }
+
+        return charts;
     }
 
     render() {
@@ -805,7 +960,8 @@ class MetricExplorePage extends React.Component {
             </Menu>
         );
 
-        let charts = [];
+        let charts = this.buildCharts();
+        /*let charts = [];
         let numChats = 0;
         for (let metric of this.state.metrics) {
 
@@ -815,8 +971,6 @@ class MetricExplorePage extends React.Component {
             for (let tval of this.state.tagValsSelected) {
                 tags.push(this.state.tagKey + ":" + tval);
             }
-
-
 
             metrics.push({
                 metric: metric,
@@ -850,7 +1004,7 @@ class MetricExplorePage extends React.Component {
             if (numChats >= this.state.maxNum) {
                 break;
             }
-        }
+        }*/
 
         const columns = [{
             title: '名称',
@@ -867,7 +1021,7 @@ class MetricExplorePage extends React.Component {
             title: '创建日期',
             dataIndex: 'createTime',
             key: 'createTime',
-            width: 100,
+            width: 150,
         }, {
             title: '指标',
             dataIndex: 'metric',
@@ -876,7 +1030,7 @@ class MetricExplorePage extends React.Component {
         }, {
             title: '操作',
             key: 'action',
-            width: 50,
+            width: 80,
             render: (text, record) => (
                 <span>
                     <a onClick={this.deleteTemplate.bind(this, record.key)}>删除</a>
@@ -976,11 +1130,27 @@ class MetricExplorePage extends React.Component {
 
 
         let compTagvs = [];
+        if (this.state.tagVals.size > 0) {
+            let comp = <Select key="select_:90"
+                style={{ width: '50%', marginTop: '5px' }} placeholder="请选择指标"
+                onChange={(val) => this.changeGraphFlag(val)}
+                defaultValue={this.state.graphFlag}
+                value={this.state.graphFlag}
+                getPopupContainer={() => $(".app-main")[0]}
+            >
+                <Select.Option key="1" value="1">每个指标一个图</Select.Option>
+                <Select.Option key="2" value="2">每个标签一个图</Select.Option>
+                <Select.Option key="3" value="3">每个指标每个标签一个图</Select.Option>
+            </Select>
+            compTagvs.push(comp);
+        }
+
+        //console.log(this.state.tagVals.size, compTagvs);
 
         for (let val of this.state.tagVals) {
             let label = this.state.tagKey + ":" + val;
             let checked = this.state.tagValsSelected.has(val) ? true : false;
-            console.log(checked);
+            //console.log(checked,val);
             let comp = <div key={val}><Checkbox onChange={this.onChangeTagv.bind(this, val)} checked={checked} style={{ fontWeight: 100 }}>{label}</Checkbox><br /></div>
             compTagvs.push(comp)
         }

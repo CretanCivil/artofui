@@ -167,15 +167,15 @@ class ChartsLine extends ChartsBase {
         这个定时器有点恶心，但是不这样不行。因为要延时执行，否则highchart里面的代码没有执行完成，就执行setChartRange会销毁chart对象，
         导致highchart报错。
          */
-       
+
         if (e.resetSelection)
             return;
 
         let end = parseInt(e.xAxis[0].max / 1000) * 1000;
         let begin = parseInt(e.xAxis[0].min / 1000) * 1000;
 
-        if(end - begin < 600 * 1000) {
-            begin =  end - 600 * 1000;
+        if (end - begin < 600 * 1000) {
+            begin = end - 600 * 1000;
         }
         setTimeout(() => {
             this.props.setChartRange({
@@ -253,7 +253,7 @@ class ChartsLine extends ChartsBase {
 
     initConfig(network) {
         let isFetching = network.isFetching;
-        let data = network.data;
+        //let data = network.data;
 
         let series = [];
         let legend = {};
@@ -302,35 +302,36 @@ class ChartsLine extends ChartsBase {
         eventMouseMove = this.handleMouseMove.bind(this);
         eventSelection = this.handleChartSelection.bind(this);
 
+        for (let item of network.data) {
+            //console.log(item);
+            let data = item.series;
+            for (let key in data) {
+                let serie = {};
+                serie.data = [];
+                // console.log(this.props.metrics, key, this.props.metrics[key]);
+                // console.log("dddddd",data[key],this.props.metrics[data[key].queryId]);
+                serie.type = this.props.metrics[data[key].queryId].type;//let metric = this.props.metrics[0];
+                serie.tags = this.buildSerieName(data[key].tags);
+                serie.name = data[key].displayName;// + ' - ' + this.buildSerieName(data[key].tags);
+                //serie.metric = data[key].displayName;
+                serie.showInLegend = false;
+                //serie.aggregator = data[key].aggregator;
+                let serieDatas = [];
+                let pointlist = data[key].pointlist;
 
-        data = data[0].series;
-        for (let key in data) {
-            let serie = {};
-            serie.data = [];
-            // console.log(this.props.metrics, key, this.props.metrics[key]);
-            // console.log("dddddd",data[key],this.props.metrics[data[key].queryId]);
-            serie.type = this.props.metrics[data[key].queryId].type;//let metric = this.props.metrics[0];
-            serie.tags = this.buildSerieName(data[key].tags);
-            serie.name = data[key].displayName;// + ' - ' + this.buildSerieName(data[key].tags);
-            //serie.metric = data[key].displayName;
-            serie.showInLegend = false;
-            //serie.aggregator = data[key].aggregator;
-            let serieDatas = [];
-            let pointlist = data[key].pointlist;
-
-            for (var keyTime in pointlist) {
-                if (pointlist[keyTime] == null)
-                    continue;
-                let tmp = [];
-                tmp.push(keyTime * 1000);
-                tmp.push(pointlist[keyTime]);
-                serieDatas.push(tmp);
-                //[129.2, 144.0, 176.0, 135.6, 148.5, 216.4, 194.1, 95.6, 54.4, 29.9, 71.5, 106.4]
+                for (var keyTime in pointlist) {
+                    if (pointlist[keyTime] == null)
+                        continue;
+                    let tmp = [];
+                    tmp.push(keyTime * 1000);
+                    tmp.push(pointlist[keyTime]);
+                    serieDatas.push(tmp);
+                    //[129.2, 144.0, 176.0, 135.6, 148.5, 216.4, 194.1, 95.6, 54.4, 29.9, 71.5, 106.4]
+                }
+                serie.data = serieDatas;
+                series.push(serie);
             }
-            serie.data = serieDatas;
-            series.push(serie);
         }
-
 
 
         let cardChart = this.props.cardChart;
@@ -520,7 +521,7 @@ class ChartsLine extends ChartsBase {
 
     render() {
 
-        
+
 
         let childContent = null;
         if (!this.props.metrics || this.state.network.isFetching || this.state.network.error) {
