@@ -4,10 +4,10 @@ if(process.env.NODE_ENV == "test"){
   host = "http://localhost:4000";
 }else{
   host = location.origin;
-  host = "http://api.apmsys.com:8000";
+  host = "http://172.29.231.177:8000";
 }
 
-let userHost = "http://user.apmsys.com:8000";
+let userHost = "http://172.29.231.177:8000";
 
 const baseUri = host;
 console.log(G_WEB_PARAMS);

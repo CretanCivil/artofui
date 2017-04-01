@@ -30,13 +30,13 @@ const cloudProxy = proxy('/v1', {
   ws: true
 });
 const kongProxy = proxy('/p1', {
-  target: 'http://api.apmsys.com:8000',
+  target: 'http://172.29.231.177:8000',
   changeOrigin: true,
   ws: true
 });
 
 const javaProxy = proxy('/apmsys/v2/batch_query', {
-  target: 'http://user.apmsys.com:8000',
+  target: 'http://172.29.231.177:8000',
   changeOrigin: true,
   ws: true
 });

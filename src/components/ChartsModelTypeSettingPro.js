@@ -205,10 +205,16 @@ class ChartsModelTypeSettingPro extends React.Component {
 
         let optionMetrics = [];
 
+        for (let element of this.props.allMetrics.data) {
+            let option = <Select.Option key={element.metric} value={element.metric}>{element.metric}</Select.Option>
+            optionMetrics.push(option);
+
+        }
+        /*
         for (let metric of this.normalModelMap.keys()) {
             let option = <Select.Option key={metric} value={metric}>{metric}</Select.Option>
             optionMetrics.push(option);
-        }
+        }*/
 
         return <div style={{ marginTop: 10 }}>
             <Row type="flex" justify="start">
