@@ -311,6 +311,7 @@ class ChartsLine extends ChartsBase {
                 // console.log(this.props.metrics, key, this.props.metrics[key]);
                 // console.log("dddddd",data[key],this.props.metrics[data[key].queryId]);
                 serie.type = this.props.metrics[data[key].queryId].type;//let metric = this.props.metrics[0];
+                //area line  column bar
                 serie.tags = this.buildSerieName(data[key].tags);
                 serie.name = data[key].displayName;// + ' - ' + this.buildSerieName(data[key].tags);
                 //serie.metric = data[key].displayName;
@@ -393,6 +394,23 @@ class ChartsLine extends ChartsBase {
 
                     },
                 },
+                min: this.props.chart.range.endDate - this.props.chart.range.startDate,
+                max: this.props.chart.range.endDate,
+                /*
+                 labels: {
+                    type:'datetime',
+                     format: '{value:%m/%d}',
+                    style: {
+                        //'background-color': 'rgba(255, 255, 255, 0.8)',//没用
+                        'padding': '0px 3px',
+                        'font-size': '12px',
+                        'color': '#333',
+
+                    },
+                },
+                min: 1490979661000,
+                max: 1491584461000,
+                 */
 
                 // categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
 
@@ -403,6 +421,10 @@ class ChartsLine extends ChartsBase {
                 },
                 labels: {
                     align: 'left',
+                    /*format: '{value / } k',
+                    formatter: function() {
+                        return parseInt(this.value / 1024) + "k";
+                    },*/
                     x: -2,
                     y: 5,
                     style: {
@@ -410,12 +432,12 @@ class ChartsLine extends ChartsBase {
                         'padding': '0px 3px',
                         'font-size': '12px',
                         'color': '#333',
-
                     },
                     //useHtml:true,
                     //zIndex: 1070,//没用
                 },
                 visible: xAxisVisible,
+                min: 0,
             },
             legend: legend,
             tooltip: tooltip,

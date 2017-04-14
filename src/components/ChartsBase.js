@@ -190,10 +190,10 @@ export default class ChartsBase extends React.Component {
                 interval: interval,*/
                 api_key: API_CONFIG.apiKey,
             },
-            //ContentType: "application/json",
+            ContentType: "application/json",
             //ContentType: "text/plain",
-            //body: JSON.stringify({ queries: queries }),
-            body: encodeURIComponent(JSON.stringify({ queries: queries }))
+            body: JSON.stringify({ queries: queries }),
+            //body: encodeURIComponent(JSON.stringify({ queries: queries }))
         }).then(function (response) {
             return response.json();
         }).then((json) => {

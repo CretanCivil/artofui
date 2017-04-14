@@ -7,7 +7,7 @@ if(process.env.NODE_ENV == "test"){
   host = "http://172.29.231.177:8000";
 }
 
-let userHost = "http://172.29.231.177:8000";
+let userHost = host;//"http://172.29.231.177:8000";
 
 const baseUri = host;
 console.log(G_WEB_PARAMS);

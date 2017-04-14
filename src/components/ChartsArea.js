@@ -21,13 +21,44 @@ class ChartsArea extends ChartsBase {
 
     constructor(props) {
         super(props);
+        this.state = Object.assign(this.state, {
+            config: {
+                title: {
+                    text: null
+                },
+                /* xAxis: {
+                     id: "xaxis",
+                     title: {
+                         text: null
+                     },
+                     visible: false,
+                 },
+                 yAxis: {
+                     id: "yaxis",
+                     title: {
+                         text: null
+                     },
+                     visible: false,
+                 },
+                 legend: {},
+                 series: [{
+                     showInLegend: false,
+                     data: [0],
+                 }],*/
+                credits: {
+                    enabled: false // 禁用版权信息
+                },
+            },
+        });
     }
 
     componentWillReceiveProps(nextProps) {
         if (nextProps.chart.range != this.props.chart.range || this.props.metrics != nextProps.metrics) {
             this.doFetchData(nextProps, true);
         }
-
+if (nextProps.params.scope != this.props.params.scope) {
+            this.doFetchData(nextProps, true);
+        }
         if (nextProps.chart.crossLine.pos != this.props.chart.crossLine.pos) {
             this.showCrossLine(nextProps);
         }
@@ -36,7 +67,10 @@ class ChartsArea extends ChartsBase {
             this.chartSelection(nextProps);
         }
     }
-
+        getInterval(startDate) {
+        return parseInt(startDate / 60000);
+    }
+/*
     doFetchDataInner(startDate, endDate, chart) {
         let metrics = chart.metrics;
 
@@ -110,14 +144,12 @@ class ChartsArea extends ChartsBase {
                     q += "{}";
                 }
             }
-            /* if (metricInfo.by) {
- 
-                 q += "by{" + metricInfo.by + "}";
-             }
-             */
+        
 
             metric.q = q;
         }
+
+
 
 
         retryFetch(API_CONFIG.metric, {
@@ -125,15 +157,14 @@ class ChartsArea extends ChartsBase {
             retries: 3,
             retryDelay: 10000,
             params: {
-                /*q: q,
-                begin: startDate,
-                end: endDate,
-                interval: interval,*/
+ 
                 api_key: API_CONFIG.apiKey,
             },
-            //ContentType: "application/json",
-            //body: JSON.stringify({ queries: queries }),
-            body: encodeURIComponent(JSON.stringify({ queries: queries }))
+            ContentType: "application/json",
+            //ContentType: "text/plain",
+            body: JSON.stringify({ queries: queries }),
+            //body: encodeURIComponent(JSON.stringify({ queries: queries }))
+            
         }).then(function (response) {
             return response.json();
         }).then((json) => {
@@ -165,20 +196,9 @@ class ChartsArea extends ChartsBase {
         });
 
 
-        /*
-                //metricInfo.aggregator + ":" +　metricInfo.metric + "{" + metricInfo.tags+"}by{"+metricInfo.by + "}",
-                //"avg:system.mem.free{address=wuhan,host=102}by{host}"
-        
-                this.props.fetchMetric({
-                    id: this.props.id,
-                    q: q,
-                    begin: startDate,
-                    end: endDate,
-                    interval: startDate / 60000
-                });
-        */
+   
     }
-
+*/
     /*
     {"metric":"system.mem.free","aggregator":"avg","type":"line",
     "rate":false,"id":1482717404051,
@@ -309,26 +329,11 @@ class ChartsArea extends ChartsBase {
 
     }
 
+initConfig(network) {
+            let metric = this.props.metrics[0];
 
-
-    render() {
-        if (!this.props.metrics || this.state.network.isFetching) {
-
-            let style = Object.assign({}, this.props.domProps.style, {
-                position: 'relative',
-            });
-
-            return <div style={style}><div style={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%'
-            }}><Spin /></div></div>;
-
-        }
-        let metric = this.props.metrics[0];
-
-        let isFetching = this.state.network.isFetching;
-        let data = this.state.network.data;
+        let isFetching = network.isFetching;
+        let data = network.data;
 
         let series = [];
         let legend = {};
@@ -496,11 +501,35 @@ class ChartsArea extends ChartsBase {
             },
         };
 
-        let domProps = Object.assign({}, this.props.domProps, {
+        return config;
+}
 
-            onMouseMove: eventMouseMove
-        });
+    render() {
+        if (!this.props.metrics || this.state.network.isFetching) {
 
+            let style = Object.assign({}, this.props.domProps.style, {
+                position: 'relative',
+            });
+
+            return <div style={style}><div style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%'
+            }}><Spin /></div></div>;
+
+        }
+
+
+
+        let config = this.state.config;
+ 
+
+        let domProps = this.props.domProps;
+            if (this.state.network.data.length > 0) {
+                domProps = Object.assign({}, this.props.domProps, {
+                    onMouseMove: this.handleMouseMove.bind(this)
+                });
+            }
         return <ReactHighcharts ref="chart" config={config} domProps={domProps} />;
     }
 }
@@ -517,9 +546,10 @@ ChartsArea.childContextTypes = {
 */
 // Which part of the Redux global state does our component want to receive as props?
 function mapStateToProps(state) {
-    const { chart } = state;
+    const { chart,params } = state;
     return {
-        chart
+        chart,
+        params
     };
 }
 
