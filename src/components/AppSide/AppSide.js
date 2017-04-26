@@ -60,6 +60,7 @@ class AppSide extends Component {
               <Menu.Item key="21"><a href="/apmsys/dashboardList"><b>自定义仪表盘</b></a></Menu.Item>
               <Menu.Item key="22"><a href="/apmsys/platformList"><b>平台仪表盘</b></a></Menu.Item>
               <Menu.Item key="23"><a href="/apmsys/collectDashBoardList"><b>已收藏的仪表盘</b></a></Menu.Item>
+              <Menu.Item key="24"><a href="/apmsys/metriclist"><b>数据仪表盘</b></a></Menu.Item>
             </SubMenu>
             <Menu.Item key="3" className="b-event"><a href="/apmsys/eventflowList"><i className="ion-ios-timer"></i><b>事件流</b></a></Menu.Item>
             <Menu.Item key="4" className="b-danger"><a href="/apmsys/alarmList"><i className="ion-ios-bell"></i><b>报警/预警</b></a></Menu.Item>
