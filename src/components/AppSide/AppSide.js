@@ -72,6 +72,7 @@ class AppSide extends Component {
           <MenuItemGroup title="用户中心">
             <Menu.Item key="6" className="b-default"><a href="#"><i className="ion-information"></i><b>帮助</b></a></Menu.Item>
             <Menu.Item key="7" className="b-default"><a href="#"><i className="ion-ios-gear"></i><b>设置</b></a></Menu.Item>
+            <Menu.Item key="8" className="b-default"><a onClick={() => this.props.logout()}><i className="ion-ios-gear"></i><b>退出登录</b></a></Menu.Item>
           </MenuItemGroup>
         </Menu>
       </div>
